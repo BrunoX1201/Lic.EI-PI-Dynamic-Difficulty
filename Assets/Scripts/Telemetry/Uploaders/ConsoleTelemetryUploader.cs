@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Telemetry.Events;
 
-namespace Telemetry
+namespace Telemetry.Uploaders
 {
     public class ConsoleTelemetryUploader : ITelemetryUploader
     {

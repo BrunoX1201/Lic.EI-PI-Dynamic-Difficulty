@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Telemetry
+namespace Telemetry.Events
 {
     public interface ITelemetryEvent
     {

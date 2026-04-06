@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Telemetry.Events;
 
-namespace Telemetry
+namespace Telemetry.Uploaders
 {
     public interface ITelemetryUploader
     {
