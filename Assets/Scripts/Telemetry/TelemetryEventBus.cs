@@ -23,6 +23,7 @@ namespace Telemetry
             lock (_lock)
             {
                 if (!_listeners.Contains(handler)) return;
+
                 _listeners.Remove(handler);
             }
         }
@@ -36,7 +37,10 @@ namespace Telemetry
                 listenersCopy = new List<Action<ITelemetryEvent>>(_listeners);
             }
 
-            foreach (Action<ITelemetryEvent> listener in listenersCopy) listener?.Invoke(evt);
+            foreach (Action<ITelemetryEvent> listener in listenersCopy)
+            {
+                listener?.Invoke(evt);
+            }
         }
     }
 }

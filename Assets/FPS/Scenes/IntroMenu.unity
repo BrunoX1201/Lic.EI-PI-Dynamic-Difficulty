@@ -1291,7 +1291,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a3fb8863879d5b4fb6b1e631d0645f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TelemetryManager
-  m_BatchSize: 2
+  m_BatchSize: 1
 --- !u!4 &1906889059
 Transform:
   m_ObjectHideFlags: 0
