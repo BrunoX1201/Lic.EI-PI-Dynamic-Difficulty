@@ -2,6 +2,6 @@
 {
     public enum TelemetryEventType
     {
-        
+        Unknown = 0
     }
 }
