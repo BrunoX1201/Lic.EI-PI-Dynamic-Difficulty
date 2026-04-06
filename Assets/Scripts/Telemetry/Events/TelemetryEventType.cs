@@ -1,4 +1,4 @@
-﻿namespace Telemetry
+﻿namespace Telemetry.Events
 {
     public enum TelemetryEventType
     {

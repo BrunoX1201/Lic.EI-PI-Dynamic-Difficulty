@@ -1,5 +1,6 @@
 using Core;
 using Telemetry;
+using Telemetry.Uploaders;
 using UnityEngine;
 
 public class TelemetryManager : Singleton<TelemetryManager>
