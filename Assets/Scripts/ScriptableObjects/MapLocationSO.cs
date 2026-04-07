@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ScriptableObjects
 {
-    [CreateAssetMenu(fileName = "MapLocation", menuName = "Scriptable Objects/MapLocation")]
+    [CreateAssetMenu(fileName = "MapLocationSO", menuName = "Scriptable Objects/MapLocationSO")]
     public class MapLocationSO : ScriptableObject, ITelemetryMapLocation
     {
         [SerializeField] private int m_GameProgress;
