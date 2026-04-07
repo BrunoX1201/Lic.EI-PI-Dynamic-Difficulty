@@ -4,7 +4,7 @@
     {
         public InstigatorType Type { get; }
         public int Id { get; }
-        public ITelemetryMapLocation MapLocation { get; }
+        public ITelemetryMapLocation MapLocationSo { get; }
         public ITelemetryHealth Health { get; }
     }
 }
