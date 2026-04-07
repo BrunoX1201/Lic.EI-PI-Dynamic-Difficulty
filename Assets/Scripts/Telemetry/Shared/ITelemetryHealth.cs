@@ -2,7 +2,7 @@
 {
     public interface ITelemetryHealth
     {
-        public float Health { get; }
+        public float CurrentHealth { get; }
         public float MaxHealth { get; }
     }
 }
