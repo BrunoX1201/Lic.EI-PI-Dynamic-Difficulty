@@ -6,25 +6,32 @@ namespace Telemetry
 {
     public static class TelemetryEventBus
     {
-        private static readonly object _lock = new();
-        private static readonly List<Action<ITelemetryEvent>> _listeners = new();
+        private static readonly object s_lock = new();
+        private static readonly List<Action<ITelemetryEvent>> s_listeners = new();
 
         public static void Subscribe(Action<ITelemetryEvent> handler)
         {
-            lock (_lock)
+            lock (s_lock)
             {
-                if (_listeners.Contains(handler)) return;
-                _listeners.Add(handler);
+                if (s_listeners.Contains(handler))
+                {
+                    return;
+                }
+
+                s_listeners.Add(handler);
             }
         }
 
         public static void Unsubscribe(Action<ITelemetryEvent> handler)
         {
-            lock (_lock)
+            lock (s_lock)
             {
-                if (!_listeners.Contains(handler)) return;
+                if (!s_listeners.Contains(handler))
+                {
+                    return;
+                }
 
-                _listeners.Remove(handler);
+                s_listeners.Remove(handler);
             }
         }
 
@@ -32,9 +39,9 @@ namespace Telemetry
         {
             List<Action<ITelemetryEvent>> listenersCopy;
 
-            lock (_lock)
+            lock (s_lock)
             {
-                listenersCopy = new List<Action<ITelemetryEvent>>(_listeners);
+                listenersCopy = new List<Action<ITelemetryEvent>>(s_listeners);
             }
 
             foreach (Action<ITelemetryEvent> listener in listenersCopy)

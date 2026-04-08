@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f916288441070514d8c24bb50b807d32, type: 3}
   m_Name: FinalZone
   m_EditorClassIdentifier: Assembly-CSharp::ScriptableObjects.MapLocationSO
-  m_gameProgress: 0
-  m_location: 
+  m_gameProgress: 100
+  m_location: FinalZone

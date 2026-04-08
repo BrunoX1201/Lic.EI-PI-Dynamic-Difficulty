@@ -5,7 +5,7 @@ namespace Editor
     [CustomEditor(typeof(TelemetryManager))]
     public class TelemetryManagerEditor : UnityEditor.Editor
     {
-        private bool m_IsDebugGroupVisible = true;
+        private bool m_isDebugGroupVisible = true;
 
         public override void OnInspectorGUI()
         {
@@ -13,8 +13,8 @@ namespace Editor
 
 
             EditorGUILayout.Separator();
-            m_IsDebugGroupVisible = EditorGUILayout.BeginFoldoutHeaderGroup(m_IsDebugGroupVisible, "Debug");
-            if (m_IsDebugGroupVisible)
+            m_isDebugGroupVisible = EditorGUILayout.BeginFoldoutHeaderGroup(m_isDebugGroupVisible, "Debug");
+            if (m_isDebugGroupVisible)
             {
                 EditorGUILayout.LabelField("Events:");
 

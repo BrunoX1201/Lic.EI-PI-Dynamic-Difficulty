@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f916288441070514d8c24bb50b807d32, type: 3}
   m_Name: Room2_OpeningSmall
   m_EditorClassIdentifier: Assembly-CSharp::ScriptableObjects.MapLocationSO
-  m_GameProgress: 50
-  m_Location: Room2_OpeningSmall
+  m_gameProgress: 50
+  m_location: Room2_OpeningSmall

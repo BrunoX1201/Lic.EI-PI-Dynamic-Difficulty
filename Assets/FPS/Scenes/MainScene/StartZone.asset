@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f916288441070514d8c24bb50b807d32, type: 3}
   m_Name: StartZone
   m_EditorClassIdentifier: Assembly-CSharp::ScriptableObjects.MapLocationSO
-  m_GameProgress: 0
-  m_Location: StartZone
+  m_gameProgress: 0
+  m_location: StartZone

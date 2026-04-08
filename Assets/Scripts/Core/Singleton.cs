@@ -8,17 +8,21 @@ namespace Core
         {
             get
             {
-                if (_instance == null)
+                if (s_instance == null)
                 {
-                    _instance = (T)FindAnyObjectByType(typeof(T));
-                    if (_instance == null) SetupInstance();
+                    s_instance = (T)FindAnyObjectByType(typeof(T));
+                    if (s_instance == null)
+                    {
+                        SetupInstance();
+                    }
                 }
 
-                return _instance;
+                return s_instance;
             }
         }
 
-        private static T _instance;
+        private static T s_instance;
+
 
         public virtual void Awake()
         {
@@ -27,24 +31,24 @@ namespace Core
 
         private static void SetupInstance()
         {
-            _instance = (T)FindAnyObjectByType(typeof(T));
+            s_instance = (T)FindAnyObjectByType(typeof(T));
 
-            if (_instance == null)
+            if (s_instance == null)
             {
                 GameObject gameObj = new()
                 {
                     name = typeof(T).Name
                 };
-                _instance = gameObj.AddComponent<T>();
+                s_instance = gameObj.AddComponent<T>();
                 DontDestroyOnLoad(gameObj);
             }
         }
 
         private void RemoveDuplicates()
         {
-            if (_instance == null)
+            if (s_instance == null)
             {
-                _instance = this as T;
+                s_instance = this as T;
                 DontDestroyOnLoad(gameObject);
             }
             else

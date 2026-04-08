@@ -9,11 +9,11 @@ namespace Telemetry.Events
         public Dictionary<string, object> Data { get; } = new();
         public DateTime Timestamp { get; } = DateTime.UtcNow;
 
-        protected int _sessionId;
+        protected int m_sessionId;
 
         protected TelemetryEvent(int sessionId, TelemetryEventType eventType)
         {
-            _sessionId = sessionId;
+            m_sessionId = sessionId;
             EventType = eventType;
 
             Data.Add("SessionId", sessionId);
