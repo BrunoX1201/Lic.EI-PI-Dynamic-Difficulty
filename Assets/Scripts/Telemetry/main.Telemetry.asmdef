@@ -1,10 +1,8 @@
 {
-    "name": "fps.Gameplay",
+    "name": "main.Telemetry",
     "rootNamespace": "",
     "references": [
-        "GUID:9c5543eabb73a6249ac07b2c065ee8b4",
-        "GUID:75469ad4d38634e559750d17036d5f7c",
-        "GUID:99a48927ef6fdf543afd8acfed9ee12f"
+        "GUID:9c5543eabb73a6249ac07b2c065ee8b4"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
