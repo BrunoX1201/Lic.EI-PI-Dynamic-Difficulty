@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949260c8b4ab5ba448b85b6235ae07e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapZone
-  m_MapLocationSO: {fileID: 11400000, guid: b3e6553db82ea614fac797b06164637b, type: 2}
+  m_mapLocationSO: {fileID: 11400000, guid: b3e6553db82ea614fac797b06164637b, type: 2}
 --- !u!65 &250561
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -443,7 +443,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949260c8b4ab5ba448b85b6235ae07e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapZone
-  m_MapLocationSO: {fileID: 11400000, guid: d049999eb981fcf4aac03c428008ad76, type: 2}
+  m_mapLocationSO: {fileID: 11400000, guid: d049999eb981fcf4aac03c428008ad76, type: 2}
 --- !u!65 &667004391
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -612,7 +612,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f2d9b93698540fe9a26b9d46c198c76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Managers.InstigatorsManager
-  m_IdCounterStartValue: 1
+  m_idCounterStartValue: 1
 --- !u!4 &828104180
 Transform:
   m_ObjectHideFlags: 0
@@ -881,7 +881,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949260c8b4ab5ba448b85b6235ae07e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapZone
-  m_MapLocationSO: {fileID: 11400000, guid: beba1f78c3dc24041a4c76c4c18011a5, type: 2}
+  m_mapLocationSO: {fileID: 11400000, guid: beba1f78c3dc24041a4c76c4c18011a5, type: 2}
 --- !u!65 &1157397360
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -930,8 +930,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1291632636}
-  - component: {fileID: 1291632638}
   - component: {fileID: 1291632637}
+  - component: {fileID: 1291632638}
   m_Layer: 0
   m_Name: Opening_02
   m_TagString: Untagged
@@ -990,7 +990,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949260c8b4ab5ba448b85b6235ae07e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapZone
-  m_MapLocationSO: {fileID: 11400000, guid: dac2ae4b972e3d04bb42a60a643dfc98, type: 2}
+  m_mapLocationSO: {fileID: 11400000, guid: dac2ae4b972e3d04bb42a60a643dfc98, type: 2}
 --- !u!4 &1342970745 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5963937743390997973, guid: 9b7d8a511d161be4d9c32aae2e937170,
@@ -1545,7 +1545,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a3fb8863879d5b4fb6b1e631d0645f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TelemetryManager
-  m_BatchSize: 10
+  m_telemetryServiceSettings: {fileID: 11400000, guid: e010f008be0705b41aa5903ffde76ed2,
+    type: 2}
 --- !u!4 &2045477756
 Transform:
   m_ObjectHideFlags: 0
@@ -2336,6 +2337,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2729281213352223116}
+  - component: {fileID: 2729281213352223118}
+  - component: {fileID: 2729281213352223117}
   m_Layer: 0
   m_Name: Room_03
   m_TagString: Untagged
@@ -2378,6 +2381,40 @@ Transform:
   - {fileID: 1346842412}
   m_Father: {fileID: 2729281214382627287}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2729281213352223117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2729281213352223107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 949260c8b4ab5ba448b85b6235ae07e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MapZone
+  m_mapLocationSO: {fileID: 11400000, guid: 16cab5d16b7adfc42be8765263f25069, type: 2}
+--- !u!65 &2729281213352223118
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2729281213352223107}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 44.595726, y: 8.0985365, z: 44.461792}
+  m_Center: {x: 18.51646, y: -2.075987, z: 27.454086}
 --- !u!1001 &2729281213401661242
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2603,7 +2640,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949260c8b4ab5ba448b85b6235ae07e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapZone
-  m_MapLocationSO: {fileID: 11400000, guid: 55e9148146e6e244c8c185a02313d1d6, type: 2}
+  m_mapLocationSO: {fileID: 11400000, guid: 55e9148146e6e244c8c185a02313d1d6, type: 2}
 --- !u!65 &2729281213600907716
 BoxCollider:
   m_ObjectHideFlags: 0

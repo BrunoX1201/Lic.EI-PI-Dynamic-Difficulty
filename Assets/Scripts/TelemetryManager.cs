@@ -1,15 +1,16 @@
 using Core;
+using ScriptableObjects;
 using Telemetry;
 using Telemetry.Uploaders;
 using UnityEngine;
 
 public class TelemetryManager : Singleton<TelemetryManager>
 {
-    [SerializeField] private int m_BatchSize = 10;
+    [SerializeField] private TelemetryServiceSettingsSO m_telemetryServiceSettings;
 
     public override void Awake()
     {
         base.Awake();
-        TelemetryService.Initialize(new ConsoleTelemetryUploader(), m_BatchSize);
+        TelemetryService.Initialize(new ConsoleTelemetryUploader(), m_telemetryServiceSettings.BatchSize);
     }
 }
