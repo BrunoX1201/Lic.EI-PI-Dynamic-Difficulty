@@ -15,6 +15,8 @@ public class Instigator : MonoBehaviour, ITelemetryInstigator
     public ITelemetryMapLocation MapLocation => m_MapLocationSO;
     public ITelemetryHealth Health => m_Health;
 
+    private readonly object _lock = new();
+
     private MapLocationSO m_MapLocationSO;
     private Health m_Health;
 
