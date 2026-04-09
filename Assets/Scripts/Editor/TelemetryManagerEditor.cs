@@ -36,6 +36,9 @@ namespace Editor
                 EditorGUILayout.EndHorizontal();
                 */
 
+                TelemetryEventBus.IsDebugOn = EditorGUILayout.Toggle("Debug Mode", TelemetryEventBus.IsDebugOn);
+                EditorGUILayout.LabelField("Events:");
+
                 HandlePlayerAttackEvent();
 
                 EditorGUILayout.EndVertical();
@@ -46,8 +49,6 @@ namespace Editor
 
         private void HandlePlayerAttackEvent()
         {
-            TelemetryEventBus.IsDebugOn = EditorGUILayout.Toggle("Debug Mode", TelemetryEventBus.IsDebugOn);
-            EditorGUILayout.LabelField("Events:");
             EditorGUILayout.BeginVertical("box");
             EditorGUILayout.LabelField("PlayerAttacked", EditorStyles.boldLabel);
             m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
