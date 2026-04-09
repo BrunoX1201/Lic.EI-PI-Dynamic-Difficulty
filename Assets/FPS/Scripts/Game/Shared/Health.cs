@@ -19,7 +19,7 @@ namespace Unity.FPS.Game
 
         public UnityAction<float, GameObject> OnDamaged;
         public UnityAction<float> OnHealed;
-        public UnityAction OnDie;
+        public UnityAction<GameObject> OnDie;
 
         private bool m_IsDead;
 
@@ -75,7 +75,7 @@ namespace Unity.FPS.Game
                 OnDamaged?.Invoke(trueDamageAmount, damageSource);
             }
 
-            HandleDeath();
+            HandleDeath(damageSource);
         }
 
         public void Kill()
@@ -85,10 +85,10 @@ namespace Unity.FPS.Game
             // call OnDamage action
             OnDamaged?.Invoke(m_MaxHealth, null);
 
-            HandleDeath();
+            HandleDeath(null);
         }
 
-        private void HandleDeath()
+        private void HandleDeath(GameObject instigator)
         {
             if (m_IsDead)
             {
@@ -99,7 +99,7 @@ namespace Unity.FPS.Game
             if (CurrentHealth <= 0f)
             {
                 m_IsDead = true;
-                OnDie?.Invoke();
+                OnDie?.Invoke(instigator);
             }
         }
     }

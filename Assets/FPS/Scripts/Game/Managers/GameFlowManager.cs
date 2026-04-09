@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.FPS.Telemetry;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Unity.FPS.Game
@@ -30,6 +31,8 @@ namespace Unity.FPS.Game
 
         public bool GameIsEnding { get; private set; }
 
+        private ActorsManager m_actorsManager;
+
         private float m_TimeLoadEndGameScene;
         private string m_SceneToLoad;
 
@@ -43,7 +46,10 @@ namespace Unity.FPS.Game
         {
             AudioUtility.SetMasterVolume(1);
 
-            EventManager.Broadcast(Events.GameStartEvent);
+            m_actorsManager = FindAnyObjectByType<ActorsManager>();
+            DebugUtility.HandleErrorIfNullFindObject<ActorsManager, GameFlowManager>(m_actorsManager, this);
+
+            StatisticsManager.Instance.StartAliveTimer();
         }
 
         private void Update()
@@ -77,6 +83,13 @@ namespace Unity.FPS.Game
 
         private void OnPlayerDeath(PlayerDeathEvent evt)
         {
+            StatisticsManager.Instance.StopAliveTimer();
+            StatisticsManager.Instance.IncrementDeathCount(1);
+
+            PlayerDiedTelemetryData data = new(evt.Instigator, StatisticsManager.Instance.DeathCount,
+                StatisticsManager.Instance.TimeAlive.DurationInSeconds, m_actorsManager.Player.transform.position);
+            TelemetryService.TrackPlayerDeath(0, data);
+
             EndGame(false);
         }
 

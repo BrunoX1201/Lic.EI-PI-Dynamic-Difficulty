@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Unity.FPS.Telemetry
 {
@@ -23,10 +25,23 @@ namespace Unity.FPS.Telemetry
             s_batcher = null;
         }
 
-        public static void TrackPlayerDeath(PlayerDiedTelemetryData eventData)
+        public static void TrackPlayerDeath(int sessionId, PlayerDiedTelemetryData eventData)
         {
-            PlayerDiedTelemetry evt = new(0, eventData);
+            PlayerDiedTelemetry evt = new(sessionId, eventData);
+
+            LogEvent(evt);
             TelemetryEventBus.Publish(evt);
+        }
+
+        private static void LogEvent(ITelemetryEvent evt)
+        {
+            string msg = $"[TELEMETRY] Event: {evt.GetType().Name}\n\nData:";
+            foreach (KeyValuePair<string, object> item in evt.Data)
+            {
+                msg += $"\n\t{item.Key} => {item.Value}";
+            }
+
+            Debug.Log(msg);
         }
     }
 }
