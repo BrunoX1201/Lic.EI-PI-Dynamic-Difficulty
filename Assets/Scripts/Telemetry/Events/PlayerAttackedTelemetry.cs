@@ -1,22 +1,10 @@
-﻿using Telemetry.Enums;
+﻿using Telemetry.Shared;
 using UnityEngine;
 
 namespace Telemetry.Events
 {
     public class PlayerAttackedTelemetry : TelemetryEvent
     {
-        public int PlayerId { get; }
-        public int TargetId { get; }
-        public bool IsHit { get; }
-        public float Accuracy { get; }
-        public Vector3 PlayerPosition { get; }
-        public Weapon WeaponUsed { get; }
-        public float DamagePerHit { get; }
-        public AttackType AttackType { get; }
-        public float RemainingAmmo { get; }
-
-        // O override da propriedade Data da interface/classe base
-
         public PlayerAttackedTelemetry(
             int sessionId,
             int playerId,
@@ -30,27 +18,15 @@ namespace Telemetry.Events
             float remainingAmmo)
             : base(sessionId, TelemetryEventType.PlayerAttacked)
         {
-            PlayerId = playerId;
-            TargetId = targetId;
-            IsHit = isHit;
-            Accuracy = accuracy;
-            PlayerPosition = playerPosition;
-            WeaponUsed = weaponUsed;
-            DamagePerHit = damagePerHit;
-            AttackType = attackType;
-            RemainingAmmo = remainingAmmo;
-            {
-                Data.Add("PlayerId", PlayerId);
-                Data.Add("TargetId", TargetId);
-                Data.Add("IsHit", IsHit);
-                Data.Add("Accuracy", Accuracy);
-                Data.Add("PlayerPosition", PlayerPosition);
-                Data.Add("WeaponUsed", WeaponUsed.ToString());
-                Data.Add("DamagePerHit", DamagePerHit);
-                Data.Add("AttackType", AttackType);
-                Data.Add("RemainingAmmo", RemainingAmmo);
-            }
-            ;
+            Data.Add("PlayerId", playerId);
+            Data.Add("TargetId", targetId);
+            Data.Add("IsHit", isHit);
+            Data.Add("Accuracy", accuracy);
+            Data.Add("PlayerPosition", playerPosition);
+            Data.Add("WeaponUsed", weaponUsed.ToString());
+            Data.Add("DamagePerHit", damagePerHit);
+            Data.Add("AttackType", attackType);
+            Data.Add("RemainingAmmo", remainingAmmo);
         }
     }
 }
