@@ -1,4 +1,4 @@
-﻿using Telemetry.Shared;
+﻿using Unity.FPS.Telemetry;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -51,13 +51,18 @@ namespace Unity.FPS.Game
 
             // call OnHeal action
             float trueHealAmount = CurrentHealth - healthBefore;
-            if (trueHealAmount > 0f) OnHealed?.Invoke(trueHealAmount);
+            if (trueHealAmount > 0f)
+            {
+                OnHealed?.Invoke(trueHealAmount);
+            }
         }
 
         public void TakeDamage(float damage, GameObject damageSource)
         {
             if (Invincible)
+            {
                 return;
+            }
 
             float healthBefore = CurrentHealth;
             CurrentHealth -= damage;
@@ -65,7 +70,10 @@ namespace Unity.FPS.Game
 
             // call OnDamage action
             float trueDamageAmount = healthBefore - CurrentHealth;
-            if (trueDamageAmount > 0f) OnDamaged?.Invoke(trueDamageAmount, damageSource);
+            if (trueDamageAmount > 0f)
+            {
+                OnDamaged?.Invoke(trueDamageAmount, damageSource);
+            }
 
             HandleDeath();
         }
@@ -83,7 +91,9 @@ namespace Unity.FPS.Game
         private void HandleDeath()
         {
             if (m_IsDead)
+            {
                 return;
+            }
 
             // call OnDie action
             if (CurrentHealth <= 0f)
