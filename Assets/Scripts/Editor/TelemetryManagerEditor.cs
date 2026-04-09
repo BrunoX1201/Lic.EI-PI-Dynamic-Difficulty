@@ -1,4 +1,5 @@
 using Telemetry;
+using Telemetry.Events;
 using Telemetry.Shared;
 using UnityEditor;
 using UnityEngine;
@@ -64,15 +65,16 @@ namespace Editor
             {
                 TelemetryService.TrackPlayerAttack(
                     m_sessionId,
-                    m_playerId,
-                    m_targetId,
-                    m_isHit,
-                    m_accuracy,
-                    m_playerPosition,
-                    m_weaponUsed,
-                    m_damagePerHit,
-                    m_attackType,
-                    m_remainingAmmo);
+                    new PlayerAttackedTelemetryData(
+                        m_playerId,
+                        m_targetId,
+                        m_isHit,
+                        m_accuracy,
+                        m_playerPosition,
+                        m_weaponUsed,
+                        m_damagePerHit,
+                        m_attackType,
+                        m_remainingAmmo));
                 Debug.Log("PlayerAttacked telemetry event published.");
             }
         }

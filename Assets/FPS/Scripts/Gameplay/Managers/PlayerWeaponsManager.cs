@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Telemetry;
+using Telemetry.Events;
 using Telemetry.Shared;
 using Unity.FPS.Game;
 using UnityEngine;
@@ -534,10 +535,13 @@ namespace Unity.FPS.Gameplay
             //TODO: Change "gameObject.GetInstanceID()" to "Instigator.id"
             //TODO: Resolve sessionId"
 
-            TelemetryService.TrackPlayerAttack(1, gameObject.GetInstanceID(), targetId, isHit, accuracy,
+            PlayerAttackedTelemetryData telemetryData = new(gameObject.GetInstanceID(),
+                targetId, isHit, accuracy,
                 transform.position, GetTelemetryWeapon(activeWeapon), GetWeaponDamage(activeWeapon),
                 GetTelemetryAttackType(activeWeapon),
                 activeWeapon != null ? activeWeapon.GetCurrentAmmo() : 0f);
+
+            TelemetryService.TrackPlayerAttack(1, telemetryData);
         }
 
         private bool TryGetCurrentAimTargetId(out int targetId)

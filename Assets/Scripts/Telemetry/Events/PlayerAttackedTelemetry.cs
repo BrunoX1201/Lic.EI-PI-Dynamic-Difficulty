@@ -3,10 +3,19 @@ using UnityEngine;
 
 namespace Telemetry.Events
 {
-    public class PlayerAttackedTelemetry : TelemetryEvent
+    public readonly struct PlayerAttackedTelemetryData
     {
-        public PlayerAttackedTelemetry(
-            int sessionId,
+        public int PlayerId { get; }
+        public int TargetId { get; }
+        public bool IsHit { get; }
+        public float Accuracy { get; }
+        public Vector3 PlayerPosition { get; }
+        public Weapon WeaponUsed { get; }
+        public float DamagePerHit { get; }
+        public AttackType AttackType { get; }
+        public float RemainingAmmo { get; }
+
+        public PlayerAttackedTelemetryData(
             int playerId,
             int targetId,
             bool isHit,
@@ -16,17 +25,33 @@ namespace Telemetry.Events
             float damagePerHit,
             AttackType attackType,
             float remainingAmmo)
+        {
+            PlayerId = playerId;
+            TargetId = targetId;
+            IsHit = isHit;
+            Accuracy = accuracy;
+            PlayerPosition = playerPosition;
+            WeaponUsed = weaponUsed;
+            DamagePerHit = damagePerHit;
+            AttackType = attackType;
+            RemainingAmmo = remainingAmmo;
+        }
+    }
+
+    public class PlayerAttackedTelemetry : TelemetryEvent
+    {
+        public PlayerAttackedTelemetry(int sessionId, PlayerAttackedTelemetryData data)
             : base(sessionId, TelemetryEventType.PlayerAttacked)
         {
-            Data.Add("PlayerId", playerId);
-            Data.Add("TargetId", targetId);
-            Data.Add("IsHit", isHit);
-            Data.Add("Accuracy", accuracy);
-            Data.Add("PlayerPosition", playerPosition);
-            Data.Add("WeaponUsed", weaponUsed.ToString());
-            Data.Add("DamagePerHit", damagePerHit);
-            Data.Add("AttackType", attackType);
-            Data.Add("RemainingAmmo", remainingAmmo);
+            Data.Add("PlayerId", data.PlayerId);
+            Data.Add("TargetId", data.TargetId);
+            Data.Add("IsHit", data.IsHit);
+            Data.Add("Accuracy", data.Accuracy);
+            Data.Add("PlayerPosition", data.PlayerPosition);
+            Data.Add("WeaponUsed", data.WeaponUsed.ToString());
+            Data.Add("DamagePerHit", data.DamagePerHit);
+            Data.Add("AttackType", data.AttackType);
+            Data.Add("RemainingAmmo", data.RemainingAmmo);
         }
     }
 }
