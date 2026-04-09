@@ -1,5 +1,8 @@
 ﻿using System.Threading.Tasks;
+using Telemetry.Events;
+using Telemetry.Shared;
 using Telemetry.Uploaders;
+using UnityEngine;
 
 namespace Telemetry
 {
@@ -22,6 +25,25 @@ namespace Telemetry
         {
             _batcher.Dispose();
             _batcher = null;
+        }
+
+        public static void TrackPlayerAttack(int sessionId, int playerId, int targetId, bool isHit, float accuracy,
+            Vector3 playerPosition,
+            Weapon weaponUsed, float damagePerHit, AttackType attackType, float remainingAmmo)
+        {
+            PlayerAttackedTelemetry telemetryEvent = new(
+                sessionId,
+                playerId,
+                targetId,
+                isHit,
+                accuracy,
+                playerPosition,
+                weaponUsed,
+                damagePerHit,
+                attackType,
+                remainingAmmo);
+
+            TelemetryEventBus.Publish(telemetryEvent);
         }
     }
 }
