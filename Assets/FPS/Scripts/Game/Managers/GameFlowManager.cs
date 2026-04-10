@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.FPS.Telemetry;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Unity.FPS.Game
@@ -17,8 +18,8 @@ namespace Unity.FPS.Game
         [Tooltip("Duration of delay before the fade-to-black, if winning")]
         public float DelayBeforeFadeToBlack = 4f;
 
-        [Tooltip("Win game message")]
-        public string WinGameMessage;
+        [Tooltip("Win game message")] public string WinGameMessage;
+
         [Tooltip("Duration of delay before the win message")]
         public float DelayBeforeWinMessage = 2f;
 
@@ -30,21 +31,28 @@ namespace Unity.FPS.Game
 
         public bool GameIsEnding { get; private set; }
 
-        float m_TimeLoadEndGameScene;
-        string m_SceneToLoad;
+        private ActorsManager m_actorsManager;
 
-        void Awake()
+        private float m_TimeLoadEndGameScene;
+        private string m_SceneToLoad;
+
+        private void Awake()
         {
             EventManager.AddListener<AllObjectivesCompletedEvent>(OnAllObjectivesCompleted);
             EventManager.AddListener<PlayerDeathEvent>(OnPlayerDeath);
         }
 
-        void Start()
+        private void Start()
         {
             AudioUtility.SetMasterVolume(1);
+
+            m_actorsManager = FindAnyObjectByType<ActorsManager>();
+            DebugUtility.HandleErrorIfNullFindObject<ActorsManager, GameFlowManager>(m_actorsManager, this);
+
+            StatisticsManager.Instance.StartAliveTimer();
         }
 
-        void Update()
+        private void Update()
         {
             if (GameIsEnding)
             {
@@ -62,10 +70,30 @@ namespace Unity.FPS.Game
             }
         }
 
-        void OnAllObjectivesCompleted(AllObjectivesCompletedEvent evt) => EndGame(true);
-        void OnPlayerDeath(PlayerDeathEvent evt) => EndGame(false);
+        private void OnDestroy()
+        {
+            EventManager.RemoveListener<AllObjectivesCompletedEvent>(OnAllObjectivesCompleted);
+            EventManager.RemoveListener<PlayerDeathEvent>(OnPlayerDeath);
+        }
 
-        void EndGame(bool win)
+        private void OnAllObjectivesCompleted(AllObjectivesCompletedEvent evt)
+        {
+            EndGame(true);
+        }
+
+        private void OnPlayerDeath(PlayerDeathEvent evt)
+        {
+            StatisticsManager.Instance.StopAliveTimer();
+            StatisticsManager.Instance.IncrementDeathCount(1);
+
+            PlayerDiedTelemetryData data = new(evt.Instigator, StatisticsManager.Instance.DeathCount,
+                StatisticsManager.Instance.TimeAlive.DurationInSeconds, m_actorsManager.Player.transform.position);
+            TelemetryService.TrackPlayerDeath(0, data);
+
+            EndGame(false);
+        }
+
+        private void EndGame(bool win)
         {
             // unlocks the cursor before leaving the scene, to be able to click buttons
             Cursor.lockState = CursorLockMode.None;
@@ -80,7 +108,7 @@ namespace Unity.FPS.Game
                 m_TimeLoadEndGameScene = Time.time + EndSceneLoadDelay + DelayBeforeFadeToBlack;
 
                 // play a sound on win
-                var audioSource = gameObject.AddComponent<AudioSource>();
+                AudioSource audioSource = gameObject.AddComponent<AudioSource>();
                 audioSource.clip = VictorySound;
                 audioSource.playOnAwake = false;
                 audioSource.outputAudioMixerGroup = AudioUtility.GetAudioGroup(AudioUtility.AudioGroups.HUDVictory);
@@ -104,12 +132,6 @@ namespace Unity.FPS.Game
                 m_SceneToLoad = LoseSceneName;
                 m_TimeLoadEndGameScene = Time.time + EndSceneLoadDelay;
             }
-        }
-
-        void OnDestroy()
-        {
-            EventManager.RemoveListener<AllObjectivesCompletedEvent>(OnAllObjectivesCompleted);
-            EventManager.RemoveListener<PlayerDeathEvent>(OnPlayerDeath);
         }
     }
 }
