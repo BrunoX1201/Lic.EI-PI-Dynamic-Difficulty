@@ -43,6 +43,10 @@ namespace Unity.FPS.Telemetry
             {
                 await m_uploader.UploadAsync(events);
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
             finally
             {
                 lock (m_lock)

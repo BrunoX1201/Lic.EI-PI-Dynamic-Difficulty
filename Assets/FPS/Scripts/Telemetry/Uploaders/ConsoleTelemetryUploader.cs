@@ -11,7 +11,10 @@ namespace Unity.FPS.Telemetry
         {
             foreach (ITelemetryEvent evt in events)
             {
-                string json = JsonConvert.SerializeObject(evt.Data);
+                string json = JsonConvert.SerializeObject(evt.Data, Formatting.Indented, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
                 Console.WriteLine($"[TELEMETRY] {evt.EventType} at {evt.Timestamp:HH:mm:ss} - {json}");
             }
 

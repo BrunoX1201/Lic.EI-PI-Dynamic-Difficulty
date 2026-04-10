@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5376dd8ccc467e4e87d4c3116edc0fc, type: 3}
   m_Name: TelemetryServiceSettings
   m_EditorClassIdentifier: Assembly-CSharp::ScriptableObjects.TelemetryServiceSettingsSO
-  BatchSize: 2
+  BatchSize: 1
