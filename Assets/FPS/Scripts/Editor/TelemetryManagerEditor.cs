@@ -15,6 +15,8 @@ namespace Unity.FPS.EditorExt
         private Transform m_playerPosition;
         private Instigator m_instigator;
 
+        private bool m_showPlayerDeathEvent;
+
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
@@ -28,8 +30,11 @@ namespace Unity.FPS.EditorExt
 
                 /* Example to use for any event
                 EditorGUILayout.BeginHorizontal("box");
-                EditorGUILayout.Label("Example");
-                if (EditorGUILayout.Button("Track", EditorGUILayout.Width(80))) TelemetryService.Track...(...);
+                m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "event");
+                if (m_showPlayerDeathEvent)
+                {
+                    if (EditorGUILayout.Button("Publish", EditorGUILayout.Width(80))) TelemetryService.Track...(...);
+                }
                 EditorGUILayout.EndHorizontal();
                 */
 
@@ -42,35 +47,37 @@ namespace Unity.FPS.EditorExt
         private void HandlePlayerDeathEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            EditorGUILayout.LabelField("Player Died");
-
-            EditorGUILayout.Space(2);
-            m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
-
-
-            EditorGUILayout.Space(2);
-            m_instigator =
-                (Instigator)EditorGUILayout.ObjectField("Instigator:", m_instigator, typeof(Instigator), true);
-
-            EditorGUILayout.Space(2);
-            m_deathCount = EditorGUILayout.IntField("Death Count", m_deathCount);
-
-            EditorGUILayout.Space(2);
-            m_timeAliveSeconds = EditorGUILayout.IntField("Time Alive (Seconds):", m_timeAliveSeconds);
-
-            EditorGUILayout.Space(2);
-            m_playerPosition =
-                (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition, typeof(Transform), true);
-
-            EditorGUILayout.Space(2);
-            if (GUILayout.Button("Publish", GUILayout.Width(80)))
+            m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "Player Died");
+            if (m_showPlayerDeathEvent)
             {
-                PlayerDiedTelemetryData data = new(m_instigator, m_deathCount, m_timeAliveSeconds,
-                    m_playerPosition.position);
+                EditorGUILayout.Space(2);
+                m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
 
-                TelemetryService.TrackPlayerDeath(m_sessionId, data);
+
+                EditorGUILayout.Space(2);
+                m_instigator =
+                    (Instigator)EditorGUILayout.ObjectField("Instigator:", m_instigator, typeof(Instigator), true);
+
+                EditorGUILayout.Space(2);
+                m_deathCount = EditorGUILayout.IntField("Death Count", m_deathCount);
+
+                EditorGUILayout.Space(2);
+                m_timeAliveSeconds = EditorGUILayout.IntField("Time Alive (Seconds):", m_timeAliveSeconds);
+
+                EditorGUILayout.Space(2);
+                m_playerPosition =
+                    (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition, typeof(Transform),
+                        true);
+
+                EditorGUILayout.Space(2);
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    PlayerDiedTelemetryData data = new(m_instigator, m_deathCount, m_timeAliveSeconds,
+                        m_playerPosition.position);
+
+                    TelemetryService.TrackPlayerDeath(m_sessionId, data);
+                }
             }
-
 
             EditorGUILayout.EndVertical();
         }
