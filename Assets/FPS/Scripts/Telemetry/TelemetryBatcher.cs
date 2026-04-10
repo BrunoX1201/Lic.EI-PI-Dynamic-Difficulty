@@ -48,6 +48,11 @@ namespace Unity.FPS.Telemetry
                 lock (m_lock)
                 {
                     m_isFlushing = false;
+
+                    if (m_batch.Count >= m_batchSize)
+                    {
+                        _ = FlushAsync();
+                    }
                 }
             }
         }
