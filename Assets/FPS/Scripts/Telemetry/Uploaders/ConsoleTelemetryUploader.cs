@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Telemetry.Events;
 
-namespace Telemetry.Uploaders
+namespace Unity.FPS.Telemetry
 {
     public class ConsoleTelemetryUploader : ITelemetryUploader
     {
@@ -12,7 +11,10 @@ namespace Telemetry.Uploaders
         {
             foreach (ITelemetryEvent evt in events)
             {
-                string json = JsonConvert.SerializeObject(evt.Data);
+                string json = JsonConvert.SerializeObject(evt.Data, Formatting.Indented, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
                 Console.WriteLine($"[TELEMETRY] {evt.EventType} at {evt.Timestamp:HH:mm:ss} - {json}");
             }
 

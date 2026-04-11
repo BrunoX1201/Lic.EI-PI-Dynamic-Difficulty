@@ -1,38 +1,53 @@
-﻿using UnityEngine;
+﻿using Unity.FPS.Telemetry;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace Unity.FPS.Game
 {
-    public class Health : MonoBehaviour
+    public class Health : MonoBehaviour, ITelemetryHealth
     {
-        [Tooltip("Maximum amount of health")] public float MaxHealth = 10f;
-
         [Tooltip("Health ratio at which the critical health vignette starts appearing")]
         public float CriticalHealthRatio = 0.3f;
 
-        public UnityAction<float, GameObject> OnDamaged;
-        public UnityAction<float> OnHealed;
-        public UnityAction OnDie;
+        [Tooltip("Maximum amount of health")] [SerializeField]
+        private float m_MaxHealth = 10f;
 
         public float CurrentHealth { get; set; }
         public bool Invincible { get; set; }
-        public bool CanPickup() => CurrentHealth < MaxHealth;
 
-        public float GetRatio() => CurrentHealth / MaxHealth;
-        public bool IsCritical() => GetRatio() <= CriticalHealthRatio;
+        public float MaxHealth => m_MaxHealth;
 
-        bool m_IsDead;
+        public UnityAction<float, GameObject> OnDamaged;
+        public UnityAction<float> OnHealed;
+        public UnityAction<GameObject> OnDie;
 
-        void Start()
+        private bool m_IsDead;
+
+        private void Start()
         {
-            CurrentHealth = MaxHealth;
+            CurrentHealth = m_MaxHealth;
+        }
+
+        public bool CanPickup()
+        {
+            return CurrentHealth < m_MaxHealth;
+        }
+
+        public float GetRatio()
+        {
+            return CurrentHealth / m_MaxHealth;
+        }
+
+        public bool IsCritical()
+        {
+            return GetRatio() <= CriticalHealthRatio;
         }
 
         public void Heal(float healAmount)
         {
             float healthBefore = CurrentHealth;
             CurrentHealth += healAmount;
-            CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
+            CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, m_MaxHealth);
 
             // call OnHeal action
             float trueHealAmount = CurrentHealth - healthBefore;
@@ -45,11 +60,13 @@ namespace Unity.FPS.Game
         public void TakeDamage(float damage, GameObject damageSource)
         {
             if (Invincible)
+            {
                 return;
+            }
 
             float healthBefore = CurrentHealth;
             CurrentHealth -= damage;
-            CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
+            CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, m_MaxHealth);
 
             // call OnDamage action
             float trueDamageAmount = healthBefore - CurrentHealth;
@@ -58,7 +75,7 @@ namespace Unity.FPS.Game
                 OnDamaged?.Invoke(trueDamageAmount, damageSource);
             }
 
-            HandleDeath();
+            HandleDeath(damageSource);
         }
 
         public void Kill()
@@ -66,21 +83,23 @@ namespace Unity.FPS.Game
             CurrentHealth = 0f;
 
             // call OnDamage action
-            OnDamaged?.Invoke(MaxHealth, null);
+            OnDamaged?.Invoke(m_MaxHealth, null);
 
-            HandleDeath();
+            HandleDeath(null);
         }
 
-        void HandleDeath()
+        private void HandleDeath(GameObject instigator)
         {
             if (m_IsDead)
+            {
                 return;
+            }
 
             // call OnDie action
             if (CurrentHealth <= 0f)
             {
                 m_IsDead = true;
-                OnDie?.Invoke();
+                OnDie?.Invoke(instigator);
             }
         }
     }

@@ -1,8 +1,8 @@
-﻿namespace Telemetry.Shared
+﻿namespace Unity.FPS.Telemetry
 {
     public interface ITelemetryHealth
     {
-        public float Health { get; }
+        public float CurrentHealth { get; }
         public float MaxHealth { get; }
     }
 }

@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Telemetry.Events;
 
-namespace Telemetry.Uploaders
+namespace Unity.FPS.Telemetry
 {
     public interface ITelemetryUploader
     {

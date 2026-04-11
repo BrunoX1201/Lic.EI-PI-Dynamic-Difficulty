@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Telemetry.Events
+namespace Unity.FPS.Telemetry
 {
     public interface ITelemetryEvent
     {

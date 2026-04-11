@@ -1,37 +1,47 @@
-﻿using System.Threading.Tasks;
-using Telemetry.Events;
-using Telemetry.Uploaders;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using UnityEngine;
 
-namespace Telemetry
+namespace Unity.FPS.Telemetry
 {
     public static class TelemetryService
     {
-        private static TelemetryBatcher _batcher;
+        private static TelemetryBatcher s_batcher;
 
         public static void Initialize(ITelemetryUploader uploader = null, int batchSize = 10)
         {
-            _batcher = new TelemetryBatcher(batchSize, uploader);
+            s_batcher = new TelemetryBatcher(batchSize, uploader);
         }
 
         public static async ValueTask ShutdownAsync()
         {
-            await _batcher.DisposeAsync();
-            _batcher = null;
+            await s_batcher.DisposeAsync();
+            s_batcher = null;
         }
 
         public static void Shutdown()
         {
-            _batcher.Dispose();
-            _batcher = null;
+            s_batcher.Dispose();
+            s_batcher = null;
         }
 
-        public static void TrackPlayerAttack(int sessionId, PlayerAttackedTelemetryData telemetryData)
+        public static void TrackPlayerDeath(int sessionId, PlayerDiedTelemetryData eventData)
         {
-            PlayerAttackedTelemetry telemetryEvent = new(
-                sessionId,
-                telemetryData);
+            PlayerDiedTelemetry evt = new(sessionId, eventData);
 
-            TelemetryEventBus.Publish(telemetryEvent);
+            LogEvent(evt);
+            TelemetryEventBus.Publish(evt);
+        }
+
+        private static void LogEvent(ITelemetryEvent evt)
+        {
+            string msg = $"[TELEMETRY] Event: {evt.GetType().Name}\n\nData:";
+            foreach (KeyValuePair<string, object> item in evt.Data)
+            {
+                msg += $"\n\t{item.Key} => {item.Value}";
+            }
+
+            Debug.Log(msg);
         }
     }
 }

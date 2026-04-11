@@ -1,8 +1,8 @@
-﻿namespace Telemetry.Events
+﻿namespace Unity.FPS.Telemetry
 {
     public enum TelemetryEventType
     {
         Unknown = 0,
-        PlayerAttacked = 2
+        PlayerDied = 1
     }
 }

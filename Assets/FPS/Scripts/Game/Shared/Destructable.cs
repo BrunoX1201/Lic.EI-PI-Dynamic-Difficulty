@@ -4,9 +4,9 @@ namespace Unity.FPS.Game
 {
     public class Destructable : MonoBehaviour
     {
-        Health m_Health;
+        private Health m_Health;
 
-        void Start()
+        private void Start()
         {
             m_Health = GetComponent<Health>();
             DebugUtility.HandleErrorIfNullGetComponent<Health, Destructable>(m_Health, this, gameObject);
@@ -16,12 +16,12 @@ namespace Unity.FPS.Game
             m_Health.OnDamaged += OnDamaged;
         }
 
-        void OnDamaged(float damage, GameObject damageSource)
+        private void OnDamaged(float damage, GameObject damageSource)
         {
             // TODO: damage reaction
         }
 
-        void OnDie()
+        private void OnDie(GameObject instigator)
         {
             // this will call the OnDestroy function
             Destroy(gameObject);

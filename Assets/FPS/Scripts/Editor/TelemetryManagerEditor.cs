@@ -3,6 +3,7 @@ using Telemetry.Events;
 using Telemetry.Shared;
 using Unity.FPS.Game;
 using UnityEditor;
+using Unity.FPS.Telemetry;
 using UnityEngine;
 
 namespace Unity.FPS.EditorExt
@@ -10,13 +11,13 @@ namespace Unity.FPS.EditorExt
     [CustomEditor(typeof(TelemetryManager))]
     public class TelemetryManagerEditor : Editor
     {
-        private bool m_IsDebugGroupVisible = true;
+        private bool m_isDebugGroupVisible = true;
         private int m_sessionId = 1;
         private int m_playerId = 1;
         private int m_targetId = 2;
+        private Transform m_playerPosition;
         private bool m_isHit = true;
         private float m_accuracy = 0.75f;
-        private Vector3 m_playerPosition = Vector3.zero;
         private Weapon m_weaponUsed;
         private float m_damagePerHit = 10f;
         private AttackType m_attackType = AttackType.Ranged;
@@ -27,15 +28,20 @@ namespace Unity.FPS.EditorExt
             DrawDefaultInspector();
 
             EditorGUILayout.Separator();
-            m_IsDebugGroupVisible = EditorGUILayout.BeginFoldoutHeaderGroup(m_IsDebugGroupVisible, "Debug");
-            if (m_IsDebugGroupVisible)
+            m_isDebugGroupVisible = EditorGUILayout.BeginFoldoutHeaderGroup(m_isDebugGroupVisible, "Debug");
+            if (m_isDebugGroupVisible)
             {
                 /* Example to use for any event
                 EditorGUILayout.BeginHorizontal("box");
-                GUILayout.Label("Example");
-                if (GUILayout.Button("Track", GUILayout.Width(80))) TelemetryService.Track...(...);
+                m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "event");
+                if (m_showPlayerDeathEvent)
+                {
+                    if (EditorGUILayout.Button("Publish", EditorGUILayout.Width(80))) TelemetryService.Track...(...);
+                }
                 EditorGUILayout.EndHorizontal();
                 */
+
+                HandlePlayerDeathEvent();
 
                 TelemetryEventBus.IsDebugOn = EditorGUILayout.Toggle("Debug Mode", TelemetryEventBus.IsDebugOn);
                 EditorGUILayout.LabelField("Events:");
@@ -47,6 +53,7 @@ namespace Unity.FPS.EditorExt
 
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
+        private int m_deathCount;
 
         private void HandlePlayerAttackEvent()
         {
@@ -79,6 +86,48 @@ namespace Unity.FPS.EditorExt
                         m_remainingAmmo));
                 Debug.Log("PlayerAttacked telemetry event published.");
             }
+        }
+        private int m_timeAliveSeconds;
+        private Instigator m_instigator;
+
+        private bool m_showPlayerDeathEvent;
+
+        private void HandlePlayerDeathEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+            m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "Player Died");
+            if (m_showPlayerDeathEvent)
+            {
+                EditorGUILayout.Space(2);
+                m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
+
+
+                EditorGUILayout.Space(2);
+                m_instigator =
+                    (Instigator)EditorGUILayout.ObjectField("Instigator:", m_instigator, typeof(Instigator), true);
+
+                EditorGUILayout.Space(2);
+                m_deathCount = EditorGUILayout.IntField("Death Count", m_deathCount);
+
+                EditorGUILayout.Space(2);
+                m_timeAliveSeconds = EditorGUILayout.IntField("Time Alive (Seconds):", m_timeAliveSeconds);
+
+                EditorGUILayout.Space(2);
+                m_playerPosition =
+                    (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition, typeof(Transform),
+                        true);
+
+                EditorGUILayout.Space(2);
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    PlayerDiedTelemetryData data = new(m_instigator, m_deathCount, m_timeAliveSeconds,
+                        m_playerPosition.position);
+
+                    TelemetryService.TrackPlayerDeath(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
         }
     }
 }

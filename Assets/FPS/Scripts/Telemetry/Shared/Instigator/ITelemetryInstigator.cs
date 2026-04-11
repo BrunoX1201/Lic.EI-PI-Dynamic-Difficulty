@@ -1,4 +1,4 @@
-﻿namespace Telemetry.Shared.Instigator
+﻿namespace Unity.FPS.Telemetry
 {
     public interface ITelemetryInstigator
     {

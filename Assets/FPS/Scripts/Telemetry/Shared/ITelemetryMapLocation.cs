@@ -1,4 +1,4 @@
-﻿namespace Telemetry.Shared
+﻿namespace Unity.FPS.Telemetry
 {
     public interface ITelemetryMapLocation
     {
