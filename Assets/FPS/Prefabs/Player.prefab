@@ -810,7 +810,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bb846e46d9ccb44596794572faacafb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Instigator
-  m_InstigatorType: 1
+  m_instigatorType: 1
 --- !u!1 &7383874627095517793
 GameObject:
   m_ObjectHideFlags: 0

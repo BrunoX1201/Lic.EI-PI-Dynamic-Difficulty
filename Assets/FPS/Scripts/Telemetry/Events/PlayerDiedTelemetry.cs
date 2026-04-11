@@ -1,9 +1,7 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Unity.FPS.Telemetry
 {
-    [Serializable]
     public readonly struct PlayerDiedTelemetryData
     {
         public ITelemetryInstigator Instigator { get; }

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using System.Threading.Tasks;
 
 namespace Unity.FPS.Telemetry
 {
@@ -29,19 +27,14 @@ namespace Unity.FPS.Telemetry
         {
             PlayerDiedTelemetry evt = new(sessionId, eventData);
 
-            LogEvent(evt);
             TelemetryEventBus.Publish(evt);
         }
 
-        private static void LogEvent(ITelemetryEvent evt)
+        public static void TrackPlayerAttack(int sessionId, PlayerAttackedTelemetryData eventData)
         {
-            string msg = $"[TELEMETRY] Event: {evt.GetType().Name}\n\nData:";
-            foreach (KeyValuePair<string, object> item in evt.Data)
-            {
-                msg += $"\n\t{item.Key} => {item.Value}";
-            }
+            PlayerAttackedTelemetry evt = new(sessionId, eventData);
 
-            Debug.Log(msg);
+            TelemetryEventBus.Publish(evt);
         }
     }
 }

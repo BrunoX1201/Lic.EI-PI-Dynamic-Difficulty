@@ -414,7 +414,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bb846e46d9ccb44596794572faacafb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Instigator
-  m_InstigatorType: 2
+  m_instigatorType: 2
 --- !u!1 &2201913640410082181
 GameObject:
   m_ObjectHideFlags: 0
@@ -734,6 +734,7 @@ MonoBehaviour:
   WeaponRoot: {fileID: 8815063736924141185}
   WeaponMuzzle: {fileID: 2096565386399891227}
   ShootType: 1
+  AttackType: 0
   ProjectilePrefab: {fileID: 8924682559891268397, guid: 154bfb4989fe16d439e8f3fb7c20b72b,
     type: 3}
   DelayBetweenShots: 0.06

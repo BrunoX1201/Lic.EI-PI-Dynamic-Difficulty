@@ -11,6 +11,8 @@ namespace Unity.FPS.Game
         public Vector3 InheritedMuzzleVelocity { get; private set; }
         public float InitialCharge { get; private set; }
 
+        public WeaponController WeaponUsed { get; private set; }
+
         public UnityAction OnShoot;
 
         public void Shoot(WeaponController controller)
@@ -20,6 +22,8 @@ namespace Unity.FPS.Game
             InitialDirection = transform.forward;
             InheritedMuzzleVelocity = controller.MuzzleWorldVelocity;
             InitialCharge = controller.CurrentCharge;
+
+            WeaponUsed = controller;
 
             OnShoot?.Invoke();
         }

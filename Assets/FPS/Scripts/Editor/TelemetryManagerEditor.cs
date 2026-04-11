@@ -1,3 +1,4 @@
+using Telemetry.Shared;
 using Unity.FPS.Game;
 using Unity.FPS.Telemetry;
 using UnityEditor;
@@ -9,50 +10,110 @@ namespace Unity.FPS.EditorExt
     public class TelemetryManagerEditor : Editor
     {
         private bool m_isDebugGroupVisible = true;
-        private int m_sessionId;
+        private int m_sessionId = 1;
+        private int m_playerId = 1;
+        private int m_targetId = 2;
+        private Transform m_playerPosition;
+        private bool m_isHit = true;
+        private float m_accuracy = 0.75f;
+        private Weapon m_weaponUsed;
+        private float m_damagePerHit = 10f;
+        private AttackType m_attackType = AttackType.Ranged;
+        private float m_remainingAmmo = 30f;
         private int m_deathCount;
         private int m_timeAliveSeconds;
-        private Transform m_playerPosition;
         private Instigator m_instigator;
 
         private bool m_showPlayerDeathEvent;
+        private bool m_showPlayerAttackEvent;
 
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
 
-
             EditorGUILayout.Separator();
             m_isDebugGroupVisible = EditorGUILayout.BeginFoldoutHeaderGroup(m_isDebugGroupVisible, "Debug");
             if (m_isDebugGroupVisible)
             {
-                EditorGUILayout.LabelField("Events:");
-
                 /* Example to use for any event
-                EditorGUILayout.BeginHorizontal("box");
+                EditorGUILayout.BeginVertical("box");
                 m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "event");
                 if (m_showPlayerDeathEvent)
                 {
                     if (EditorGUILayout.Button("Publish", EditorGUILayout.Width(80))) TelemetryService.Track...(...);
                 }
-                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.EndVertical();
                 */
 
+                TelemetryEventBus.IsDebugOn = EditorGUILayout.Toggle("Debug Mode", TelemetryEventBus.IsDebugOn);
+                EditorGUILayout.LabelField("Events:");
+
                 HandlePlayerDeathEvent();
+                HandlePlayerAttackEvent();
             }
 
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
+        private void HandlePlayerAttackEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+            m_showPlayerAttackEvent = EditorGUILayout.Foldout(m_showPlayerAttackEvent, "PlayerAttacked");
+            if (m_showPlayerAttackEvent)
+            {
+                EditorGUILayout.Space(2);
+                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
+
+                EditorGUILayout.Space(2);
+                m_playerId = EditorGUILayout.IntField("Player Id", m_playerId);
+
+                EditorGUILayout.Space(2);
+                m_targetId = EditorGUILayout.IntField("Target Id", m_targetId);
+
+                EditorGUILayout.Space(2);
+                m_isHit = EditorGUILayout.Toggle("Is Hit", m_isHit);
+
+                EditorGUILayout.Space(2);
+                m_accuracy = EditorGUILayout.FloatField("Accuracy", m_accuracy);
+
+                EditorGUILayout.Space(2);
+                m_playerPosition = (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition,
+                    typeof(Transform),
+                    true);
+
+                EditorGUILayout.Space(2);
+                m_weaponUsed = (Weapon)EditorGUILayout.EnumPopup("Weapon Used", m_weaponUsed);
+
+                EditorGUILayout.Space(2);
+                m_damagePerHit = EditorGUILayout.FloatField("Damage Per Hit", m_damagePerHit);
+
+                EditorGUILayout.Space(2);
+                m_attackType = (AttackType)EditorGUILayout.EnumPopup("Attack Type", m_attackType);
+
+                EditorGUILayout.Space(2);
+                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo", m_remainingAmmo);
+
+                EditorGUILayout.Space(2);
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    PlayerAttackedTelemetryData data = new(m_playerId, m_targetId, m_isHit, m_accuracy,
+                        m_playerPosition.position, m_weaponUsed, m_damagePerHit, m_attackType, m_remainingAmmo);
+
+                    TelemetryService.TrackPlayerAttack(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
         private void HandlePlayerDeathEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "Player Died");
+            m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "PlayerDied");
             if (m_showPlayerDeathEvent)
             {
                 EditorGUILayout.Space(2);
                 m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
-
 
                 EditorGUILayout.Space(2);
                 m_instigator =
