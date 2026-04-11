@@ -1,13 +1,14 @@
 using Telemetry;
 using Telemetry.Events;
 using Telemetry.Shared;
+using Unity.FPS.Game;
 using UnityEditor;
 using UnityEngine;
 
-namespace Editor
+namespace Unity.FPS.EditorExt
 {
     [CustomEditor(typeof(TelemetryManager))]
-    public class TelemetryManagerEditor : UnityEditor.Editor
+    public class TelemetryManagerEditor : Editor
     {
         private bool m_IsDebugGroupVisible = true;
         private int m_sessionId = 1;

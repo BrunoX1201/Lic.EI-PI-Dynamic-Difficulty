@@ -1,7 +1,7 @@
 using Telemetry.Shared;
 using UnityEngine;
 
-namespace ScriptableObjects
+namespace Unity.FPS.Game
 {
     [CreateAssetMenu(fileName = "MapLocation", menuName = "Scriptable Objects/MapLocation")]
     public class MapLocation : ScriptableObject, ITelemetryMapLocation
