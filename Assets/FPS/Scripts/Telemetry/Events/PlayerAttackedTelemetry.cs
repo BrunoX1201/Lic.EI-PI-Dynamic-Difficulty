@@ -1,7 +1,7 @@
 ﻿using Telemetry.Shared;
 using UnityEngine;
 
-namespace Telemetry.Events
+namespace Unity.FPS.Telemetry
 {
     public readonly struct PlayerAttackedTelemetryData
     {

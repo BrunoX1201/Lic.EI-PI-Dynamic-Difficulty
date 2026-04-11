@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Telemetry;
-using Telemetry.Events;
 using Telemetry.Shared;
 using Unity.FPS.Game;
+using Unity.FPS.Telemetry;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -132,7 +131,9 @@ namespace Unity.FPS.Gameplay
             WeaponController activeWeapon = GetActiveWeapon();
 
             if (activeWeapon != null && activeWeapon.IsReloading)
+            {
                 return;
+            }
 
             if (activeWeapon != null && m_WeaponSwitchState == WeaponSwitchState.Up)
             {
@@ -180,7 +181,9 @@ namespace Unity.FPS.Gameplay
                     if (switchWeaponInput != 0)
                     {
                         if (GetWeaponAtSlotIndex(switchWeaponInput - 1) != null)
+                        {
                             SwitchToWeaponIndex(switchWeaponInput - 1);
+                        }
                     }
                 }
             }
@@ -193,7 +196,9 @@ namespace Unity.FPS.Gameplay
                         1000, -1, QueryTriggerInteraction.Ignore))
                 {
                     if (hit.collider.GetComponentInParent<Health>() != null)
+                    {
                         IsPointingAtEnemy = true;
+                    }
                 }
             }
         }
@@ -261,11 +266,16 @@ namespace Unity.FPS.Gameplay
                     ActiveWeaponIndex = m_WeaponSwitchNewWeaponIndex;
 
                     WeaponController newWeapon = GetWeaponAtSlotIndex(m_WeaponSwitchNewWeaponIndex);
-                    if (OnSwitchedToWeapon != null) OnSwitchedToWeapon.Invoke(newWeapon);
+                    if (OnSwitchedToWeapon != null)
+                    {
+                        OnSwitchedToWeapon.Invoke(newWeapon);
+                    }
                 }
                 // otherwise, remember we are putting down our current weapon for switching to the next one
                 else
+                {
                     m_WeaponSwitchState = WeaponSwitchState.PutDownPrevious;
+                }
             }
         }
 
@@ -275,7 +285,10 @@ namespace Unity.FPS.Gameplay
             for (int index = 0; index < m_WeaponSlots.Length; index++)
             {
                 WeaponController w = m_WeaponSlots[index];
-                if (w != null && w.SourcePrefab == weaponPrefab.gameObject) return w;
+                if (w != null && w.SourcePrefab == weaponPrefab.gameObject)
+                {
+                    return w;
+                }
             }
 
             return null;
@@ -285,7 +298,10 @@ namespace Unity.FPS.Gameplay
         public bool AddWeapon(WeaponController weaponPrefab)
         {
             // if we already hold this weapon type (a weapon coming from the same source prefab), don't add the weapon
-            if (HasWeapon(weaponPrefab) != null) return false;
+            if (HasWeapon(weaponPrefab) != null)
+            {
+                return false;
+            }
 
             // search our weapon slots for the first free one, assign the weapon to it, and return true if we found one. Return false otherwise
             for (int i = 0; i < m_WeaponSlots.Length; i++)
@@ -314,14 +330,20 @@ namespace Unity.FPS.Gameplay
 
                     m_WeaponSlots[i] = weaponInstance;
 
-                    if (OnAddedWeapon != null) OnAddedWeapon.Invoke(weaponInstance, i);
+                    if (OnAddedWeapon != null)
+                    {
+                        OnAddedWeapon.Invoke(weaponInstance, i);
+                    }
 
                     return true;
                 }
             }
 
             // Handle auto-switching to weapon if no weapons currently
-            if (GetActiveWeapon() == null) SwitchWeapon(true);
+            if (GetActiveWeapon() == null)
+            {
+                SwitchWeapon(true);
+            }
 
             return false;
         }
@@ -336,12 +358,18 @@ namespace Unity.FPS.Gameplay
                 {
                     m_WeaponSlots[i] = null;
 
-                    if (OnRemovedWeapon != null) OnRemovedWeapon.Invoke(weaponInstance, i);
+                    if (OnRemovedWeapon != null)
+                    {
+                        OnRemovedWeapon.Invoke(weaponInstance, i);
+                    }
 
                     Destroy(weaponInstance.gameObject);
 
                     // Handle case of removing active weapon (switch to next weapon)
-                    if (i == ActiveWeaponIndex) SwitchWeapon(true);
+                    if (i == ActiveWeaponIndex)
+                    {
+                        SwitchWeapon(true);
+                    }
 
                     return true;
                 }
@@ -360,7 +388,9 @@ namespace Unity.FPS.Gameplay
             // find the active weapon in our weapon slots based on our active weapon index
             if (index >= 0 &&
                 index < m_WeaponSlots.Length)
+            {
                 return m_WeaponSlots[index];
+            }
 
             // if we didn't find a valid active weapon in our weapon slots, return null
             return null;
@@ -451,9 +481,13 @@ namespace Unity.FPS.Gameplay
             // Calculate the time ratio (0 to 1) since weapon switch was triggered
             float switchingTimeFactor = 0f;
             if (WeaponSwitchDelay == 0f)
+            {
                 switchingTimeFactor = 1f;
+            }
             else
+            {
                 switchingTimeFactor = Mathf.Clamp01((Time.time - m_TimeStartedWeaponSwitch) / WeaponSwitchDelay);
+            }
 
             // Handle transiting to new switch state
             if (switchingTimeFactor >= 1f)
@@ -462,14 +496,20 @@ namespace Unity.FPS.Gameplay
                 {
                     // Deactivate old weapon
                     WeaponController oldWeapon = GetWeaponAtSlotIndex(ActiveWeaponIndex);
-                    if (oldWeapon != null) oldWeapon.ShowWeapon(false);
+                    if (oldWeapon != null)
+                    {
+                        oldWeapon.ShowWeapon(false);
+                    }
 
                     ActiveWeaponIndex = m_WeaponSwitchNewWeaponIndex;
                     switchingTimeFactor = 0f;
 
                     // Activate new weapon
                     WeaponController newWeapon = GetWeaponAtSlotIndex(ActiveWeaponIndex);
-                    if (OnSwitchedToWeapon != null) OnSwitchedToWeapon.Invoke(newWeapon);
+                    if (OnSwitchedToWeapon != null)
+                    {
+                        OnSwitchedToWeapon.Invoke(newWeapon);
+                    }
 
                     if (newWeapon)
                     {
@@ -482,7 +522,10 @@ namespace Unity.FPS.Gameplay
                         m_WeaponSwitchState = WeaponSwitchState.Down;
                     }
                 }
-                else if (m_WeaponSwitchState == WeaponSwitchState.PutUpNew) m_WeaponSwitchState = WeaponSwitchState.Up;
+                else if (m_WeaponSwitchState == WeaponSwitchState.PutUpNew)
+                {
+                    m_WeaponSwitchState = WeaponSwitchState.Up;
+                }
             }
 
             // Handle moving the weapon socket position for the animated weapon switching
@@ -505,18 +548,28 @@ namespace Unity.FPS.Gameplay
             int distanceBetweenSlots = 0;
 
             if (ascendingOrder)
+            {
                 distanceBetweenSlots = toSlotIndex - fromSlotIndex;
+            }
             else
+            {
                 distanceBetweenSlots = -1 * (toSlotIndex - fromSlotIndex);
+            }
 
-            if (distanceBetweenSlots < 0) distanceBetweenSlots = m_WeaponSlots.Length + distanceBetweenSlots;
+            if (distanceBetweenSlots < 0)
+            {
+                distanceBetweenSlots = m_WeaponSlots.Length + distanceBetweenSlots;
+            }
 
             return distanceBetweenSlots;
         }
 
         private void OnWeaponSwitched(WeaponController newWeapon)
         {
-            if (newWeapon != null) newWeapon.ShowWeapon(true);
+            if (newWeapon != null)
+            {
+                newWeapon.ShowWeapon(true);
+            }
         }
 
         //New Methods
@@ -526,7 +579,10 @@ namespace Unity.FPS.Gameplay
             bool isHit = TryGetCurrentAimTargetId(out int targetId);
 
             m_TelemetryShotsFired++;
-            if (isHit) m_TelemetryHits++;
+            if (isHit)
+            {
+                m_TelemetryHits++;
+            }
 
             //TODO: Change accuracy to use StatisticsManager
 
@@ -548,15 +604,23 @@ namespace Unity.FPS.Gameplay
         {
             targetId = -1;
 
-            if (WeaponCamera == null) return false;
+            if (WeaponCamera == null)
+            {
+                return false;
+            }
 
             if (!Physics.Raycast(WeaponCamera.transform.position, WeaponCamera.transform.forward, out RaycastHit hit,
                     1000, -1, QueryTriggerInteraction.Ignore))
+            {
                 return false;
+            }
 
             Health targetHealth =
                 hit.collider.GetComponentInParent<Health>(); //TODO: Trocar componente Health por Instigator
-            if (targetHealth == null) return false;
+            if (targetHealth == null)
+            {
+                return false;
+            }
 
             targetId = targetHealth.gameObject.GetInstanceID();
             return true;
@@ -564,7 +628,10 @@ namespace Unity.FPS.Gameplay
 
         private float GetWeaponDamage(WeaponController activeWeapon)
         {
-            if (activeWeapon?.ProjectilePrefab is ProjectileStandard projectile) return projectile.Damage;
+            if (activeWeapon?.ProjectilePrefab is ProjectileStandard projectile)
+            {
+                return projectile.Damage;
+            }
 
             return 0f;
         }
@@ -573,7 +640,10 @@ namespace Unity.FPS.Gameplay
         {
             foreach (AttackType typeOfAttack in Enum.GetValues(typeof(AttackType)))
             {
-                if ((int)activeWeapon.AttackType == (int)typeOfAttack) return typeOfAttack;
+                if ((int)activeWeapon.AttackType == (int)typeOfAttack)
+                {
+                    return typeOfAttack;
+                }
             }
 
             return AttackType.Unknown;

@@ -1,18 +1,18 @@
 {
-  "name": "fps.Gameplay",
-  "rootNamespace": "",
-  "references": [
-    "GUID:9c5543eabb73a6249ac07b2c065ee8b4",
-    "GUID:75469ad4d38634e559750d17036d5f7c",
-    "GUID:20457ed59ed9423fb986b0bbf8752d99"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "fps.Gameplay",
+    "rootNamespace": "",
+    "references": [
+        "GUID:9c5543eabb73a6249ac07b2c065ee8b4",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:ff1eed87f3fa9dd4fb9044beebceb232"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

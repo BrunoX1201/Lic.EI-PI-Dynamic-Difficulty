@@ -5,6 +5,7 @@ namespace Unity.FPS.Telemetry
 {
     public static class TelemetryEventBus
     {
+        public static bool IsDebugOn = false;
         private static readonly object s_lock = new();
         private static readonly List<Action<ITelemetryEvent>> s_listeners = new();
 

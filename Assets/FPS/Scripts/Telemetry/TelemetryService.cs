@@ -33,6 +33,14 @@ namespace Unity.FPS.Telemetry
             TelemetryEventBus.Publish(evt);
         }
 
+        public static void TrackPlayerAttack(int sessionId, PlayerAttackedTelemetryData eventData)
+        {
+            PlayerAttackedTelemetry evt = new(sessionId, eventData);
+
+            LogEvent(evt);
+            TelemetryEventBus.Publish(evt);
+        }
+
         private static void LogEvent(ITelemetryEvent evt)
         {
             string msg = $"[TELEMETRY] Event: {evt.GetType().Name}\n\nData:";
