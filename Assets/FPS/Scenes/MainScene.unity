@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949260c8b4ab5ba448b85b6235ae07e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapZone
-  m_mapLocationSO: {fileID: 11400000, guid: b3e6553db82ea614fac797b06164637b, type: 2}
+  m_mapLocationSO: {fileID: 11400000, guid: 452be5788704f024caecb838373aabd0, type: 2}
 --- !u!65 &250561
 BoxCollider:
   m_ObjectHideFlags: 0

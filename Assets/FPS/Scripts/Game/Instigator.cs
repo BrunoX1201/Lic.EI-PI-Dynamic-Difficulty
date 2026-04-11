@@ -6,12 +6,15 @@ namespace Unity.FPS.Game
     [RequireComponent(typeof(Health))]
     public class Instigator : MonoBehaviour, ITelemetryInstigator
     {
-        public InstigatorType Type { get; }
+        [SerializeField] private InstigatorType m_instigatorType;
+
+        public InstigatorType Type => m_instigatorType;
 
         public int Id { get; private set; }
-        public ITelemetryMapLocation MapLocation { get; private set; }
+        public ITelemetryMapLocation MapLocation => m_mapLocation;
 
         public ITelemetryHealth Health { get; private set; }
+        private MapLocationSO m_mapLocation;
 
         private void Awake()
         {
@@ -27,7 +30,7 @@ namespace Unity.FPS.Game
 
         public void UpdateLocation(MapLocationSO newLocation)
         {
-            MapLocation = newLocation;
+            m_mapLocation = newLocation;
         }
     }
 }
