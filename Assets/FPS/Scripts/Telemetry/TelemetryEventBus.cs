@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Unity.FPS.Telemetry
 {
@@ -37,6 +38,11 @@ namespace Unity.FPS.Telemetry
 
         public static void Publish(ITelemetryEvent evt)
         {
+            if (IsDebugOn)
+            {
+                LogEvent(evt);
+            }
+
             List<Action<ITelemetryEvent>> listenersCopy;
 
             lock (s_lock)
@@ -48,6 +54,17 @@ namespace Unity.FPS.Telemetry
             {
                 listener?.Invoke(evt);
             }
+        }
+
+        private static void LogEvent(ITelemetryEvent evt)
+        {
+            string msg = $"[TELEMETRY] Event: {evt.GetType().Name}\n\nData:";
+            foreach (KeyValuePair<string, object> item in evt.Data)
+            {
+                msg += $"\n\t{item.Key} => {item.Value}";
+            }
+
+            Debug.Log(msg);
         }
     }
 }
