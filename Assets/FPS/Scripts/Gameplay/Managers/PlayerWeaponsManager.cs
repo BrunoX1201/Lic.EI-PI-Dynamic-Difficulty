@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using Telemetry.Shared;
+﻿using System.Collections.Generic;
 using Unity.FPS.Game;
-using Unity.FPS.Telemetry;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -96,9 +93,6 @@ namespace Unity.FPS.Gameplay
         private WeaponSwitchState m_WeaponSwitchState;
         private int m_WeaponSwitchNewWeaponIndex;
 
-        private int m_TelemetryShotsFired;
-        private int m_TelemetryHits;
-
         private void Start()
         {
             ActiveWeaponIndex = -1;
@@ -157,8 +151,6 @@ namespace Unity.FPS.Gameplay
                 // Handle accumulating recoil
                 if (hasFired)
                 {
-                    PublishPlayerAttackedTelemetry(activeWeapon);
-
                     m_AccumulatedRecoil += Vector3.back * activeWeapon.RecoilForce;
                     m_AccumulatedRecoil = Vector3.ClampMagnitude(m_AccumulatedRecoil, MaxRecoilDistance);
                 }
@@ -569,98 +561,6 @@ namespace Unity.FPS.Gameplay
             if (newWeapon != null)
             {
                 newWeapon.ShowWeapon(true);
-            }
-        }
-
-        //New Methods
-
-        private void PublishPlayerAttackedTelemetry(WeaponController activeWeapon)
-        {
-            bool isHit = TryGetCurrentAimTargetId(out int targetId);
-
-            m_TelemetryShotsFired++;
-            if (isHit)
-            {
-                m_TelemetryHits++;
-            }
-
-            //TODO: Change accuracy to use StatisticsManager
-
-            float accuracy = m_TelemetryShotsFired > 0 ? (float)m_TelemetryHits / m_TelemetryShotsFired : 0f;
-
-            //TODO: Change "gameObject.GetInstanceID()" to "Instigator.id"
-            //TODO: Resolve sessionId"
-
-            PlayerAttackedTelemetryData telemetryData = new(gameObject.GetInstanceID(),
-                targetId, isHit, accuracy,
-                transform.position, GetTelemetryWeapon(activeWeapon), GetWeaponDamage(activeWeapon),
-                GetTelemetryAttackType(activeWeapon),
-                activeWeapon != null ? activeWeapon.GetCurrentAmmo() : 0f);
-
-            TelemetryService.TrackPlayerAttack(1, telemetryData);
-        }
-
-        private bool TryGetCurrentAimTargetId(out int targetId)
-        {
-            targetId = -1;
-
-            if (WeaponCamera == null)
-            {
-                return false;
-            }
-
-            if (!Physics.Raycast(WeaponCamera.transform.position, WeaponCamera.transform.forward, out RaycastHit hit,
-                    1000, -1, QueryTriggerInteraction.Ignore))
-            {
-                return false;
-            }
-
-            Health targetHealth =
-                hit.collider.GetComponentInParent<Health>(); //TODO: Trocar componente Health por Instigator
-            if (targetHealth == null)
-            {
-                return false;
-            }
-
-            targetId = targetHealth.gameObject.GetInstanceID();
-            return true;
-        }
-
-        private float GetWeaponDamage(WeaponController activeWeapon)
-        {
-            if (activeWeapon?.ProjectilePrefab is ProjectileStandard projectile)
-            {
-                return projectile.Damage;
-            }
-
-            return 0f;
-        }
-
-        private AttackType GetTelemetryAttackType(WeaponController activeWeapon)
-        {
-            foreach (AttackType typeOfAttack in Enum.GetValues(typeof(AttackType)))
-            {
-                if ((int)activeWeapon.AttackType == (int)typeOfAttack)
-                {
-                    return typeOfAttack;
-                }
-            }
-
-            return AttackType.Unknown;
-        }
-
-        private Weapon GetTelemetryWeapon(WeaponController activeWeapon)
-        {
-            switch (activeWeapon.WeaponName.ToLower())
-            {
-                case "blaster":
-                    return Weapon.Blaster;
-                case "shotgun":
-                    return Weapon.Shotgun;
-                case "disc launcher":
-                    return Weapon.Launcher;
-                default:
-                    return Weapon.Unknown;
             }
         }
     }

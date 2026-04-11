@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.FPS.Game;
+using Unity.FPS.Telemetry;
 using UnityEngine;
 
 namespace Unity.FPS.Gameplay
@@ -27,8 +28,7 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Offset along the hit normal where the VFX will be spawned")]
         public float ImpactVfxSpawnOffset = 0.1f;
 
-        [Tooltip("Clip to play on impact")] 
-        public AudioClip ImpactSfxClip;
+        [Tooltip("Clip to play on impact")] public AudioClip ImpactSfxClip;
 
         [Tooltip("Layers this projectile can collide with")]
         public LayerMask HittableLayers = -1;
@@ -37,14 +37,14 @@ namespace Unity.FPS.Gameplay
         public float Speed = 20f;
 
         [Tooltip("Downward acceleration from gravity")]
-        public float GravityDownAcceleration = 0f;
+        public float GravityDownAcceleration;
 
         [Tooltip(
             "Distance over which the projectile will correct its course to fit the intended trajectory (used to drift projectiles towards center of screen in First Person view). At values under 0, there is no correction")]
         public float TrajectoryCorrectionDistance = -1;
 
         [Tooltip("Determines if the projectile inherits the velocity that the weapon's muzzle had when firing")]
-        public bool InheritWeaponVelocity = false;
+        public bool InheritWeaponVelocity;
 
         [Header("Damage")] [Tooltip("Damage of the projectile")]
         public float Damage = 40f;
@@ -55,18 +55,18 @@ namespace Unity.FPS.Gameplay
         [Header("Debug")] [Tooltip("Color of the projectile radius debug view")]
         public Color RadiusColor = Color.cyan * 0.2f;
 
-        ProjectileBase m_ProjectileBase;
-        Vector3 m_LastRootPosition;
-        Vector3 m_Velocity;
-        bool m_HasTrajectoryOverride;
-        float m_ShootTime;
-        Vector3 m_TrajectoryCorrectionVector;
-        Vector3 m_ConsumedTrajectoryCorrectionVector;
-        List<Collider> m_IgnoredColliders;
+        private const QueryTriggerInteraction k_TriggerInteraction = QueryTriggerInteraction.Collide;
 
-        const QueryTriggerInteraction k_TriggerInteraction = QueryTriggerInteraction.Collide;
+        private ProjectileBase m_ProjectileBase;
+        private Vector3 m_LastRootPosition;
+        private Vector3 m_Velocity;
+        private bool m_HasTrajectoryOverride;
+        private float m_ShootTime;
+        private Vector3 m_TrajectoryCorrectionVector;
+        private Vector3 m_ConsumedTrajectoryCorrectionVector;
+        private List<Collider> m_IgnoredColliders;
 
-        void OnEnable()
+        private void OnEnable()
         {
             m_ProjectileBase = GetComponent<ProjectileBase>();
             DebugUtility.HandleErrorIfNullGetComponent<ProjectileBase, ProjectileStandard>(m_ProjectileBase, this,
@@ -77,7 +77,7 @@ namespace Unity.FPS.Gameplay
             Destroy(gameObject, MaxLifeTime);
         }
 
-        new void OnShoot()
+        private new void OnShoot()
         {
             m_ShootTime = Time.time;
             m_LastRootPosition = Root.position;
@@ -95,8 +95,8 @@ namespace Unity.FPS.Gameplay
             {
                 m_HasTrajectoryOverride = true;
 
-                Vector3 cameraToMuzzle = (m_ProjectileBase.InitialPosition -
-                                          playerWeaponsManager.WeaponCamera.transform.position);
+                Vector3 cameraToMuzzle = m_ProjectileBase.InitialPosition -
+                                         playerWeaponsManager.WeaponCamera.transform.position;
 
                 m_TrajectoryCorrectionVector = Vector3.ProjectOnPlane(-cameraToMuzzle,
                     playerWeaponsManager.WeaponCamera.transform.forward);
@@ -110,18 +110,44 @@ namespace Unity.FPS.Gameplay
                     m_HasTrajectoryOverride = false;
                 }
 
+                RaycastHit hit;
+                bool isHit = false;
+
                 if (Physics.Raycast(playerWeaponsManager.WeaponCamera.transform.position, cameraToMuzzle.normalized,
-                    out RaycastHit hit, cameraToMuzzle.magnitude, HittableLayers, k_TriggerInteraction))
+                        out hit, cameraToMuzzle.magnitude, HittableLayers, k_TriggerInteraction))
                 {
-                    if (IsHitValid(hit))
+                    isHit = IsHitValid(hit);
+                    if (isHit)
                     {
                         OnHit(hit.point, hit.normal, hit.collider);
                     }
                 }
+
+                StatisticsManager.Instance.UpdateAccuracy(1, isHit);
+
+                Instigator playerInstigator = Owner.GetComponent<Instigator>();
+                int targetId = (int)TargetSpecialId.Environment;
+                if (isHit)
+                {
+                    Instigator targetInstigator = hit.collider.GetComponent<Instigator>();
+                    targetId = targetInstigator != null ? targetInstigator.Id : -1;
+                }
+
+                PlayerAttackedTelemetryData telemetryData =
+                    new(playerInstigator != null ? playerInstigator.Id : -1,
+                        targetId,
+                        isHit,
+                        StatisticsManager.Instance.Accuracy,
+                        Owner.transform.position,
+                        TelemetryConverterUtility.ConvertToTelemetryWeapon(WeaponUsed.WeaponName), Damage,
+                        TelemetryConverterUtility.ConvertToTelemetryAttackType(WeaponUsed.AttackType),
+                        WeaponUsed.GetCurrentAmmo());
+
+                TelemetryService.TrackPlayerAttack(1, telemetryData);
             }
         }
 
-        void Update()
+        private void Update()
         {
             // Move
             transform.position += m_Velocity * Time.deltaTime;
@@ -138,7 +164,7 @@ namespace Unity.FPS.Gameplay
                 Vector3 correctionLeft = m_TrajectoryCorrectionVector - m_ConsumedTrajectoryCorrectionVector;
                 float distanceThisFrame = (Root.position - m_LastRootPosition).magnitude;
                 Vector3 correctionThisFrame =
-                    (distanceThisFrame / TrajectoryCorrectionDistance) * m_TrajectoryCorrectionVector;
+                    distanceThisFrame / TrajectoryCorrectionDistance * m_TrajectoryCorrectionVector;
                 correctionThisFrame = Vector3.ClampMagnitude(correctionThisFrame, correctionLeft.magnitude);
                 m_ConsumedTrajectoryCorrectionVector += correctionThisFrame;
 
@@ -163,7 +189,7 @@ namespace Unity.FPS.Gameplay
 
             // Hit detection
             {
-                RaycastHit closestHit = new RaycastHit();
+                RaycastHit closestHit = new();
                 closestHit.distance = Mathf.Infinity;
                 bool foundHit = false;
 
@@ -172,7 +198,7 @@ namespace Unity.FPS.Gameplay
                 RaycastHit[] hits = Physics.SphereCastAll(m_LastRootPosition, Radius,
                     displacementSinceLastFrame.normalized, displacementSinceLastFrame.magnitude, HittableLayers,
                     k_TriggerInteraction);
-                foreach (var hit in hits)
+                foreach (RaycastHit hit in hits)
                 {
                     if (IsHitValid(hit) && hit.distance < closestHit.distance)
                     {
@@ -197,7 +223,7 @@ namespace Unity.FPS.Gameplay
             m_LastRootPosition = Root.position;
         }
 
-        bool IsHitValid(RaycastHit hit)
+        private bool IsHitValid(RaycastHit hit)
         {
             // ignore hits with an ignore component
             if (hit.collider.GetComponent<IgnoreHitDetection>())
@@ -220,7 +246,7 @@ namespace Unity.FPS.Gameplay
             return true;
         }
 
-        void OnHit(Vector3 point, Vector3 normal, Collider collider)
+        private void OnHit(Vector3 point, Vector3 normal, Collider collider)
         {
             // damage
             if (AreaOfDamage)
@@ -242,7 +268,7 @@ namespace Unity.FPS.Gameplay
             // impact vfx
             if (ImpactVfx)
             {
-                GameObject impactVfxInstance = Instantiate(ImpactVfx, point + (normal * ImpactVfxSpawnOffset),
+                GameObject impactVfxInstance = Instantiate(ImpactVfx, point + normal * ImpactVfxSpawnOffset,
                     Quaternion.LookRotation(normal));
                 if (ImpactVfxLifetime > 0)
                 {
@@ -257,10 +283,10 @@ namespace Unity.FPS.Gameplay
             }
 
             // Self Destruct
-            Destroy(this.gameObject);
+            Destroy(gameObject);
         }
 
-        void OnDrawGizmosSelected()
+        private void OnDrawGizmosSelected()
         {
             Gizmos.color = RadiusColor;
             Gizmos.DrawSphere(transform.position, Radius);
