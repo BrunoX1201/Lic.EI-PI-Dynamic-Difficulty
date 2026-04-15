@@ -77,36 +77,36 @@ namespace Unity.FPS.EditorExt
             if (m_showPlayerAttackEvent)
             {
                 EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
+                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
                 EditorGUILayout.Space(2);
-                m_playerId = EditorGUILayout.IntField("Player Id:", m_playerId);
+                m_playerId = EditorGUILayout.IntField("Player Id", m_playerId);
 
                 EditorGUILayout.Space(2);
-                m_targetId = EditorGUILayout.IntField("Target Id:", m_targetId);
+                m_targetId = EditorGUILayout.IntField("Target Id", m_targetId);
 
                 EditorGUILayout.Space(2);
-                m_isHit = EditorGUILayout.Toggle("Is Hit:", m_isHit);
+                m_isHit = EditorGUILayout.Toggle("Is Hit", m_isHit);
 
                 EditorGUILayout.Space(2);
-                m_accuracy = EditorGUILayout.FloatField("Accuracy:", m_accuracy);
+                m_accuracy = EditorGUILayout.FloatField("Accuracy", m_accuracy);
 
                 EditorGUILayout.Space(2);
-                m_playerPosition = (Transform)EditorGUILayout.ObjectField("Player Position:", m_playerPosition,
+                m_playerPosition = (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition,
                     typeof(Transform),
                     true);
 
                 EditorGUILayout.Space(2);
-                m_weaponUsed = (Weapon)EditorGUILayout.EnumPopup("Weapon Used:", m_weaponUsed);
+                m_weaponUsed = (Weapon)EditorGUILayout.EnumPopup("Weapon Used", m_weaponUsed);
 
                 EditorGUILayout.Space(2);
-                m_damagePerHit = EditorGUILayout.FloatField("Damage Per Hit:", m_damagePerHit);
+                m_damagePerHit = EditorGUILayout.FloatField("Damage Per Hit", m_damagePerHit);
 
                 EditorGUILayout.Space(2);
-                m_attackType = (AttackType)EditorGUILayout.EnumPopup("Attack Type:", m_attackType);
+                m_attackType = (AttackType)EditorGUILayout.EnumPopup("Attack Type", m_attackType);
 
                 EditorGUILayout.Space(2);
-                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo:", m_remainingAmmo);
+                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo", m_remainingAmmo);
 
                 EditorGUILayout.Space(2);
                 if (GUILayout.Button("Publish", GUILayout.Width(80)))
@@ -128,17 +128,17 @@ namespace Unity.FPS.EditorExt
             if (m_showPlayerDeathEvent)
             {
                 EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
+                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
                 EditorGUILayout.Space(2);
                 m_instigator =
-                    (Instigator)EditorGUILayout.ObjectField("Instigator:", m_instigator, typeof(Instigator), true);
+                    (Instigator)EditorGUILayout.ObjectField("Instigator", m_instigator, typeof(Instigator), true);
 
                 EditorGUILayout.Space(2);
                 m_deathCount = EditorGUILayout.IntField("Death Count", m_deathCount);
 
                 EditorGUILayout.Space(2);
-                m_timeAliveSeconds = EditorGUILayout.IntField("Time Alive (Seconds):", m_timeAliveSeconds);
+                m_timeAliveSeconds = EditorGUILayout.IntField("Time Alive (Seconds)", m_timeAliveSeconds);
 
                 EditorGUILayout.Space(2);
                 m_playerPosition =
@@ -165,19 +165,19 @@ namespace Unity.FPS.EditorExt
             if (m_showItemPickUpEvent)
             {
                 EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
+                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
                 EditorGUILayout.Space(2);
-                m_playerId = EditorGUILayout.IntField("Player Id:", m_playerId);
+                m_playerId = EditorGUILayout.IntField("Player Id", m_playerId);
 
                 EditorGUILayout.Space(2);
-                m_item = (Item)EditorGUILayout.EnumPopup("Item:", m_item);
+                m_item = (Item)EditorGUILayout.EnumPopup("Item", m_item);
 
                 EditorGUILayout.Space(2);
-                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo:", m_remainingAmmo);
+                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo", m_remainingAmmo);
 
                 EditorGUILayout.Space(2);
-                m_remainingHealth = EditorGUILayout.Slider("Remaining Health:", m_remainingHealth, 0f, 100f);
+                m_remainingHealth = EditorGUILayout.Slider("Remaining Health", m_remainingHealth, 0f, 100f);
 
                 EditorGUILayout.Space(2);
                 m_playerPosition =
@@ -243,19 +243,19 @@ namespace Unity.FPS.EditorExt
             if (m_showTargetKillEvent)
             {
                 EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
+                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
                 EditorGUILayout.Space(2);
-                m_targetId = EditorGUILayout.IntField("Target Id:", m_targetId);
+                m_targetId = EditorGUILayout.IntField("Target Id", m_targetId);
 
                 EditorGUILayout.Space(2);
-                m_weaponUsed = (Weapon)EditorGUILayout.EnumPopup("Weapon Used:", m_weaponUsed);
+                m_weaponUsed = (Weapon)EditorGUILayout.EnumPopup("Weapon Used", m_weaponUsed);
 
                 EditorGUILayout.Space(2);
-                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo:", m_remainingAmmo);
+                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo", m_remainingAmmo);
 
                 EditorGUILayout.Space(2);
-                m_remainingHealth = EditorGUILayout.Slider("Remaining Health:", m_remainingHealth, 0f, 100f);
+                m_remainingHealth = EditorGUILayout.Slider("Remaining Health", m_remainingHealth, 0f, 100f);
 
                 EditorGUILayout.Space(2);
                 m_playerPosition =
