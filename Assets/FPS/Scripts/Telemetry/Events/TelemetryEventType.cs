@@ -5,6 +5,7 @@
         Unknown = 0,
         PlayerDied = 1,
         PlayerAttacked = 2,
+        NewLocationDiscovered = 3,
         ItemPickedUp = 8
     }
 }

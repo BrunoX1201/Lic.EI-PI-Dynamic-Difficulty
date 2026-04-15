@@ -85,7 +85,7 @@ namespace Unity.FPS.Gameplay
                         playerActiveWeapon != null ? playerActiveWeapon.GetCurrentAmmo() : -1,
                         playerHealth != null ? playerHealth.CurrentHealth : -1,
                         other.transform.localPosition);
-                TelemetryService.TrackItemPickUp(0, evtData);
+                TelemetryService.TrackItemPickUp(Constants.DefaultSessionId, evtData);
             }
         }
 

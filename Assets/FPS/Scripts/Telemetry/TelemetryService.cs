@@ -43,5 +43,12 @@ namespace Unity.FPS.Telemetry
 
             TelemetryEventBus.Publish(evt);
         }
+
+        public static void TrackNewLocationDiscover(int sessionId, NewLocationDiscoveredTelemetryData eventData)
+        {
+            NewLocationDiscoveredTelemetry evt = new(sessionId, eventData);
+
+            TelemetryEventBus.Publish(evt);
+        }
     }
 }
