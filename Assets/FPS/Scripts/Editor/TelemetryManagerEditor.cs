@@ -153,7 +153,7 @@ namespace Unity.FPS.EditorExt
         {
             EditorGUILayout.BeginVertical("box");
             m_showNewLocationDiscoverEvent =
-                EditorGUILayout.Foldout(m_showNewLocationDiscoverEvent, "NewLocationDiscover");
+                EditorGUILayout.Foldout(m_showNewLocationDiscoverEvent, "NewLocationDiscovered");
             if (m_showNewLocationDiscoverEvent)
             {
                 EditorGUILayout.Space(2);
