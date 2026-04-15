@@ -1,3 +1,4 @@
+using FPS.Scripts.Telemetry.Shared;
 using Telemetry.Shared;
 using Unity.FPS.Game;
 using Unity.FPS.Telemetry;
@@ -9,6 +10,7 @@ namespace Unity.FPS.EditorExt
     [CustomEditor(typeof(TelemetryManager))]
     public class TelemetryManagerEditor : Editor
     {
+        private float m_remainingHealth = 100f;
         private bool m_isDebugGroupVisible = true;
         private int m_sessionId = 1;
         private int m_playerId = 1;
@@ -27,10 +29,12 @@ namespace Unity.FPS.EditorExt
         private MapLocationSO m_newLocation;
         private int m_timeInLastLocationSeconds;
         private bool m_isDiscovered;
+        private Item m_item;
 
         private bool m_showPlayerDeathEvent;
         private bool m_showPlayerAttackEvent;
         private bool m_showNewLocationDiscoverEvent;
+        private bool m_showItemPickUpEvent;
 
         public override void OnInspectorGUI()
         {
@@ -45,7 +49,7 @@ namespace Unity.FPS.EditorExt
                 m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "event");
                 if (m_showPlayerDeathEvent)
                 {
-                    if (EditorGUILayout.Button("Publish", EditorGUILayout.Width(80))) TelemetryService.Track...(...);
+                    if (GUILayout.Button.Button("Publish", GUILayout.Width(80))) TelemetryService.Track...(...);
                 }
                 EditorGUILayout.EndVertical();
                 */
@@ -55,6 +59,7 @@ namespace Unity.FPS.EditorExt
 
                 HandlePlayerDeathEvent();
                 HandlePlayerAttackEvent();
+                HandleItemPickedUpEvent();
                 HandleNewLocationDiscoverEvent();
             }
 
@@ -68,36 +73,36 @@ namespace Unity.FPS.EditorExt
             if (m_showPlayerAttackEvent)
             {
                 EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
+                m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
 
                 EditorGUILayout.Space(2);
-                m_playerId = EditorGUILayout.IntField("Player Id", m_playerId);
+                m_playerId = EditorGUILayout.IntField("Player Id:", m_playerId);
 
                 EditorGUILayout.Space(2);
-                m_targetId = EditorGUILayout.IntField("Target Id", m_targetId);
+                m_targetId = EditorGUILayout.IntField("Target Id:", m_targetId);
 
                 EditorGUILayout.Space(2);
-                m_isHit = EditorGUILayout.Toggle("Is Hit", m_isHit);
+                m_isHit = EditorGUILayout.Toggle("Is Hit:", m_isHit);
 
                 EditorGUILayout.Space(2);
-                m_accuracy = EditorGUILayout.FloatField("Accuracy", m_accuracy);
+                m_accuracy = EditorGUILayout.FloatField("Accuracy:", m_accuracy);
 
                 EditorGUILayout.Space(2);
-                m_playerPosition = (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition,
+                m_playerPosition = (Transform)EditorGUILayout.ObjectField("Player Position:", m_playerPosition,
                     typeof(Transform),
                     true);
 
                 EditorGUILayout.Space(2);
-                m_weaponUsed = (Weapon)EditorGUILayout.EnumPopup("Weapon Used", m_weaponUsed);
+                m_weaponUsed = (Weapon)EditorGUILayout.EnumPopup("Weapon Used:", m_weaponUsed);
 
                 EditorGUILayout.Space(2);
-                m_damagePerHit = EditorGUILayout.FloatField("Damage Per Hit", m_damagePerHit);
+                m_damagePerHit = EditorGUILayout.FloatField("Damage Per Hit:", m_damagePerHit);
 
                 EditorGUILayout.Space(2);
-                m_attackType = (AttackType)EditorGUILayout.EnumPopup("Attack Type", m_attackType);
+                m_attackType = (AttackType)EditorGUILayout.EnumPopup("Attack Type:", m_attackType);
 
                 EditorGUILayout.Space(2);
-                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo", m_remainingAmmo);
+                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo:", m_remainingAmmo);
 
                 EditorGUILayout.Space(2);
                 if (GUILayout.Button("Publish", GUILayout.Width(80)))
@@ -182,6 +187,45 @@ namespace Unity.FPS.EditorExt
                         m_isDiscovered);
 
                     TelemetryService.TrackNewLocationDiscover(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandleItemPickedUpEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+            m_showItemPickUpEvent = EditorGUILayout.Foldout(m_showItemPickUpEvent, "ItemPickedUp");
+            if (m_showItemPickUpEvent)
+            {
+                EditorGUILayout.Space(2);
+                m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
+
+                EditorGUILayout.Space(2);
+                m_playerId = EditorGUILayout.IntField("Player Id:", m_playerId);
+
+                EditorGUILayout.Space(2);
+                m_item = (Item)EditorGUILayout.EnumPopup("Item:", m_item);
+
+                EditorGUILayout.Space(2);
+                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo:", m_remainingAmmo);
+
+                EditorGUILayout.Space(2);
+                m_remainingHealth = EditorGUILayout.Slider("Remaining Health:", m_remainingHealth, 0f, 100f);
+
+                EditorGUILayout.Space(2);
+                m_playerPosition =
+                    (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition, typeof(Transform),
+                        true);
+
+
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    ItemPickedUpTelemetryData data = new(m_playerId, m_item, m_remainingAmmo, m_remainingHealth,
+                        m_playerPosition.localPosition);
+
+                    TelemetryService.TrackItemPickUp(m_sessionId, data);
                 }
             }
 

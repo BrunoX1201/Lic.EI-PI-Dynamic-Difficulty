@@ -6,5 +6,7 @@
         PlayerDied = 1,
         PlayerAttacked = 2,
         NewLocationDiscovered = 3
+        PlayerAttacked = 2,
+        ItemPickedUp = 8
     }
 }

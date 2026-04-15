@@ -2,11 +2,19 @@
 {
     public class JetpackPickup : Pickup
     {
+        protected override void Start()
+        {
+            base.Start();
+            m_type = PickupType.Jetpack;
+        }
+
         protected override void OnPicked(PlayerCharacterController byPlayer)
         {
-            var jetpack = byPlayer.GetComponent<Jetpack>();
+            Jetpack jetpack = byPlayer.GetComponent<Jetpack>();
             if (!jetpack)
+            {
                 return;
+            }
 
             if (jetpack.TryUnlock())
             {
