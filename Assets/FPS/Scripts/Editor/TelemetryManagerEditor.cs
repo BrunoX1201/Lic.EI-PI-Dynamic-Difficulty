@@ -26,11 +26,13 @@ namespace Unity.FPS.EditorExt
         private int m_timeAliveSeconds;
         private Instigator m_instigator;
         private Item m_item;
+        private MapLocationSO m_playerLocation;
 
 
         private bool m_showPlayerDeathEvent;
         private bool m_showPlayerAttackEvent;
         private bool m_showItemPickUpEvent;
+        private bool m_showTargetKillEvent;
 
         public override void OnInspectorGUI()
         {
@@ -56,6 +58,7 @@ namespace Unity.FPS.EditorExt
                 HandlePlayerDeathEvent();
                 HandlePlayerAttackEvent();
                 HandleItemPickedUpEvent();
+                HandleTargetKilledEvent();
             }
 
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -182,6 +185,50 @@ namespace Unity.FPS.EditorExt
                         m_playerPosition.localPosition);
 
                     TelemetryService.TrackItemPickUp(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandleTargetKilledEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+            m_showTargetKillEvent = EditorGUILayout.Foldout(m_showTargetKillEvent, "TargetKilled");
+            if (m_showTargetKillEvent)
+            {
+                EditorGUILayout.Space(2);
+                m_sessionId = EditorGUILayout.IntField("Session Id:", m_sessionId);
+
+                EditorGUILayout.Space(2);
+                m_targetId = EditorGUILayout.IntField("Target Id:", m_targetId);
+
+                EditorGUILayout.Space(2);
+                m_weaponUsed = (Weapon)EditorGUILayout.EnumPopup("Weapon Used:", m_weaponUsed);
+
+                EditorGUILayout.Space(2);
+                m_remainingAmmo = EditorGUILayout.FloatField("Remaining Ammo:", m_remainingAmmo);
+
+                EditorGUILayout.Space(2);
+                m_remainingHealth = EditorGUILayout.Slider("Remaining Health:", m_remainingHealth, 0f, 100f);
+
+                EditorGUILayout.Space(2);
+                m_playerPosition =
+                    (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition, typeof(Transform),
+                        true);
+
+                EditorGUILayout.Space(2);
+                m_playerLocation =
+                    (MapLocationSO)EditorGUILayout.ObjectField("Player Location", m_playerLocation,
+                        typeof(MapLocationSO),
+                        true);
+
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    TargetKilledTelemetryData data = new(m_targetId, m_weaponUsed, m_remainingAmmo, m_remainingHealth,
+                        m_playerPosition.localPosition, m_playerLocation);
+
+                    TelemetryService.TrackTargetKill(m_sessionId, data);
                 }
             }
 
