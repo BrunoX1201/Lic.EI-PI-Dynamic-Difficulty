@@ -4,6 +4,7 @@
     {
         Unknown = 0,
         PlayerDied = 1,
-        PlayerAttacked = 2
+        PlayerAttacked = 2,
+        ItemPickedUp = 8
     }
 }
