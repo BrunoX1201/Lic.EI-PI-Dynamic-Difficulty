@@ -271,7 +271,7 @@ namespace Unity.FPS.EditorExt
                 if (GUILayout.Button("Publish", GUILayout.Width(80)))
                 {
                     TargetKilledTelemetryData data = new(m_targetId, m_weaponUsed, m_remainingAmmo, m_remainingHealth,
-                        m_playerPosition.localPosition, m_playerLocation);
+                        m_playerPosition.position, m_playerLocation);
 
                     TelemetryService.TrackTargetKill(m_sessionId, data);
                 }

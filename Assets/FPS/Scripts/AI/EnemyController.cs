@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.FPS.Game;
+using Unity.FPS.Gameplay;
+using Unity.FPS.Telemetry;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
@@ -465,6 +467,29 @@ namespace Unity.FPS.AI
 
             // this will call the OnDestroy function
             Destroy(gameObject, DeathDuration);
+
+            Instigator instigatorComponent = instigator.GetComponent<Instigator>();
+            if (instigatorComponent != null && instigatorComponent.Type == InstigatorType.Player)
+            {
+                Instigator myInstigator = gameObject.GetComponent<Instigator>();
+                PlayerWeaponsManager playerWeaponManager = instigator.GetComponent<PlayerWeaponsManager>();
+                WeaponController playerActiveWeapon =
+                    playerWeaponManager != null ? playerWeaponManager.GetActiveWeapon() : null;
+                Health playerHealth = instigator.GetComponent<Health>();
+
+                TargetKilledTelemetryData evtData = new(
+                    myInstigator != null ? myInstigator.Id : -1,
+                    TelemetryConverterUtility.ConvertToTelemetryWeapon(playerActiveWeapon != null
+                        ? playerActiveWeapon.WeaponName
+                        : null),
+                    playerActiveWeapon != null ? playerActiveWeapon.GetCurrentAmmo() : -1,
+                    playerHealth != null ? playerHealth.CurrentHealth : -1f,
+                    instigator.transform.position,
+                    instigatorComponent.MapLocation
+                );
+
+                TelemetryService.TrackTargetKill(Constants.DefaultSessionId, evtData);
+            }
         }
 
         private void FindAndInitializeAllWeapons()
