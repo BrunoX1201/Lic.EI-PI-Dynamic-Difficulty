@@ -25,13 +25,18 @@ namespace Unity.FPS.EditorExt
         private int m_deathCount;
         private int m_timeAliveSeconds;
         private Instigator m_instigator;
+        private MapLocationSO m_lastLocation;
+        private MapLocationSO m_newLocation;
         private Item m_item;
+        private int m_timeInLastLocationSeconds;
+        private bool m_isDiscovered;
         private MapLocationSO m_playerLocation;
 
 
         private bool m_showPlayerDeathEvent;
         private bool m_showPlayerAttackEvent;
         private bool m_showItemPickUpEvent;
+        private bool m_showNewLocationDiscoverEvent;
         private bool m_showTargetKillEvent;
 
         public override void OnInspectorGUI()
@@ -58,6 +63,7 @@ namespace Unity.FPS.EditorExt
                 HandlePlayerDeathEvent();
                 HandlePlayerAttackEvent();
                 HandleItemPickedUpEvent();
+                HandleNewLocationDiscoverEvent();
                 HandleTargetKilledEvent();
             }
 
@@ -185,6 +191,45 @@ namespace Unity.FPS.EditorExt
                         m_playerPosition.localPosition);
 
                     TelemetryService.TrackItemPickUp(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandleNewLocationDiscoverEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+            m_showNewLocationDiscoverEvent =
+                EditorGUILayout.Foldout(m_showNewLocationDiscoverEvent, "NewLocationDiscovered");
+            if (m_showNewLocationDiscoverEvent)
+            {
+                EditorGUILayout.Space(2);
+                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
+
+                EditorGUILayout.Space(2);
+                m_lastLocation = (MapLocationSO)EditorGUILayout.ObjectField("Last Location", m_lastLocation,
+                    typeof(MapLocationSO), false);
+
+                EditorGUILayout.Space(2);
+                m_newLocation = (MapLocationSO)EditorGUILayout.ObjectField("New Location", m_newLocation,
+                    typeof(MapLocationSO), false);
+
+                EditorGUILayout.Space(2);
+                m_timeInLastLocationSeconds =
+                    EditorGUILayout.IntField("Time In Last Location (Seconds)", m_timeInLastLocationSeconds);
+
+                EditorGUILayout.Space(2);
+                m_isDiscovered = EditorGUILayout.Toggle("Has Discovered", m_isDiscovered);
+
+                EditorGUILayout.Space(2);
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    NewLocationDiscoveredTelemetryData data = new(m_lastLocation, m_newLocation,
+                        m_timeInLastLocationSeconds,
+                        m_isDiscovered);
+
+                    TelemetryService.TrackNewLocationDiscover(m_sessionId, data);
                 }
             }
 

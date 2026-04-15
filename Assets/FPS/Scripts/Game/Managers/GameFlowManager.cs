@@ -88,7 +88,7 @@ namespace Unity.FPS.Game
 
             PlayerDiedTelemetryData data = new(evt.Instigator, StatisticsManager.Instance.DeathCount,
                 StatisticsManager.Instance.TimeAlive.DurationInSeconds, m_actorsManager.Player.transform.position);
-            TelemetryService.TrackPlayerDeath(0, data);
+            TelemetryService.TrackPlayerDeath(Constants.DefaultSessionId, data);
 
             EndGame(false);
         }
