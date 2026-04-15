@@ -143,7 +143,7 @@ namespace Unity.FPS.Gameplay
                         TelemetryConverterUtility.ConvertToTelemetryAttackType(WeaponUsed.AttackType),
                         WeaponUsed.GetCurrentAmmo());
 
-                TelemetryService.TrackPlayerAttack(1, telemetryData);
+                TelemetryService.TrackPlayerAttack(Constants.DefaultSessionId, telemetryData);
             }
         }
 
