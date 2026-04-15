@@ -188,7 +188,7 @@ namespace Unity.FPS.EditorExt
                 if (GUILayout.Button("Publish", GUILayout.Width(80)))
                 {
                     ItemPickedUpTelemetryData data = new(m_playerId, m_item, m_remainingAmmo, m_remainingHealth,
-                        m_playerPosition.localPosition);
+                        m_playerPosition.position);
 
                     TelemetryService.TrackItemPickUp(m_sessionId, data);
                 }
