@@ -2,9 +2,10 @@
 {
     public enum Item
     {
-        Health = 0,
-        Ammo = 1,
-        Weapon = 2,
-        Jetpack = 3
+        Unknown = 0,
+        Health = 1,
+        Ammo = 2,
+        Weapon = 3,
+        Jetpack = 4
     }
 }
