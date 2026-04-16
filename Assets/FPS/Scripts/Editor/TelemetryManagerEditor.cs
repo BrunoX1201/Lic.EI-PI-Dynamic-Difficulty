@@ -30,11 +30,15 @@ namespace Unity.FPS.EditorExt
         private int m_timeInLastLocationSeconds;
         private bool m_isDiscovered;
         private Item m_item;
+        private float m_damageTakenPerHit = 10f;
+        private float m_playerMoveSpeed = 5f;
+        private float m_playerCurrentHealth = 100f;
 
         private bool m_showPlayerDeathEvent;
         private bool m_showPlayerAttackEvent;
         private bool m_showNewLocationDiscoverEvent;
         private bool m_showItemPickUpEvent;
+        private bool m_showPlayerTakeDamageEvent;
 
         public override void OnInspectorGUI()
         {
@@ -61,6 +65,7 @@ namespace Unity.FPS.EditorExt
                 HandlePlayerAttackEvent();
                 HandleItemPickedUpEvent();
                 HandleNewLocationDiscoverEvent();
+                HandlePlayerTakeDamageEvent();
             }
 
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -226,6 +231,48 @@ namespace Unity.FPS.EditorExt
                         m_playerPosition.localPosition);
 
                     TelemetryService.TrackItemPickUp(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandlePlayerTakeDamageEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+            m_showPlayerTakeDamageEvent = EditorGUILayout.Foldout(m_showPlayerTakeDamageEvent, "PlayerTookDamage");
+            if (m_showPlayerTakeDamageEvent)
+            {
+                EditorGUILayout.Space(2);
+                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
+
+                EditorGUILayout.Space(2);
+                m_damageTakenPerHit = EditorGUILayout.FloatField("Damage Taken Per Hit", m_damageTakenPerHit);
+
+                EditorGUILayout.Space(2);
+                m_playerMoveSpeed = EditorGUILayout.FloatField("Player Move Speed", m_playerMoveSpeed);
+
+                EditorGUILayout.Space(2);
+                m_instigator =
+                    (Instigator)EditorGUILayout.ObjectField("Instigator", m_instigator, typeof(Instigator), true);
+
+                EditorGUILayout.Space(2);
+                m_playerCurrentHealth =
+                    EditorGUILayout.Slider("Player Current Health", m_playerCurrentHealth, 0f, 100f);
+
+                EditorGUILayout.Space(2);
+                m_playerPosition =
+                    (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition, typeof(Transform),
+                        true);
+
+
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    PlayerTookDamageTelemetryData data = new(m_damageTakenPerHit, m_playerMoveSpeed, m_instigator,
+                        m_playerCurrentHealth, m_playerPosition.position
+                    );
+
+                    TelemetryService.TrackPlayerTakeDamage(m_sessionId, data);
                 }
             }
 
