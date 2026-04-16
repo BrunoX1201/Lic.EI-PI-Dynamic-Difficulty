@@ -1,4 +1,5 @@
 ﻿using Unity.FPS.Game;
+using Unity.FPS.Telemetry;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -166,6 +167,7 @@ namespace Unity.FPS.Gameplay
             m_Controller.enableOverlapRecovery = true;
 
             m_Health.OnDie += OnDie;
+            m_Health.OnDamaged += OnDamaged;
 
             // force the crouch state to false when starting
             SetCrouchingState(false, true);
@@ -482,6 +484,16 @@ namespace Unity.FPS.Gameplay
 
             IsCrouching = crouched;
             return true;
+        }
+
+        private void OnDamaged(float damage, GameObject damageSource)
+        {
+            Instigator sourceInstigator = damageSource != null ? damageSource.GetComponent<Instigator>() : null;
+            
+            PlayerTookDamageTelemetryData evtData = new(damage, CharacterVelocity.magnitude,
+                sourceInstigator,
+                m_Health.CurrentHealth, transform.position);
+            TelemetryService.TrackPlayerTakeDamage(Constants.DefaultSessionId, evtData);
         }
     }
 }

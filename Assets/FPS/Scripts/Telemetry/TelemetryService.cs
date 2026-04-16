@@ -57,5 +57,12 @@ namespace Unity.FPS.Telemetry
 
             TelemetryEventBus.Publish(evt);
         }
+
+        public static void TrackPlayerTakeDamage(int sessionId, PlayerTookDamageTelemetryData eventData)
+        {
+            PlayerTookDamageTelemetry evt = new(sessionId, eventData);
+
+            TelemetryEventBus.Publish(evt);
+        }
     }
 }
