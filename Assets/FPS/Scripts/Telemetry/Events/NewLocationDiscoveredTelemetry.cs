@@ -22,8 +22,8 @@ namespace Unity.FPS.Telemetry
         public NewLocationDiscoveredTelemetry(int sessionId, NewLocationDiscoveredTelemetryData data)
             : base(sessionId, TelemetryEventType.NewLocationDiscovered)
         {
-            Data.Add("LastLocation", data.LastLocation.Location);
-            Data.Add("NewLocation", data.NewLocation.Location);
+            Data.Add("LastLocation", data.LastLocation?.Location);
+            Data.Add("NewLocation", data.NewLocation?.Location);
             Data.Add("TimeInLastLocationSeconds", data.TimeInLastLocationSeconds);
             Data.Add("HasDiscovered", data.HasDiscovered);
         }

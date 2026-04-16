@@ -13,12 +13,13 @@ namespace Unity.FPS.Game
 
         public int Id { get; private set; }
         public ITelemetryMapLocation MapLocation => m_mapLocation;
-        public float LocationEnterTime => m_locationEnterTime;
+        public MapLocationSO PreviousMapLocation { get; private set; }
+
+        public float LocationEnterTime { get; private set; }
 
         public ITelemetryHealth Health { get; private set; }
-        private MapLocationSO m_mapLocation;
-        private float m_locationEnterTime;
         private readonly HashSet<MapLocationSO> m_discoveredZones = new();
+        private MapLocationSO m_mapLocation;
 
         private void Awake()
         {
@@ -39,8 +40,15 @@ namespace Unity.FPS.Game
                 return;
             }
 
+            if (m_mapLocation != null)
+            {
+                PreviousMapLocation = m_mapLocation;
+            }
+
             m_mapLocation = newLocation;
-            m_locationEnterTime = Time.time;
+            MarkZoneDiscovered(newLocation);
+
+            LocationEnterTime = Time.time;
         }
 
         public bool HasDiscoveredZone(MapLocationSO zone)
@@ -48,9 +56,9 @@ namespace Unity.FPS.Game
             return zone != null && m_discoveredZones.Contains(zone);
         }
 
-        public void MarkZoneDiscovered(MapLocationSO zone)
+        private void MarkZoneDiscovered(MapLocationSO zone)
         {
-            if (zone == null)
+            if (zone == null || HasDiscoveredZone(zone))
             {
                 return;
             }
