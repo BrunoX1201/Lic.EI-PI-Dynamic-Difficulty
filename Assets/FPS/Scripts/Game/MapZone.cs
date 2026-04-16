@@ -7,6 +7,8 @@ namespace Unity.FPS.Game
     {
         [SerializeField] private MapLocationSO m_mapLocationSO;
 
+        public MapLocationSO MapLocation => m_mapLocationSO;
+
         private void OnTriggerEnter(Collider other)
         {
             TryProcessZone(other, true);
