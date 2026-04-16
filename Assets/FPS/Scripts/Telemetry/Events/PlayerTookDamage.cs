@@ -28,7 +28,7 @@ namespace Unity.FPS.Telemetry
         {
             Data.Add("DamageTakenPerHit", data.DamageTakenPerHit);
             Data.Add("PlayerMoveSpeed", data.PlayerMoveSpeed);
-            Data.Add("Instigator", data.Instigator);
+            Data.Add("Instigator", data.Instigator.Id);
             Data.Add("PlayerCurrentHealth", data.PlayerCurrentHealth);
             Data.Add("PlayerPosition", data.PlayerPosition);
         }
