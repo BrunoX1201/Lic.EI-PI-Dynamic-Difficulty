@@ -64,5 +64,12 @@ namespace Unity.FPS.Telemetry
 
             TelemetryEventBus.Publish(evt);
         }
+
+        public static void TrackGameTimePass(int sessionId, GameTimePassedTelemetryData eventData)
+        {
+            GameTimePassedTelemetry evt = new(sessionId, eventData);
+
+            TelemetryEventBus.Publish(evt);
+        }
     }
 }

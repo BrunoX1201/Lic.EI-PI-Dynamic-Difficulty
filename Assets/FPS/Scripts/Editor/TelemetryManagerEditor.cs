@@ -34,6 +34,7 @@ namespace Unity.FPS.EditorExt
         private float m_damageTakenPerHit = 10f;
         private float m_playerMoveSpeed = 5f;
         private float m_playerCurrentHealth = 100f;
+        private int m_totalGameTimeSeconds;
 
         private bool m_showPlayerDeathEvent;
         private bool m_showPlayerAttackEvent;
@@ -41,6 +42,7 @@ namespace Unity.FPS.EditorExt
         private bool m_showNewLocationDiscoverEvent;
         private bool m_showPlayerTakeDamageEvent;
         private bool m_showTargetKillEvent;
+        private bool m_showGameTimePassEvent;
 
         public override void OnInspectorGUI()
         {
@@ -65,10 +67,11 @@ namespace Unity.FPS.EditorExt
 
                 HandlePlayerDeathEvent();
                 HandlePlayerAttackEvent();
-                HandleItemPickedUpEvent();
+                HandleItemPickUpEvent();
                 HandleNewLocationDiscoverEvent();
-                HandleTargetKilledEvent();
+                HandleTargetKillEvent();
                 HandlePlayerTakeDamageEvent();
+                HandleGameTimePassEvent();
             }
 
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -162,7 +165,7 @@ namespace Unity.FPS.EditorExt
             EditorGUILayout.EndVertical();
         }
 
-        private void HandleItemPickedUpEvent()
+        private void HandleItemPickUpEvent()
         {
             EditorGUILayout.BeginVertical("box");
             m_showItemPickUpEvent = EditorGUILayout.Foldout(m_showItemPickUpEvent, "ItemPickedUp");
@@ -282,7 +285,7 @@ namespace Unity.FPS.EditorExt
             EditorGUILayout.EndVertical();
         }
 
-        private void HandleTargetKilledEvent()
+        private void HandleTargetKillEvent()
         {
             EditorGUILayout.BeginVertical("box");
             m_showTargetKillEvent = EditorGUILayout.Foldout(m_showTargetKillEvent, "TargetKilled");
@@ -320,6 +323,35 @@ namespace Unity.FPS.EditorExt
                         m_playerPosition.position, m_playerLocation);
 
                     TelemetryService.TrackTargetKill(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandleGameTimePassEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+            m_showGameTimePassEvent = EditorGUILayout.Foldout(m_showGameTimePassEvent, "GameTimePassed");
+            if (m_showGameTimePassEvent)
+            {
+                EditorGUILayout.Space(2);
+                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
+
+                EditorGUILayout.Space(2);
+                m_totalGameTimeSeconds = EditorGUILayout.IntField("Total Game Time (Seconds)", m_totalGameTimeSeconds);
+
+                EditorGUILayout.Space(2);
+                m_playerLocation =
+                    (MapLocationSO)EditorGUILayout.ObjectField("Player Location", m_playerLocation,
+                        typeof(MapLocationSO),
+                        true);
+
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    GameTimePassedTelemetryData data = new(m_totalGameTimeSeconds, m_playerLocation);
+
+                    TelemetryService.TrackGameTimePass(m_sessionId, data);
                 }
             }
 
