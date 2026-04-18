@@ -7,23 +7,31 @@ namespace Unity.FPS.Game
         public DateTime StartTime { get; private set; }
 
         public DateTime EndTime { get; private set; }
-
         public int DurationInSeconds => (int)EndTime.Subtract(StartTime).TotalSeconds;
+
+        public bool IsStopped { get; private set; }
 
         public void Start()
         {
-            StartTime = DateTime.Now;
+            StartTime = DateTime.UtcNow;
             EndTime = DateTime.MinValue;
+            IsStopped = false;
         }
 
         public void Stop()
         {
-            if (StartTime == DateTime.MinValue)
+            if (StartTime == DateTime.MinValue || IsStopped)
             {
                 return;
             }
 
-            EndTime = DateTime.Now;
+            EndTime = DateTime.UtcNow;
+            IsStopped = true;
+        }
+
+        public void Continue()
+        {
+            IsStopped = false;
         }
     }
 
@@ -35,19 +43,11 @@ namespace Unity.FPS.Game
 
         public float Accuracy => m_totalPalletsFired > 0 ? (float)m_totalPalletsHit / m_totalPalletsFired : 0f;
 
+        public TimeRange TotalGameTime { get; } = new();
+
         private uint m_totalPalletsFired;
         private uint m_totalPalletsHit;
         private uint m_totalPalletsMissed;
-
-        public void StartAliveTimer()
-        {
-            TimeAlive.Start();
-        }
-
-        public void StopAliveTimer()
-        {
-            TimeAlive.Stop();
-        }
 
         public void IncrementDeathCount(int increment)
         {
