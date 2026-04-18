@@ -1,4 +1,7 @@
-﻿using Unity.FPS.Telemetry;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Unity.FPS.Telemetry;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -31,6 +34,9 @@ namespace Unity.FPS.Game
 
         public bool GameIsEnding { get; private set; }
 
+        private readonly CancellationTokenSource m_gameTimePassedTaskTokenSource = new();
+        private readonly int m_gameTimePassedUpdateIntervalSeconds = 5;
+
         private ActorsManager m_actorsManager;
 
         private float m_TimeLoadEndGameScene;
@@ -42,14 +48,31 @@ namespace Unity.FPS.Game
             EventManager.AddListener<PlayerDeathEvent>(OnPlayerDeath);
         }
 
-        private void Start()
+        private async void Start()
         {
             AudioUtility.SetMasterVolume(1);
 
             m_actorsManager = FindAnyObjectByType<ActorsManager>();
             DebugUtility.HandleErrorIfNullFindObject<ActorsManager, GameFlowManager>(m_actorsManager, this);
 
-            StatisticsManager.Instance.StartAliveTimer();
+            StatisticsManager.Instance.TimeAlive.Start();
+            if (StatisticsManager.Instance.TotalGameTime.IsStopped)
+            {
+                StatisticsManager.Instance.TotalGameTime.Continue();
+            }
+            else
+            {
+                StatisticsManager.Instance.TotalGameTime.Start();
+            }
+
+
+            try
+            {
+                await GameTimePassedTask(m_gameTimePassedTaskTokenSource.Token);
+            }
+            catch
+            {
+            }
         }
 
         private void Update()
@@ -74,6 +97,10 @@ namespace Unity.FPS.Game
         {
             EventManager.RemoveListener<AllObjectivesCompletedEvent>(OnAllObjectivesCompleted);
             EventManager.RemoveListener<PlayerDeathEvent>(OnPlayerDeath);
+
+            m_gameTimePassedTaskTokenSource.Cancel();
+            m_gameTimePassedTaskTokenSource.Dispose();
+            StatisticsManager.Instance.TotalGameTime.Stop();
         }
 
         private void OnAllObjectivesCompleted(AllObjectivesCompletedEvent evt)
@@ -83,7 +110,7 @@ namespace Unity.FPS.Game
 
         private void OnPlayerDeath(PlayerDeathEvent evt)
         {
-            StatisticsManager.Instance.StopAliveTimer();
+            StatisticsManager.Instance.TimeAlive.Stop();
             StatisticsManager.Instance.IncrementDeathCount(1);
 
             PlayerDiedTelemetryData data = new(evt.Instigator, StatisticsManager.Instance.DeathCount,
@@ -131,6 +158,25 @@ namespace Unity.FPS.Game
             {
                 m_SceneToLoad = LoseSceneName;
                 m_TimeLoadEndGameScene = Time.time + EndSceneLoadDelay;
+            }
+        }
+
+        private async Task GameTimePassedTask(CancellationToken ct)
+        {
+            while (true)
+            {
+                await Task.Delay(m_gameTimePassedUpdateIntervalSeconds * 1000, ct);
+                if (ct.IsCancellationRequested)
+                {
+                    ct.ThrowIfCancellationRequested();
+                }
+
+                DateTime now = DateTime.UtcNow;
+                Instigator player = m_actorsManager.Player.GetComponent<Instigator>();
+                GameTimePassedTelemetryData evtData = new(
+                    now.Subtract(StatisticsManager.Instance.TotalGameTime.StartTime).Seconds,
+                    player?.MapLocation);
+                TelemetryService.TrackGameTimePass(Constants.DefaultSessionId, evtData);
             }
         }
     }
