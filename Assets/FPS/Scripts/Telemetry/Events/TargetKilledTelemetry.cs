@@ -34,7 +34,7 @@ namespace Unity.FPS.Telemetry
             Data.Add("RemainingAmmo", data.RemainingAmmo);
             Data.Add("RemainingHealth", data.RemainingHealth);
             Data.Add("PlayerPosition", data.PlayerPosition);
-            Data.Add("PlayerLocation", data.PlayerLocation.Location);
+            Data.Add("PlayerLocation", data.PlayerLocation?.Location);
         }
     }
 }
