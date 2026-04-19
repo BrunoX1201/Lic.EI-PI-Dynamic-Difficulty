@@ -236,7 +236,9 @@ namespace Unity.FPS.Gameplay
 
             PlayerDeathEvent evt = new()
             {
-                Instigator = instigator != null ? instigator.GetComponent<Instigator>() : null
+                Instigator = instigator != null
+                    ? instigator.GetComponent<Instigator>()
+                    : TelemetryConstants.SystemInstigator
             };
             EventManager.Broadcast(evt);
         }
@@ -488,12 +490,14 @@ namespace Unity.FPS.Gameplay
 
         private void OnDamaged(float damage, GameObject damageSource)
         {
-            Instigator sourceInstigator = damageSource != null ? damageSource.GetComponent<Instigator>() : null;
-            
+            ITelemetryInstigator sourceInstigator = damageSource != null
+                ? damageSource.GetComponent<Instigator>()
+                : TelemetryConstants.SystemInstigator;
+
             PlayerTookDamageTelemetryData evtData = new(damage, CharacterVelocity.magnitude,
                 sourceInstigator,
                 m_Health.CurrentHealth, transform.position);
-            TelemetryService.TrackPlayerTakeDamage(Constants.DefaultSessionId, evtData);
+            TelemetryService.TrackPlayerTakeDamage(TelemetryConstants.DefaultSessionId, evtData);
         }
     }
 }

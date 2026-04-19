@@ -28,7 +28,7 @@ namespace Unity.FPS.Game
                     instigator.MapLocation,
                     timeInLastLocationSeconds, hasDiscovered);
 
-                TelemetryService.TrackNewLocationDiscover(Constants.DefaultSessionId, telemetryData);
+                TelemetryService.TrackNewLocationDiscover(TelemetryConstants.DefaultSessionId, telemetryData);
             }
         }
 

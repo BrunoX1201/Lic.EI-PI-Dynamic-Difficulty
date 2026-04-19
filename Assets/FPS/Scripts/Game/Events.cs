@@ -1,3 +1,4 @@
+using Unity.FPS.Telemetry;
 using UnityEngine;
 
 namespace Unity.FPS.Game
@@ -38,7 +39,7 @@ namespace Unity.FPS.Game
 
     public class PlayerDeathEvent : GameEvent
     {
-        public Instigator Instigator;
+        public ITelemetryInstigator Instigator;
     }
 
     public class EnemyKillEvent : GameEvent
