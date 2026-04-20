@@ -24,7 +24,7 @@ namespace Unity.FPS.Telemetry
         public PlayerDiedTelemetry(int sessionId, PlayerDiedTelemetryData data) : base(sessionId,
             TelemetryEventType.PlayerDied)
         {
-            Data.Add("KilledBy", data.Instigator.Id);
+            Data.Add("KilledBy", data.Instigator?.Id);
             Data.Add("DeathCount", data.DeathCount);
             Data.Add("TimeAliveSeconds", data.TimeAliveSeconds);
             Data.Add("PlayerPosition", data.PlayerPosition);

@@ -488,7 +488,7 @@ namespace Unity.FPS.AI
                     instigatorComponent.MapLocation
                 );
 
-                TelemetryService.TrackTargetKill(Constants.DefaultSessionId, evtData);
+                TelemetryService.TrackTargetKill(TelemetryConstants.DefaultSessionId, evtData);
             }
         }
 

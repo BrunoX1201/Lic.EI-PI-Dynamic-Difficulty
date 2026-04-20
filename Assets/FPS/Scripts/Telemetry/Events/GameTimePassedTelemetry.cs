@@ -18,7 +18,7 @@
             TelemetryEventType.GameTimePassed)
         {
             Data.Add("TotalGameTimeSeconds", data.TotalGameTimeSeconds);
-            Data.Add("PlayerLocation", data.PlayerLocation.Location);
+            Data.Add("PlayerLocation", data.PlayerLocation?.Location);
         }
     }
 }
