@@ -47,6 +47,7 @@ namespace Unity.FPS.EditorExt
         private bool m_showPlayerTakeDamageEvent;
         private bool m_showTargetKillEvent;
         private bool m_showGameTimePassEvent;
+        private bool m_showPlayerGoAirborneEvent;
 
 
         public override void OnInspectorGUI()
@@ -84,7 +85,40 @@ namespace Unity.FPS.EditorExt
 
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
-        private bool m_showPlayerGoAirborneEvent;
+
+        private void HandleTelemetrySettingsFolderPath()
+        {
+            TelemetryManager manager = (TelemetryManager)target;
+
+            EditorGUILayout.LabelField("Telemetry Storage Path");
+
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.SelectableLabel(
+                manager.TelemetryServiceSettings.UploaderBaseFilePath,
+                EditorStyles.textField,
+                GUILayout.Height(EditorGUIUtility.singleLineHeight)
+            );
+
+            bool uploaderPathExists = Directory.Exists(manager.TelemetryServiceSettings.UploaderBaseFilePath);
+
+            EditorGUI.BeginDisabledGroup(!uploaderPathExists);
+            bool openPressed = GUILayout.Button("Open", GUILayout.Width(60));
+            EditorGUI.EndDisabledGroup();
+
+            EditorGUILayout.EndHorizontal();
+
+            if (!uploaderPathExists)
+            {
+                EditorGUILayout.HelpBox("Path has not been created, run once to be automatically created!",
+                    MessageType.Warning);
+            }
+
+            if (openPressed && uploaderPathExists)
+            {
+                EditorUtility.RevealInFinder(manager.TelemetryServiceSettings.UploaderBaseFilePath);
+            }
+        }
 
         private void HandlePlayerAttackEvent()
         {
@@ -135,40 +169,6 @@ namespace Unity.FPS.EditorExt
             }
 
             EditorGUILayout.EndVertical();
-        }
-
-        private void HandleTelemetrySettingsFolderPath()
-        {
-            TelemetryManager manager = (TelemetryManager)target;
-
-            EditorGUILayout.LabelField("Telemetry Storage Path");
-
-            EditorGUILayout.BeginHorizontal();
-
-            EditorGUILayout.SelectableLabel(
-                manager.TelemetryServiceSettings.UploaderBaseFilePath,
-                EditorStyles.textField,
-                GUILayout.Height(EditorGUIUtility.singleLineHeight)
-            );
-
-            bool uploaderPathExists = Directory.Exists(manager.TelemetryServiceSettings.UploaderBaseFilePath);
-
-            EditorGUI.BeginDisabledGroup(!uploaderPathExists);
-            bool openPressed = GUILayout.Button("Open", GUILayout.Width(60));
-            EditorGUI.EndDisabledGroup();
-
-            EditorGUILayout.EndHorizontal();
-
-            if (!uploaderPathExists)
-            {
-                EditorGUILayout.HelpBox("Path has not been created, run once to be automatically created!",
-                    MessageType.Warning);
-            }
-
-            if (openPressed && uploaderPathExists)
-            {
-                EditorUtility.RevealInFinder(manager.TelemetryServiceSettings.UploaderBaseFilePath);
-            }
         }
 
         private void HandlePlayerDeathEvent()
