@@ -126,7 +126,7 @@ namespace Unity.FPS.Gameplay
                 StatisticsManager.Instance.UpdateAccuracy(1, isHit);
 
                 Instigator playerInstigator = Owner.GetComponent<Instigator>();
-                int targetId = (int)TargetSpecialId.Environment;
+                int targetId = (int)SpecialId.Environment;
                 if (isHit)
                 {
                     Instigator targetInstigator = hit.collider.GetComponent<Instigator>();
@@ -143,7 +143,7 @@ namespace Unity.FPS.Gameplay
                         TelemetryConverterUtility.ConvertToTelemetryAttackType(WeaponUsed.AttackType),
                         WeaponUsed.GetCurrentAmmo());
 
-                TelemetryService.TrackPlayerAttack(Constants.DefaultSessionId, telemetryData);
+                TelemetryService.TrackPlayerAttack(TelemetryConstants.DefaultSessionId, telemetryData);
             }
         }
 
