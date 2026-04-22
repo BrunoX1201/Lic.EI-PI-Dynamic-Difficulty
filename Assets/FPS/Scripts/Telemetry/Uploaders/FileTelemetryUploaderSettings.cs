@@ -16,7 +16,8 @@ namespace Unity.FPS.Telemetry
             { typeof(PlayerAttackedTelemetry), "player_attacked" },
             { typeof(PlayerDiedTelemetry), "player_died" },
             { typeof(PlayerTookDamageTelemetry), "player_took_damage" },
-            { typeof(TargetKilledTelemetry), "target_killed" }
+            { typeof(TargetKilledTelemetry), "target_killed" },
+            { typeof(PlayerWentAirborneTelemetry), "player_went_airborne" }
         };
 
         public FileTelemetryUploaderSettings(string baseFilePath)
