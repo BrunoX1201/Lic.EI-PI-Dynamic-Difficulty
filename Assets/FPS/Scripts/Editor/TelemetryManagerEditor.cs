@@ -36,6 +36,9 @@ namespace Unity.FPS.EditorExt
         private float m_playerMoveSpeed = 5f;
         private float m_playerCurrentHealth = 100f;
         private int m_totalGameTimeSeconds;
+        private Transform m_startPosition;
+        private Transform m_endPosition;
+        private AirborneType m_airborneType;
 
         private bool m_showPlayerDeathEvent;
         private bool m_showPlayerAttackEvent;
@@ -44,6 +47,7 @@ namespace Unity.FPS.EditorExt
         private bool m_showPlayerTakeDamageEvent;
         private bool m_showTargetKillEvent;
         private bool m_showGameTimePassEvent;
+
 
         public override void OnInspectorGUI()
         {
@@ -75,10 +79,12 @@ namespace Unity.FPS.EditorExt
                 HandleTargetKillEvent();
                 HandlePlayerTakeDamageEvent();
                 HandleGameTimePassEvent();
+                HandlePlayerGoAirborneEvent();
             }
 
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
+        private bool m_showPlayerGoAirborneEvent;
 
         private void HandlePlayerAttackEvent()
         {
@@ -389,6 +395,38 @@ namespace Unity.FPS.EditorExt
                     GameTimePassedTelemetryData data = new(m_totalGameTimeSeconds, m_playerLocation);
 
                     TelemetryService.TrackGameTimePass(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandlePlayerGoAirborneEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+            m_showPlayerGoAirborneEvent = EditorGUILayout.Foldout(m_showPlayerGoAirborneEvent, "PlayerWentAirborne");
+            if (m_showPlayerGoAirborneEvent)
+            {
+                EditorGUILayout.Space(2);
+                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
+
+                EditorGUILayout.Space(2);
+                m_startPosition = (Transform)EditorGUILayout.ObjectField("Start Position", m_startPosition,
+                    typeof(Transform), true);
+
+                EditorGUILayout.Space(2);
+                m_endPosition =
+                    (Transform)EditorGUILayout.ObjectField("End Position", m_endPosition, typeof(Transform), true);
+
+                EditorGUILayout.Space(2);
+                m_airborneType = (AirborneType)EditorGUILayout.EnumPopup("Airborne Type", m_airborneType);
+
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    PlayerWentAirborneTelemetryData data = new(m_startPosition.position, m_endPosition.position,
+                        m_airborneType);
+
+                    TelemetryService.TrackPlayerGoAirborne(m_sessionId, data);
                 }
             }
 

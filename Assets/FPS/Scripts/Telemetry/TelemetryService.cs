@@ -71,5 +71,12 @@ namespace Unity.FPS.Telemetry
 
             TelemetryEventBus.Publish(evt);
         }
+
+        public static void TrackPlayerGoAirborne(int sessionId, PlayerWentAirborneTelemetryData eventData)
+        {
+            PlayerWentAirborneTelemetry evt = new(sessionId, eventData);
+
+            TelemetryEventBus.Publish(evt);
+        }
     }
 }
