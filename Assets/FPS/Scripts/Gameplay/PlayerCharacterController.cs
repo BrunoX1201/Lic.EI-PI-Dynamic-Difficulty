@@ -133,6 +133,12 @@ namespace Unity.FPS.Gameplay
         private float m_CameraVerticalAngle;
         private float m_FootstepDistanceCounter;
         private float m_TargetCharacterHeight;
+        private bool m_isJumping;
+        private bool m_reachedJumpPeak;
+        private Vector3 m_startPosition;
+        private Vector3 m_endPosition;
+        private bool m_hasAirborneStart;
+        private bool m_wasGrounded;
 
         private void Awake()
         {
@@ -184,12 +190,31 @@ namespace Unity.FPS.Gameplay
 
             HasJumpedThisFrame = false;
 
-            bool wasGrounded = IsGrounded;
+            m_wasGrounded = IsGrounded;
             GroundCheck();
 
-            // landing
-            if (IsGrounded && !wasGrounded)
+            // Start airborne telemetry only once when leaving ground without jumping
+            if (!IsGrounded && m_wasGrounded && !m_isJumping)
             {
+                m_startPosition = transform.position;
+                m_endPosition = Vector3.zero;
+                m_hasAirborneStart = true;
+            }
+
+            // landing
+            if (IsGrounded && !m_wasGrounded)
+            {
+                //Get position for AirborneTelemetry
+                m_endPosition = transform.position;
+
+                if (m_hasAirborneStart)
+                {
+                    PlayerWentAirborneTelemetryData evtData = new(m_startPosition, m_endPosition,
+                        AirborneType.Falling);
+                    TelemetryService.TrackPlayerGoAirborne(TelemetryConstants.DefaultSessionId, evtData);
+                    m_hasAirborneStart = false;
+                }
+
                 // Fall damage
                 float fallSpeed = -Mathf.Min(CharacterVelocity.y, m_LatestImpactSpeed.y);
                 float fallSpeedRatio = (fallSpeed - MinSpeedForFallDamage) /
@@ -218,6 +243,23 @@ namespace Unity.FPS.Gameplay
             UpdateCharacterHeight(false);
 
             HandleCharacterMovement();
+
+            // check for reached peak
+            if (!m_reachedJumpPeak && m_isJumping && !IsGrounded && Mathf.Abs(m_Controller.velocity.y) < 0.1f)
+            {
+                m_reachedJumpPeak = true;
+                m_endPosition = transform.position;
+
+                PlayerWentAirborneTelemetryData evtData = new(m_startPosition, m_endPosition,
+                    AirborneType.Rising);
+                TelemetryService.TrackPlayerGoAirborne(TelemetryConstants.DefaultSessionId, evtData);
+
+                // Set jumpStart Position for telemetry
+                m_startPosition = m_endPosition;
+                //Reset no endPosition
+                m_endPosition = Vector3.zero;
+                m_hasAirborneStart = true;
+            }
         }
 
         // Gets a reoriented direction that is tangent to a given slope
@@ -264,6 +306,10 @@ namespace Unity.FPS.Gameplay
                 {
                     // storing the upward direction for the surface found
                     m_GroundNormal = hit.normal;
+
+                    // set IsJumping to false when hitting the ground, even if is not ground (slope)
+                    m_isJumping = false;
+                    m_reachedJumpPeak = false;
 
                     // Only consider this a valid ground hit if the ground normal goes in the same direction as the character up
                     // and if the slope angle is lower than the character controller's limit
@@ -357,6 +403,14 @@ namespace Unity.FPS.Gameplay
                             // Force grounding to false
                             IsGrounded = false;
                             m_GroundNormal = Vector3.up;
+
+                            m_isJumping = true;
+
+                            // Set jumpStart Position for telemetry
+                            m_startPosition = transform.position;
+                            //Reset no endPosition
+                            m_endPosition = Vector3.zero;
+                            m_hasAirborneStart = true;
                         }
                     }
 

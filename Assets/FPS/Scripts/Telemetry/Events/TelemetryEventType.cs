@@ -6,6 +6,7 @@
         PlayerDied = 1,
         PlayerAttacked = 2,
         NewLocationDiscovered = 3,
+        PlayerWentAirborne = 4,
         GameTimePassed = 5,
         PlayerTookDamage = 6,
         TargetKilled = 7,
