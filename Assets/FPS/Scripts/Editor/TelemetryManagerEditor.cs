@@ -1,3 +1,4 @@
+using System;
 using FPS.Scripts.Telemetry.Shared;
 using Telemetry.Shared;
 using Unity.FPS.Game;
@@ -13,7 +14,7 @@ namespace Unity.FPS.EditorExt
     {
         private float m_remainingHealth = 100f;
         private bool m_isDebugGroupVisible = true;
-        private int m_sessionId = 1;
+        private string m_sessionId;
         private int m_playerId = 1;
         private int m_targetId = 2;
         private Transform m_playerPosition;
@@ -49,7 +50,6 @@ namespace Unity.FPS.EditorExt
         private bool m_showGameTimePassEvent;
         private bool m_showPlayerGoAirborneEvent;
 
-
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
@@ -71,7 +71,16 @@ namespace Unity.FPS.EditorExt
                 */
 
                 TelemetryEventBus.IsDebugOn = EditorGUILayout.Toggle("Debug Mode", TelemetryEventBus.IsDebugOn);
-                EditorGUILayout.LabelField("Events:");
+
+                EditorGUILayout.Space(4);
+                EditorGUILayout.BeginVertical("box");
+                EditorGUILayout.LabelField("Common Settings", EditorStyles.boldLabel);
+                HandleSessionId();
+                EditorGUILayout.EndVertical();
+
+                EditorGUILayout.Space(4);
+                EditorGUILayout.BeginVertical("box");
+                EditorGUILayout.LabelField("Events", EditorStyles.boldLabel);
 
                 HandlePlayerDeathEvent();
                 HandlePlayerAttackEvent();
@@ -81,32 +90,56 @@ namespace Unity.FPS.EditorExt
                 HandlePlayerTakeDamageEvent();
                 HandleGameTimePassEvent();
                 HandlePlayerGoAirborneEvent();
+                EditorGUILayout.EndVertical();
             }
 
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
+        private void OnEnable()
+        {
+            m_sessionId = SessionManager.Instance.SessionID.ToString();
+        }
+
+        private void HandleSessionId()
+        {
+            EditorGUILayout.Space(2);
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.LabelField("Session Id", GUILayout.Width(80));
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.TextField(m_sessionId);
+            EditorGUI.EndDisabledGroup();
+
+            if (GUILayout.Button("Generate", GUILayout.Width(80)))
+            {
+                m_sessionId = Guid.NewGuid().ToString();
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+
         private void HandleTelemetrySettingsFolderPath()
         {
             TelemetryManager manager = (TelemetryManager)target;
+            bool uploaderPathExists = Directory.Exists(manager.TelemetryServiceSettings.UploaderBaseFilePath);
 
-            EditorGUILayout.LabelField("Telemetry Storage Path");
+            EditorGUILayout.Space(4);
 
             EditorGUILayout.BeginHorizontal();
-
-            EditorGUILayout.SelectableLabel(
-                manager.TelemetryServiceSettings.UploaderBaseFilePath,
-                EditorStyles.textField,
-                GUILayout.Height(EditorGUIUtility.singleLineHeight)
-            );
-
-            bool uploaderPathExists = Directory.Exists(manager.TelemetryServiceSettings.UploaderBaseFilePath);
+            EditorGUILayout.LabelField("Telemetry Storage Path");
 
             EditorGUI.BeginDisabledGroup(!uploaderPathExists);
             bool openPressed = GUILayout.Button("Open", GUILayout.Width(60));
             EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.SelectableLabel(
+                manager.TelemetryServiceSettings.UploaderBaseFilePath,
+                EditorStyles.textField,
+                GUILayout.Height(EditorGUIUtility.singleLineHeight)
+            );
 
             if (!uploaderPathExists)
             {
@@ -123,12 +156,10 @@ namespace Unity.FPS.EditorExt
         private void HandlePlayerAttackEvent()
         {
             EditorGUILayout.BeginVertical("box");
+
             m_showPlayerAttackEvent = EditorGUILayout.Foldout(m_showPlayerAttackEvent, "PlayerAttacked");
             if (m_showPlayerAttackEvent)
             {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
-
                 EditorGUILayout.Space(2);
                 m_playerId = EditorGUILayout.IntField("Player Id", m_playerId);
 
@@ -178,9 +209,6 @@ namespace Unity.FPS.EditorExt
             if (m_showPlayerDeathEvent)
             {
                 EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
-
-                EditorGUILayout.Space(2);
                 m_instigator =
                     (Instigator)EditorGUILayout.ObjectField("Instigator", m_instigator, typeof(Instigator), true);
 
@@ -214,9 +242,6 @@ namespace Unity.FPS.EditorExt
             m_showItemPickUpEvent = EditorGUILayout.Foldout(m_showItemPickUpEvent, "ItemPickedUp");
             if (m_showItemPickUpEvent)
             {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
-
                 EditorGUILayout.Space(2);
                 m_playerId = EditorGUILayout.IntField("Player Id", m_playerId);
 
@@ -253,9 +278,6 @@ namespace Unity.FPS.EditorExt
             m_showPlayerTakeDamageEvent = EditorGUILayout.Foldout(m_showPlayerTakeDamageEvent, "PlayerTookDamage");
             if (m_showPlayerTakeDamageEvent)
             {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
-
                 EditorGUILayout.Space(2);
                 m_damageTakenPerHit = EditorGUILayout.FloatField("Damage Taken Per Hit", m_damageTakenPerHit);
 
@@ -297,9 +319,6 @@ namespace Unity.FPS.EditorExt
             if (m_showNewLocationDiscoverEvent)
             {
                 EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
-
-                EditorGUILayout.Space(2);
                 m_lastLocation = (MapLocationSO)EditorGUILayout.ObjectField("Last Location", m_lastLocation,
                     typeof(MapLocationSO), false);
 
@@ -334,9 +353,6 @@ namespace Unity.FPS.EditorExt
             m_showTargetKillEvent = EditorGUILayout.Foldout(m_showTargetKillEvent, "TargetKilled");
             if (m_showTargetKillEvent)
             {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
-
                 EditorGUILayout.Space(2);
                 m_targetId = EditorGUILayout.IntField("Target Id", m_targetId);
 
@@ -379,9 +395,6 @@ namespace Unity.FPS.EditorExt
             if (m_showGameTimePassEvent)
             {
                 EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
-
-                EditorGUILayout.Space(2);
                 m_totalGameTimeSeconds = EditorGUILayout.IntField("Total Game Time (Seconds)", m_totalGameTimeSeconds);
 
                 EditorGUILayout.Space(2);
@@ -407,9 +420,6 @@ namespace Unity.FPS.EditorExt
             m_showPlayerGoAirborneEvent = EditorGUILayout.Foldout(m_showPlayerGoAirborneEvent, "PlayerWentAirborne");
             if (m_showPlayerGoAirborneEvent)
             {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
-
                 EditorGUILayout.Space(2);
                 m_startPosition = (Transform)EditorGUILayout.ObjectField("Start Position", m_startPosition,
                     typeof(Transform), true);
