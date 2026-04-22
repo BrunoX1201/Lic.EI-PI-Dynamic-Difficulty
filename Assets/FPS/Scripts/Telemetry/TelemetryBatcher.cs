@@ -65,13 +65,14 @@ namespace Unity.FPS.Telemetry
         {
             TelemetryEventBus.Unsubscribe(OnEventReceived);
             m_batch.Clear();
+            m_uploader.Dispose();
         }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             TelemetryEventBus.Unsubscribe(OnEventReceived);
             m_batch.Clear();
-            return new ValueTask();
+            await m_uploader.DisposeAsync();
         }
 
         private void OnEventReceived(ITelemetryEvent evt)

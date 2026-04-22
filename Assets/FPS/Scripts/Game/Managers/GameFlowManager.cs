@@ -100,7 +100,6 @@ namespace Unity.FPS.Game
 
             m_gameTimePassedTaskTokenSource.Cancel();
             m_gameTimePassedTaskTokenSource.Dispose();
-            StatisticsManager.Instance.TotalGameTime.Stop();
         }
 
         private void OnAllObjectivesCompleted(AllObjectivesCompletedEvent evt)
@@ -159,6 +158,8 @@ namespace Unity.FPS.Game
                 m_SceneToLoad = LoseSceneName;
                 m_TimeLoadEndGameScene = Time.time + EndSceneLoadDelay;
             }
+
+            StatisticsManager.Instance.TotalGameTime.Stop();
         }
 
         private async Task GameTimePassedTask(CancellationToken ct)
