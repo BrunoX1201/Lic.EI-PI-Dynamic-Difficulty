@@ -14,7 +14,7 @@
 
     public class GameTimePassedTelemetry : TelemetryEvent
     {
-        public GameTimePassedTelemetry(int sessionId, GameTimePassedTelemetryData data) : base(sessionId,
+        public GameTimePassedTelemetry(string sessionId, GameTimePassedTelemetryData data) : base(sessionId,
             TelemetryEventType.GameTimePassed)
         {
             Data.Add("TotalGameTimeSeconds", data.TotalGameTimeSeconds);

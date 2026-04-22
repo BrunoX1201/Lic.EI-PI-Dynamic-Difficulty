@@ -23,56 +23,56 @@ namespace Unity.FPS.Telemetry
             s_batcher = null;
         }
 
-        public static void TrackPlayerDeath(int sessionId, PlayerDiedTelemetryData eventData)
+        public static void TrackPlayerDeath(string sessionId, PlayerDiedTelemetryData eventData)
         {
             PlayerDiedTelemetry evt = new(sessionId, eventData);
 
             TelemetryEventBus.Publish(evt);
         }
 
-        public static void TrackPlayerAttack(int sessionId, PlayerAttackedTelemetryData eventData)
+        public static void TrackPlayerAttack(string sessionId, PlayerAttackedTelemetryData eventData)
         {
             PlayerAttackedTelemetry evt = new(sessionId, eventData);
 
             TelemetryEventBus.Publish(evt);
         }
 
-        public static void TrackItemPickUp(int sessionId, ItemPickedUpTelemetryData eventData)
+        public static void TrackItemPickUp(string sessionId, ItemPickedUpTelemetryData eventData)
         {
             ItemPickedUpTelemetry evt = new(sessionId, eventData);
 
             TelemetryEventBus.Publish(evt);
         }
 
-        public static void TrackNewLocationDiscover(int sessionId, NewLocationDiscoveredTelemetryData eventData)
+        public static void TrackNewLocationDiscover(string sessionId, NewLocationDiscoveredTelemetryData eventData)
         {
             NewLocationDiscoveredTelemetry evt = new(sessionId, eventData);
 
             TelemetryEventBus.Publish(evt);
         }
 
-        public static void TrackTargetKill(int sessionId, TargetKilledTelemetryData eventData)
+        public static void TrackTargetKill(string sessionId, TargetKilledTelemetryData eventData)
         {
             TargetKilledTelemetry evt = new(sessionId, eventData);
 
             TelemetryEventBus.Publish(evt);
         }
 
-        public static void TrackPlayerTakeDamage(int sessionId, PlayerTookDamageTelemetryData eventData)
+        public static void TrackPlayerTakeDamage(string sessionId, PlayerTookDamageTelemetryData eventData)
         {
             PlayerTookDamageTelemetry evt = new(sessionId, eventData);
 
             TelemetryEventBus.Publish(evt);
         }
 
-        public static void TrackGameTimePass(int sessionId, GameTimePassedTelemetryData eventData)
+        public static void TrackGameTimePass(string sessionId, GameTimePassedTelemetryData eventData)
         {
             GameTimePassedTelemetry evt = new(sessionId, eventData);
 
             TelemetryEventBus.Publish(evt);
         }
 
-        public static void TrackPlayerGoAirborne(int sessionId, PlayerWentAirborneTelemetryData eventData)
+        public static void TrackPlayerGoAirborne(string sessionId, PlayerWentAirborneTelemetryData eventData)
         {
             PlayerWentAirborneTelemetry evt = new(sessionId, eventData);
 

@@ -40,7 +40,7 @@ namespace Unity.FPS.Telemetry
 
     public class PlayerAttackedTelemetry : TelemetryEvent
     {
-        public PlayerAttackedTelemetry(int sessionId, PlayerAttackedTelemetryData data)
+        public PlayerAttackedTelemetry(string sessionId, PlayerAttackedTelemetryData data)
             : base(sessionId, TelemetryEventType.PlayerAttacked)
         {
             Data.Add("PlayerId", data.PlayerId);

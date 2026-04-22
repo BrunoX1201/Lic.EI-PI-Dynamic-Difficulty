@@ -114,7 +114,7 @@ namespace Unity.FPS.Game
 
             PlayerDiedTelemetryData data = new(evt.Instigator, StatisticsManager.Instance.DeathCount,
                 StatisticsManager.Instance.TimeAlive.DurationInSeconds, m_actorsManager.Player.transform.position);
-            TelemetryService.TrackPlayerDeath(TelemetryConstants.DefaultSessionId, data);
+            TelemetryService.TrackPlayerDeath(SessionManager.Instance.SessionID.ToString(), data);
 
             EndGame(false);
         }
@@ -177,7 +177,7 @@ namespace Unity.FPS.Game
                 GameTimePassedTelemetryData evtData = new(
                     now.Subtract(StatisticsManager.Instance.TotalGameTime.StartTime).Seconds,
                     player?.MapLocation);
-                TelemetryService.TrackGameTimePass(TelemetryConstants.DefaultSessionId, evtData);
+                TelemetryService.TrackGameTimePass(SessionManager.Instance.SessionID.ToString(), evtData);
             }
         }
     }

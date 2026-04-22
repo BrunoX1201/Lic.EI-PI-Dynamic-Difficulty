@@ -23,7 +23,7 @@ namespace Unity.FPS.Telemetry
 
     public class PlayerTookDamageTelemetry : TelemetryEvent
     {
-        public PlayerTookDamageTelemetry(int sessionId, PlayerTookDamageTelemetryData data) : base(sessionId,
+        public PlayerTookDamageTelemetry(string sessionId, PlayerTookDamageTelemetryData data) : base(sessionId,
             TelemetryEventType.PlayerTookDamage)
         {
             Data.Add("DamageTakenPerHit", data.DamageTakenPerHit);

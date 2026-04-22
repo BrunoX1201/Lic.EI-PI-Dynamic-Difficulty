@@ -18,7 +18,7 @@ namespace Unity.FPS.Telemetry
 
     public class PlayerWentAirborneTelemetry : TelemetryEvent
     {
-        public PlayerWentAirborneTelemetry(int sessionId, PlayerWentAirborneTelemetryData data) : base(sessionId,
+        public PlayerWentAirborneTelemetry(string sessionId, PlayerWentAirborneTelemetryData data) : base(sessionId,
             TelemetryEventType.PlayerWentAirborne)
         {
             Data.Add("StartPosition", data.StartPosition);

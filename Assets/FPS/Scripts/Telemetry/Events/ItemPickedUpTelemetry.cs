@@ -24,7 +24,7 @@ namespace Unity.FPS.Telemetry
 
     public class ItemPickedUpTelemetry : TelemetryEvent
     {
-        public ItemPickedUpTelemetry(int sessionId, ItemPickedUpTelemetryData data) : base(sessionId,
+        public ItemPickedUpTelemetry(string sessionId, ItemPickedUpTelemetryData data) : base(sessionId,
             TelemetryEventType.ItemPickedUp)
         {
             Data.Add("PlayerId", data.PlayerId);

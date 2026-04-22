@@ -9,9 +9,9 @@ namespace Unity.FPS.Telemetry
         public Dictionary<string, object> Data { get; } = new();
         public DateTime Timestamp { get; } = DateTime.UtcNow;
 
-        protected int m_sessionId;
+        protected string m_sessionId;
 
-        protected TelemetryEvent(int sessionId, TelemetryEventType eventType)
+        protected TelemetryEvent(string sessionId, TelemetryEventType eventType)
         {
             m_sessionId = sessionId;
             EventType = eventType;

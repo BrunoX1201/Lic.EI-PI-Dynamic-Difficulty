@@ -211,7 +211,7 @@ namespace Unity.FPS.Gameplay
                 {
                     PlayerWentAirborneTelemetryData evtData = new(m_startPosition, m_endPosition,
                         AirborneType.Falling);
-                    TelemetryService.TrackPlayerGoAirborne(TelemetryConstants.DefaultSessionId, evtData);
+                    TelemetryService.TrackPlayerGoAirborne(SessionManager.Instance.SessionID.ToString(), evtData);
                     m_hasAirborneStart = false;
                 }
 
@@ -252,7 +252,7 @@ namespace Unity.FPS.Gameplay
 
                 PlayerWentAirborneTelemetryData evtData = new(m_startPosition, m_endPosition,
                     AirborneType.Rising);
-                TelemetryService.TrackPlayerGoAirborne(TelemetryConstants.DefaultSessionId, evtData);
+                TelemetryService.TrackPlayerGoAirborne(SessionManager.Instance.SessionID.ToString(), evtData);
 
                 // Set jumpStart Position for telemetry
                 m_startPosition = m_endPosition;
@@ -551,7 +551,7 @@ namespace Unity.FPS.Gameplay
             PlayerTookDamageTelemetryData evtData = new(damage, CharacterVelocity.magnitude,
                 sourceInstigator,
                 m_Health.CurrentHealth, transform.position);
-            TelemetryService.TrackPlayerTakeDamage(TelemetryConstants.DefaultSessionId, evtData);
+            TelemetryService.TrackPlayerTakeDamage(SessionManager.Instance.SessionID.ToString(), evtData);
         }
     }
 }
