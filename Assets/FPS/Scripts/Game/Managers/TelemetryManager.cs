@@ -14,6 +14,11 @@ namespace Unity.FPS.Game
         {
             base.Awake();
 
+            if (m_isBeingDestroyed)
+            {
+                return;
+            }
+
             if (!Directory.Exists(m_telemetryServiceSettings.UploaderBaseFilePath))
             {
                 Directory.CreateDirectory(m_telemetryServiceSettings.UploaderBaseFilePath);
