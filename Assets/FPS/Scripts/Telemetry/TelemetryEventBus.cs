@@ -7,8 +7,11 @@ namespace Unity.FPS.Telemetry
     public static class TelemetryEventBus
     {
         public static bool IsDebugOn = false;
+
         private static readonly object s_lock = new();
         private static readonly List<Action<ITelemetryEvent>> s_listeners = new();
+
+        private static readonly HashSet<Type> s_suppressedEvents = new();
 
         public static void Subscribe(Action<ITelemetryEvent> handler)
         {
@@ -38,7 +41,7 @@ namespace Unity.FPS.Telemetry
 
         public static void Publish(ITelemetryEvent evt)
         {
-            if (IsDebugOn)
+            if (IsDebugOn && !s_suppressedEvents.Contains(evt.GetType()))
             {
                 LogEvent(evt);
             }
@@ -54,6 +57,16 @@ namespace Unity.FPS.Telemetry
             {
                 listener?.Invoke(evt);
             }
+        }
+
+        public static void SuppressEvent(Type evt)
+        {
+            s_suppressedEvents.Add(evt);
+        }
+
+        public static void UnsuppressEvent(Type evt)
+        {
+            s_suppressedEvents.Remove(evt);
         }
 
         private static void LogEvent(ITelemetryEvent evt)
