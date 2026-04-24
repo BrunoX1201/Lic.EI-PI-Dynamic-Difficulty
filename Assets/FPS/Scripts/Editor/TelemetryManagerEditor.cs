@@ -1,18 +1,48 @@
+using System;
+using System.Collections.Generic;
 using FPS.Scripts.Telemetry.Shared;
 using Telemetry.Shared;
 using Unity.FPS.Game;
 using Unity.FPS.Telemetry;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Windows;
 
 namespace Unity.FPS.EditorExt
 {
     [CustomEditor(typeof(TelemetryManager))]
     public class TelemetryManagerEditor : Editor
     {
+        private class TelemetryEventUIState
+        {
+            public readonly Type EventType;
+            public bool IsExpanded;
+            public bool IsSuppressed;
+
+            public TelemetryEventUIState(Type eventType)
+            {
+                EventType = eventType;
+            }
+        }
+
+        private readonly TelemetryEventUIState m_playerDeathEventState = new(typeof(PlayerDiedTelemetry));
+        private readonly TelemetryEventUIState m_playerAttackEventState = new(typeof(PlayerAttackedTelemetry));
+        private readonly TelemetryEventUIState m_itemPickUpEventState = new(typeof(ItemPickedUpTelemetry));
+
+        private readonly TelemetryEventUIState m_newLocationDiscoverEventState =
+            new(typeof(NewLocationDiscoveredTelemetry));
+
+        private readonly TelemetryEventUIState m_playerTakeDamageEventState = new(typeof(PlayerTookDamageTelemetry));
+        private readonly TelemetryEventUIState m_targetKillEventState = new(typeof(TargetKilledTelemetry));
+        private readonly TelemetryEventUIState m_gameTimePassEventState = new(typeof(GameTimePassedTelemetry));
+        private readonly TelemetryEventUIState m_playerGoAirborneEventState = new(typeof(PlayerWentAirborneTelemetry));
+
+        private readonly HashSet<TelemetryEventUIState> m_allEventStates = new();
+        private readonly HashSet<TelemetryEventUIState> m_suppressedEventStates = new();
+
         private float m_remainingHealth = 100f;
         private bool m_isDebugGroupVisible = true;
-        private int m_sessionId = 1;
+        private string m_sessionId;
         private int m_playerId = 1;
         private int m_targetId = 2;
         private Transform m_playerPosition;
@@ -39,20 +69,11 @@ namespace Unity.FPS.EditorExt
         private Transform m_endPosition;
         private AirborneType m_airborneType;
 
-
-        private bool m_showPlayerDeathEvent;
-        private bool m_showPlayerAttackEvent;
-        private bool m_showItemPickUpEvent;
-        private bool m_showNewLocationDiscoverEvent;
-        private bool m_showPlayerTakeDamageEvent;
-        private bool m_showTargetKillEvent;
-        private bool m_showGameTimePassEvent;
-        private bool m_showPlayerGoAirborneEvent;
-
-
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
+
+            HandleTelemetrySettingsFolderPath();
 
             EditorGUILayout.Separator();
             m_isDebugGroupVisible = EditorGUILayout.BeginFoldoutHeaderGroup(m_isDebugGroupVisible, "Debug");
@@ -63,13 +84,50 @@ namespace Unity.FPS.EditorExt
                 m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "event");
                 if (m_showPlayerDeathEvent)
                 {
-                    if (GUILayout.Button.Button("Publish", GUILayout.Width(80))) TelemetryService.Track...(...);
+                    if (GUILayout.Button("Publish", GUILayout.Width(80))) TelemetryService.Track...(...);
                 }
                 EditorGUILayout.EndVertical();
                 */
 
                 TelemetryEventBus.IsDebugOn = EditorGUILayout.Toggle("Debug Mode", TelemetryEventBus.IsDebugOn);
-                EditorGUILayout.LabelField("Events:");
+
+                EditorGUILayout.Space(4);
+                EditorGUILayout.BeginVertical("box");
+
+                EditorGUILayout.LabelField("Common Settings", EditorStyles.boldLabel);
+
+                HandleSessionId();
+
+                EditorGUILayout.EndVertical();
+
+
+                EditorGUILayout.Space(4);
+                EditorGUILayout.BeginVertical("box");
+
+                EditorGUILayout.BeginHorizontal();
+
+                EditorGUILayout.LabelField("Events", EditorStyles.boldLabel);
+                if (GUILayout.Button(m_suppressedEventStates.Count == 0 ? "Select all" : "Clear all",
+                        GUILayout.Width(80)))
+                {
+                    if (m_suppressedEventStates.Count == 0)
+                    {
+                        foreach (TelemetryEventUIState evt in m_allEventStates)
+                        {
+                            EnableEventSuppression(evt);
+                        }
+                    }
+                    else
+                    {
+                        HashSet<TelemetryEventUIState> setCopy = new(m_suppressedEventStates);
+                        foreach (TelemetryEventUIState evt in setCopy)
+                        {
+                            DisableEventSuppression(evt);
+                        }
+                    }
+                }
+
+                EditorGUILayout.EndHorizontal();
 
                 HandlePlayerDeathEvent();
                 HandlePlayerAttackEvent();
@@ -79,20 +137,85 @@ namespace Unity.FPS.EditorExt
                 HandlePlayerTakeDamageEvent();
                 HandleGameTimePassEvent();
                 HandlePlayerGoAirborneEvent();
+                EditorGUILayout.EndVertical();
             }
 
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
+        private void OnEnable()
+        {
+            m_sessionId = SessionManager.Instance.SessionID.ToString();
+
+            m_allEventStates.Add(m_playerDeathEventState);
+            m_allEventStates.Add(m_playerAttackEventState);
+            m_allEventStates.Add(m_itemPickUpEventState);
+            m_allEventStates.Add(m_newLocationDiscoverEventState);
+            m_allEventStates.Add(m_playerTakeDamageEventState);
+            m_allEventStates.Add(m_targetKillEventState);
+            m_allEventStates.Add(m_gameTimePassEventState);
+            m_allEventStates.Add(m_playerGoAirborneEventState);
+        }
+
+        private void HandleSessionId()
+        {
+            EditorGUILayout.Space(2);
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUILayout.LabelField("Session Id", GUILayout.Width(80));
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.TextField(m_sessionId);
+            EditorGUI.EndDisabledGroup();
+
+            if (GUILayout.Button("Generate", GUILayout.Width(80)))
+            {
+                m_sessionId = Guid.NewGuid().ToString();
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void HandleTelemetrySettingsFolderPath()
+        {
+            TelemetryManager manager = (TelemetryManager)target;
+            bool uploaderPathExists = Directory.Exists(manager.TelemetryServiceSettings.UploaderBaseFilePath);
+
+            EditorGUILayout.Space(4);
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Telemetry Storage Path");
+
+            EditorGUI.BeginDisabledGroup(!uploaderPathExists);
+            bool openPressed = GUILayout.Button("Open", GUILayout.Width(60));
+            EditorGUI.EndDisabledGroup();
+
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.SelectableLabel(
+                manager.TelemetryServiceSettings.UploaderBaseFilePath,
+                EditorStyles.textField,
+                GUILayout.Height(EditorGUIUtility.singleLineHeight)
+            );
+
+            if (!uploaderPathExists)
+            {
+                EditorGUILayout.HelpBox("Path has not been created, run once to be automatically created!",
+                    MessageType.Warning);
+            }
+
+            if (openPressed && uploaderPathExists)
+            {
+                EditorUtility.RevealInFinder(manager.TelemetryServiceSettings.UploaderBaseFilePath);
+            }
+        }
+
         private void HandlePlayerAttackEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            m_showPlayerAttackEvent = EditorGUILayout.Foldout(m_showPlayerAttackEvent, "PlayerAttacked");
-            if (m_showPlayerAttackEvent)
-            {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
+            DrawEventFoldout("PlayerAttacked", m_playerAttackEventState);
+            if (m_playerAttackEventState.IsExpanded)
+            {
                 EditorGUILayout.Space(2);
                 m_playerId = EditorGUILayout.IntField("Player Id", m_playerId);
 
@@ -138,12 +261,10 @@ namespace Unity.FPS.EditorExt
         private void HandlePlayerDeathEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            m_showPlayerDeathEvent = EditorGUILayout.Foldout(m_showPlayerDeathEvent, "PlayerDied");
-            if (m_showPlayerDeathEvent)
-            {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
+            DrawEventFoldout("PlayerDied", m_playerDeathEventState);
+            if (m_playerDeathEventState.IsExpanded)
+            {
                 EditorGUILayout.Space(2);
                 m_instigator =
                     (Instigator)EditorGUILayout.ObjectField("Instigator", m_instigator, typeof(Instigator), true);
@@ -175,12 +296,10 @@ namespace Unity.FPS.EditorExt
         private void HandleItemPickUpEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            m_showItemPickUpEvent = EditorGUILayout.Foldout(m_showItemPickUpEvent, "ItemPickedUp");
-            if (m_showItemPickUpEvent)
-            {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
+            DrawEventFoldout("ItemPickedUp", m_itemPickUpEventState);
+            if (m_itemPickUpEventState.IsExpanded)
+            {
                 EditorGUILayout.Space(2);
                 m_playerId = EditorGUILayout.IntField("Player Id", m_playerId);
 
@@ -214,12 +333,10 @@ namespace Unity.FPS.EditorExt
         private void HandlePlayerTakeDamageEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            m_showPlayerTakeDamageEvent = EditorGUILayout.Foldout(m_showPlayerTakeDamageEvent, "PlayerTookDamage");
-            if (m_showPlayerTakeDamageEvent)
-            {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
+            DrawEventFoldout("PlayerTookDamage", m_playerTakeDamageEventState);
+            if (m_playerTakeDamageEventState.IsExpanded)
+            {
                 EditorGUILayout.Space(2);
                 m_damageTakenPerHit = EditorGUILayout.FloatField("Damage Taken Per Hit", m_damageTakenPerHit);
 
@@ -256,13 +373,10 @@ namespace Unity.FPS.EditorExt
         private void HandleNewLocationDiscoverEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            m_showNewLocationDiscoverEvent =
-                EditorGUILayout.Foldout(m_showNewLocationDiscoverEvent, "NewLocationDiscovered");
-            if (m_showNewLocationDiscoverEvent)
-            {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
+            DrawEventFoldout("NewLocationDiscovered", m_newLocationDiscoverEventState);
+            if (m_newLocationDiscoverEventState.IsExpanded)
+            {
                 EditorGUILayout.Space(2);
                 m_lastLocation = (MapLocationSO)EditorGUILayout.ObjectField("Last Location", m_lastLocation,
                     typeof(MapLocationSO), false);
@@ -295,12 +409,10 @@ namespace Unity.FPS.EditorExt
         private void HandleTargetKillEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            m_showTargetKillEvent = EditorGUILayout.Foldout(m_showTargetKillEvent, "TargetKilled");
-            if (m_showTargetKillEvent)
-            {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
+            DrawEventFoldout("TargetKilled", m_targetKillEventState);
+            if (m_targetKillEventState.IsExpanded)
+            {
                 EditorGUILayout.Space(2);
                 m_targetId = EditorGUILayout.IntField("Target Id", m_targetId);
 
@@ -339,12 +451,10 @@ namespace Unity.FPS.EditorExt
         private void HandleGameTimePassEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            m_showGameTimePassEvent = EditorGUILayout.Foldout(m_showGameTimePassEvent, "GameTimePassed");
-            if (m_showGameTimePassEvent)
-            {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
+            DrawEventFoldout("GameTimePassed", m_gameTimePassEventState);
+            if (m_gameTimePassEventState.IsExpanded)
+            {
                 EditorGUILayout.Space(2);
                 m_totalGameTimeSeconds = EditorGUILayout.IntField("Total Game Time (Seconds)", m_totalGameTimeSeconds);
 
@@ -368,12 +478,10 @@ namespace Unity.FPS.EditorExt
         private void HandlePlayerGoAirborneEvent()
         {
             EditorGUILayout.BeginVertical("box");
-            m_showPlayerGoAirborneEvent = EditorGUILayout.Foldout(m_showPlayerGoAirborneEvent, "PlayerWentAirborne");
-            if (m_showPlayerGoAirborneEvent)
-            {
-                EditorGUILayout.Space(2);
-                m_sessionId = EditorGUILayout.IntField("Session Id", m_sessionId);
 
+            DrawEventFoldout("PlayerWentAirborne", m_playerGoAirborneEventState);
+            if (m_playerGoAirborneEventState.IsExpanded)
+            {
                 EditorGUILayout.Space(2);
                 m_startPosition = (Transform)EditorGUILayout.ObjectField("Start Position", m_startPosition,
                     typeof(Transform), true);
@@ -395,6 +503,58 @@ namespace Unity.FPS.EditorExt
             }
 
             EditorGUILayout.EndVertical();
+        }
+
+        private void DrawEventFoldout(string evtName, TelemetryEventUIState evtUIState)
+        {
+            Rect headerRect = EditorGUILayout.GetControlRect();
+
+            float checkboxWidth = 20f;
+            float checkboxLabelWidth = 65f;
+
+            Rect buttonRect = new(headerRect.xMax - checkboxWidth - checkboxLabelWidth, headerRect.y,
+                checkboxWidth + checkboxLabelWidth, headerRect.height);
+            Rect checkboxLabelRect = new(buttonRect.x, buttonRect.y, checkboxLabelWidth,
+                buttonRect.height);
+            Rect checkboxRect = new(buttonRect.x + checkboxLabelWidth, buttonRect.y, checkboxWidth, buttonRect.height);
+
+            if (GUI.Button(buttonRect, GUIContent.none, GUIStyle.none))
+            {
+                ToggleEventSuppression(evtUIState);
+            }
+
+            EditorGUI.LabelField(checkboxLabelRect, "Suppressed", EditorStyles.miniLabel);
+            EditorGUI.Toggle(checkboxRect, evtUIState.IsSuppressed);
+
+            Rect foldoutRect = new(headerRect.x, headerRect.y, headerRect.width - checkboxWidth - checkboxLabelWidth,
+                headerRect.height);
+            evtUIState.IsExpanded = EditorGUI.Foldout(foldoutRect, evtUIState.IsExpanded, evtName, true);
+        }
+
+        private void ToggleEventSuppression(TelemetryEventUIState evtUIState)
+        {
+            if (evtUIState.IsSuppressed)
+            {
+                DisableEventSuppression(evtUIState);
+            }
+            else
+            {
+                EnableEventSuppression(evtUIState);
+            }
+        }
+
+        private void EnableEventSuppression(TelemetryEventUIState evtUIState)
+        {
+            evtUIState.IsSuppressed = true;
+            m_suppressedEventStates.Add(evtUIState);
+            TelemetryEventBus.SuppressEvent(evtUIState.EventType);
+        }
+
+        private void DisableEventSuppression(TelemetryEventUIState evtUIState)
+        {
+            evtUIState.IsSuppressed = false;
+            m_suppressedEventStates.Remove(evtUIState);
+            TelemetryEventBus.UnsuppressEvent(evtUIState.EventType);
         }
     }
 }

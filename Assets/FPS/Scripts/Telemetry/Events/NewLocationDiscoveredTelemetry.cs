@@ -19,7 +19,7 @@ namespace Unity.FPS.Telemetry
 
     public class NewLocationDiscoveredTelemetry : TelemetryEvent
     {
-        public NewLocationDiscoveredTelemetry(int sessionId, NewLocationDiscoveredTelemetryData data)
+        public NewLocationDiscoveredTelemetry(string sessionId, NewLocationDiscoveredTelemetryData data)
             : base(sessionId, TelemetryEventType.NewLocationDiscovered)
         {
             Data.Add("LastLocation", data.LastLocation?.Location);

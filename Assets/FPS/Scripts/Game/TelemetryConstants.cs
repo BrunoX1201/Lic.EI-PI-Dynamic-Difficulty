@@ -21,8 +21,6 @@ namespace Unity.FPS.Game
 
     public static class TelemetryConstants
     {
-        public const int DefaultSessionId = 0;
-
         public static readonly ConstantInstigator SystemInstigator =
             new(InstigatorType.System, (int)SpecialId.System, null, null);
     }

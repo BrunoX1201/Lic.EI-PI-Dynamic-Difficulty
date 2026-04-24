@@ -26,7 +26,7 @@ namespace Unity.FPS.Telemetry
 
     public class TargetKilledTelemetry : TelemetryEvent
     {
-        public TargetKilledTelemetry(int sessionId, TargetKilledTelemetryData data) : base(sessionId,
+        public TargetKilledTelemetry(string sessionId, TargetKilledTelemetryData data) : base(sessionId,
             TelemetryEventType.TargetKilled)
         {
             Data.Add("TargetId", data.TargetId);

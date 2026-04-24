@@ -20,5 +20,15 @@ namespace Unity.FPS.Telemetry
 
             return Task.CompletedTask;
         }
+
+        public void Dispose()
+        {
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            Dispose();
+            return new ValueTask();
+        }
     }
 }

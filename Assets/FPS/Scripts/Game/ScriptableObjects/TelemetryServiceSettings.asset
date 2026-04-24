@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: TelemetryServiceSettings
   m_EditorClassIdentifier: Assembly-CSharp::ScriptableObjects.TelemetryServiceSettingsSO
   BatchSize: 1
+  UploaderBaseFilePath: C:\Users\pedro\AppData\Local\teste

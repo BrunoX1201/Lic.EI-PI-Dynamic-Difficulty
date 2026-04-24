@@ -1,3 +1,4 @@
+using System.IO;
 using Unity.FPS.Telemetry;
 using UnityEngine;
 
@@ -7,10 +8,31 @@ namespace Unity.FPS.Game
     {
         [SerializeField] private TelemetryServiceSettingsSO m_telemetryServiceSettings;
 
+        public TelemetryServiceSettingsSO TelemetryServiceSettings => m_telemetryServiceSettings;
+
         public override void Awake()
         {
             base.Awake();
-            TelemetryService.Initialize(new ConsoleTelemetryUploader(), m_telemetryServiceSettings.BatchSize);
+
+            if (m_isBeingDestroyed)
+            {
+                return;
+            }
+
+            if (!Directory.Exists(m_telemetryServiceSettings.UploaderBaseFilePath))
+            {
+                Directory.CreateDirectory(m_telemetryServiceSettings.UploaderBaseFilePath);
+            }
+
+            TelemetryService.Initialize(
+                new CSVFileTelemetryUploader(
+                    new FileTelemetryUploaderSettings(m_telemetryServiceSettings.UploaderBaseFilePath)),
+                m_telemetryServiceSettings.BatchSize);
+        }
+
+        private void OnApplicationQuit()
+        {
+            TelemetryService.Shutdown();
         }
     }
 }

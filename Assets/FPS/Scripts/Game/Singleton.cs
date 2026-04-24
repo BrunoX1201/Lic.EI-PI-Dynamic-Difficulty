@@ -21,6 +21,8 @@ namespace Unity.FPS.Game
             }
         }
 
+        protected bool m_isBeingDestroyed;
+
         private static T s_instance;
 
 
@@ -54,6 +56,7 @@ namespace Unity.FPS.Game
             else
             {
                 Destroy(gameObject);
+                m_isBeingDestroyed = true;
             }
         }
     }
