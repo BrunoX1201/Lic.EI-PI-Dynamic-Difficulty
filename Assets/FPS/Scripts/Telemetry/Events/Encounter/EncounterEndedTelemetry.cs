@@ -6,20 +6,20 @@
         PlayerDied = 1
     }
 
-    public readonly struct EncounterEndedTelemetryData
+    public class EncounterEndedTelemetryData : EncounterTelemetryData
     {
         public EncounterEndReason EndReason { get; }
 
-        public EncounterEndedTelemetryData(EncounterEndReason endReason)
+        public EncounterEndedTelemetryData(int id, EncounterEndReason endReason) : base(id)
         {
             EndReason = endReason;
         }
     }
 
-    public class EncounterEndedTelemetry : TelemetryEvent
+    public class EncounterEndedTelemetry : EncounterTelemetry
     {
         public EncounterEndedTelemetry(string sessionId, EncounterEndedTelemetryData data) : base(sessionId,
-            TelemetryEventType.EncounterEnded)
+            TelemetryEventType.EncounterEnded, data)
         {
             Data.Add("EndReason", data.EndReason);
         }

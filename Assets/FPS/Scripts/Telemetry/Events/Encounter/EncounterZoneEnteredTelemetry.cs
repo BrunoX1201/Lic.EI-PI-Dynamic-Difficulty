@@ -2,20 +2,20 @@
 
 namespace Unity.FPS.Telemetry
 {
-    public readonly struct EncounterZoneEnteredTelemetryData
+    public class EncounterZoneEnteredTelemetryData : EncounterTelemetryData
     {
         public Vector3 PlayerPosition { get; }
 
-        public EncounterZoneEnteredTelemetryData(Vector3 playerPosition)
+        public EncounterZoneEnteredTelemetryData(int id, Vector3 playerPosition) : base(id)
         {
             PlayerPosition = playerPosition;
         }
     }
 
-    public class EncounterZoneEnteredTelemetry : TelemetryEvent
+    public class EncounterZoneEnteredTelemetry : EncounterTelemetry
     {
         public EncounterZoneEnteredTelemetry(string sessionId, EncounterZoneEnteredTelemetryData data) : base(sessionId,
-            TelemetryEventType.EncounterZoneEntered)
+            TelemetryEventType.EncounterZoneEntered, data)
         {
             Data.Add("PlayerPosition", data.PlayerPosition);
         }

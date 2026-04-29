@@ -6,20 +6,20 @@
         AttackedEnemy = 1
     }
 
-    public readonly struct EncounterStartedTelemetryData
+    public class EncounterStartedTelemetryData : EncounterTelemetryData
     {
         public EncounterStartReason StartReason { get; }
 
-        public EncounterStartedTelemetryData(EncounterStartReason startReason)
+        public EncounterStartedTelemetryData(int id, EncounterStartReason startReason) : base(id)
         {
             StartReason = startReason;
         }
     }
 
-    public class EncounterStartedTelemetry : TelemetryEvent
+    public class EncounterStartedTelemetry : EncounterTelemetry
     {
         public EncounterStartedTelemetry(string sessionId, EncounterStartedTelemetryData data) : base(sessionId,
-            TelemetryEventType.EncounterStarted)
+            TelemetryEventType.EncounterStarted, data)
         {
             Data.Add("StartReason", data.StartReason);
         }
