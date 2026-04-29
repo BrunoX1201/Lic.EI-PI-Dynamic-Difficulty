@@ -36,6 +36,10 @@ namespace Unity.FPS.EditorExt
         private readonly TelemetryEventUIState m_targetKillEventState = new(typeof(TargetKilledTelemetry));
         private readonly TelemetryEventUIState m_gameTimePassEventState = new(typeof(GameTimePassedTelemetry));
         private readonly TelemetryEventUIState m_playerGoAirborneEventState = new(typeof(PlayerWentAirborneTelemetry));
+        private readonly TelemetryEventUIState m_encounterStartEventState = new(typeof(EncounterStartedTelemetry));
+        private readonly TelemetryEventUIState m_encounterEndEventState = new(typeof(EncounterEndedTelemetry));
+        private readonly TelemetryEventUIState m_encounterZoneLeaveState = new(typeof(EncounterZoneLeftTelemetry));
+        private readonly TelemetryEventUIState m_encounterZoneEnterState = new(typeof(EncounterZoneEnteredTelemetry));
 
         private readonly HashSet<TelemetryEventUIState> m_allEventStates = new();
         private readonly HashSet<TelemetryEventUIState> m_suppressedEventStates = new();
@@ -69,6 +73,10 @@ namespace Unity.FPS.EditorExt
         private Transform m_endPosition;
         private AirborneType m_airborneType;
 
+        private int m_encounterId;
+        private EncounterStartReason m_encounterStartReason;
+        private EncounterEndReason m_encounterEndReason;
+
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
@@ -99,7 +107,6 @@ namespace Unity.FPS.EditorExt
                 HandleSessionId();
 
                 EditorGUILayout.EndVertical();
-
 
                 EditorGUILayout.Space(4);
                 EditorGUILayout.BeginVertical("box");
@@ -137,6 +144,11 @@ namespace Unity.FPS.EditorExt
                 HandlePlayerTakeDamageEvent();
                 HandleGameTimePassEvent();
                 HandlePlayerGoAirborneEvent();
+                HandleEncounterStartEvent();
+                HandleEncounterEndEvent();
+                HandleEncounterZoneLeaveEvent();
+                HandleEncounterZoneEnterEvent();
+
                 EditorGUILayout.EndVertical();
             }
 
@@ -155,6 +167,10 @@ namespace Unity.FPS.EditorExt
             m_allEventStates.Add(m_targetKillEventState);
             m_allEventStates.Add(m_gameTimePassEventState);
             m_allEventStates.Add(m_playerGoAirborneEventState);
+            m_allEventStates.Add(m_encounterStartEventState);
+            m_allEventStates.Add(m_encounterEndEventState);
+            m_allEventStates.Add(m_encounterZoneEnterState);
+            m_allEventStates.Add(m_encounterZoneLeaveState);
         }
 
         private void HandleSessionId()
@@ -499,6 +515,108 @@ namespace Unity.FPS.EditorExt
                         m_airborneType);
 
                     TelemetryService.TrackPlayerGoAirborne(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandleEncounterStartEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+
+            DrawEventFoldout("EncounterStarted", m_encounterStartEventState);
+            if (m_encounterStartEventState.IsExpanded)
+            {
+                EditorGUILayout.Space(2);
+                m_encounterId = EditorGUILayout.IntField("Encounter Id", m_encounterId);
+
+                EditorGUILayout.Space(2);
+                m_encounterStartReason =
+                    (EncounterStartReason)EditorGUILayout.EnumPopup("Start Reason", m_encounterStartReason);
+
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    EncounterStartedTelemetryData data = new(m_encounterId, m_encounterStartReason);
+
+                    TelemetryService.TrackEncounterStart(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandleEncounterEndEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+
+            DrawEventFoldout("EncounterEnded", m_encounterEndEventState);
+            if (m_encounterEndEventState.IsExpanded)
+            {
+                EditorGUILayout.Space(2);
+                m_encounterId = EditorGUILayout.IntField("Encounter Id", m_encounterId);
+
+                EditorGUILayout.Space(2);
+                m_encounterEndReason =
+                    (EncounterEndReason)EditorGUILayout.EnumPopup("End Reason", m_encounterEndReason);
+
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    EncounterEndedTelemetryData data = new(m_encounterId, m_encounterEndReason);
+
+                    TelemetryService.TrackEncounterEnd(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandleEncounterZoneEnterEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+
+            DrawEventFoldout("EncounterZoneEntered", m_encounterZoneEnterState);
+            if (m_encounterZoneEnterState.IsExpanded)
+            {
+                EditorGUILayout.Space(2);
+                m_encounterId = EditorGUILayout.IntField("Encounter Id", m_encounterId);
+
+                EditorGUILayout.Space(2);
+                m_playerPosition =
+                    (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition, typeof(Transform),
+                        true);
+
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    EncounterZoneEnteredTelemetryData data = new(m_encounterId, m_playerPosition.position);
+
+                    TelemetryService.TrackEncounterZoneEnter(m_sessionId, data);
+                }
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void HandleEncounterZoneLeaveEvent()
+        {
+            EditorGUILayout.BeginVertical("box");
+
+            DrawEventFoldout("EncounterZoneLeft", m_encounterZoneLeaveState);
+            if (m_encounterZoneLeaveState.IsExpanded)
+            {
+                EditorGUILayout.Space(2);
+                m_encounterId = EditorGUILayout.IntField("Encounter Id", m_encounterId);
+
+                EditorGUILayout.Space(2);
+                m_playerPosition =
+                    (Transform)EditorGUILayout.ObjectField("Player Position", m_playerPosition, typeof(Transform),
+                        true);
+
+                if (GUILayout.Button("Publish", GUILayout.Width(80)))
+                {
+                    EncounterZoneLeftTelemetryData data = new(m_encounterId, m_playerPosition.position);
+
+                    TelemetryService.TrackEncounterZoneLeave(m_sessionId, data);
                 }
             }
 
