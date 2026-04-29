@@ -10,6 +10,10 @@
         GameTimePassed = 5,
         PlayerTookDamage = 6,
         TargetKilled = 7,
-        ItemPickedUp = 8
+        ItemPickedUp = 8,
+        EncounterStarted = 9,
+        EncounterEnded = 10,
+        EncounterZoneLeft = 11,
+        EncounterZoneEntered = 12
     }
 }
