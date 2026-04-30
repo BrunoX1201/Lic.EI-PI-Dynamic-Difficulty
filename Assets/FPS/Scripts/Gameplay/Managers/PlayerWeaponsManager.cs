@@ -388,6 +388,22 @@ namespace Unity.FPS.Gameplay
             return null;
         }
 
+        public float GetTotalAmmo()
+        {
+            float totalAmmo = 0f;
+            foreach (WeaponController weapon in m_WeaponSlots)
+            {
+                if (weapon == null)
+                {
+                    continue;
+                }
+
+                totalAmmo += weapon.GetCurrentAmmo();
+            }
+
+            return totalAmmo;
+        }
+
 
         // Updates weapon position and camera FoV for the aiming transition
         private void UpdateWeaponAiming()

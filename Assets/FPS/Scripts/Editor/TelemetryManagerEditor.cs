@@ -47,6 +47,7 @@ namespace Unity.FPS.EditorExt
         private bool m_isDebugGroupVisible = true;
         private string m_sessionId;
 
+        // Player
         private int m_playerId = 1;
 
         private Transform m_playerStartPosition;
@@ -60,7 +61,6 @@ namespace Unity.FPS.EditorExt
         private int m_playerTimeInLastLocationSeconds;
         private MapLocationSO m_playerCurrentLocation;
 
-        // Player
         private float m_playerMoveSpeed = 5f;
 
         private float m_playerStartHealth = 100f;
@@ -94,7 +94,7 @@ namespace Unity.FPS.EditorExt
         private MapLocationSO m_encounterLocation;
         private EncounterStartReason m_encounterStartReason;
         private EncounterEndReason m_encounterEndReason;
-        private int m_encounterTotalEnemies;
+        private int m_encounterTotalEnemies = 10;
         private int m_encounterCurrentEnemies;
 
 
