@@ -1,3 +1,4 @@
+using Unity.FPS.Telemetry;
 using UnityEngine;
 
 namespace Unity.FPS.Game
@@ -7,15 +8,15 @@ namespace Unity.FPS.Game
 
     public static class Events
     {
-        public static ObjectiveUpdateEvent ObjectiveUpdateEvent = new ObjectiveUpdateEvent();
-        public static AllObjectivesCompletedEvent AllObjectivesCompletedEvent = new AllObjectivesCompletedEvent();
-        public static GameOverEvent GameOverEvent = new GameOverEvent();
-        public static PlayerDeathEvent PlayerDeathEvent = new PlayerDeathEvent();
-        public static EnemyKillEvent EnemyKillEvent = new EnemyKillEvent();
-        public static PickupEvent PickupEvent = new PickupEvent();
-        public static AmmoPickupEvent AmmoPickupEvent = new AmmoPickupEvent();
-        public static DamageEvent DamageEvent = new DamageEvent();
-        public static DisplayMessageEvent DisplayMessageEvent = new DisplayMessageEvent();
+        public static ObjectiveUpdateEvent ObjectiveUpdateEvent = new();
+        public static AllObjectivesCompletedEvent AllObjectivesCompletedEvent = new();
+        public static GameOverEvent GameOverEvent = new();
+        public static PlayerDeathEvent PlayerDeathEvent = new();
+        public static EnemyKillEvent EnemyKillEvent = new();
+        public static PickupEvent PickupEvent = new();
+        public static AmmoPickupEvent AmmoPickupEvent = new();
+        public static DamageEvent DamageEvent = new();
+        public static DisplayMessageEvent DisplayMessageEvent = new();
     }
 
     public class ObjectiveUpdateEvent : GameEvent
@@ -27,14 +28,19 @@ namespace Unity.FPS.Game
         public string NotificationText;
     }
 
-    public class AllObjectivesCompletedEvent : GameEvent { }
+    public class AllObjectivesCompletedEvent : GameEvent
+    {
+    }
 
     public class GameOverEvent : GameEvent
     {
         public bool Win;
     }
 
-    public class PlayerDeathEvent : GameEvent { }
+    public class PlayerDeathEvent : GameEvent
+    {
+        public ITelemetryInstigator Instigator;
+    }
 
     public class EnemyKillEvent : GameEvent
     {

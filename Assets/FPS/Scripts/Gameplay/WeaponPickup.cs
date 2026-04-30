@@ -12,11 +12,15 @@ namespace Unity.FPS.Gameplay
         {
             base.Start();
 
+            m_type = PickupType.Weapon;
+
             // Set all children layers to default (to prefent seeing weapons through meshes)
             foreach (Transform t in GetComponentsInChildren<Transform>())
             {
                 if (t != transform)
+                {
                     t.gameObject.layer = 0;
+                }
             }
         }
 

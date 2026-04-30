@@ -1,4 +1,5 @@
 ﻿using Unity.FPS.Game;
+using Unity.FPS.Telemetry;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -96,7 +97,8 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Damage recieved when falling at the maximum speed")]
         public float FallDamageAtMaxSpeed = 50f;
 
-        public UnityAction<bool> OnStanceChanged;
+        private const float k_JumpGroundingPreventionTime = 0.2f;
+        private const float k_GroundCheckDistanceInAir = 0.07f;
 
         public Vector3 CharacterVelocity { get; set; }
         public bool IsGrounded { get; private set; }
@@ -117,30 +119,37 @@ namespace Unity.FPS.Gameplay
             }
         }
 
-        Health m_Health;
-        PlayerInputHandler m_InputHandler;
-        CharacterController m_Controller;
-        PlayerWeaponsManager m_WeaponsManager;
-        Actor m_Actor;
-        Vector3 m_GroundNormal;
-        Vector3 m_CharacterVelocity;
-        Vector3 m_LatestImpactSpeed;
-        float m_LastTimeJumped = 0f;
-        float m_CameraVerticalAngle = 0f;
-        float m_FootstepDistanceCounter;
-        float m_TargetCharacterHeight;
+        public UnityAction<bool> OnStanceChanged;
 
-        const float k_JumpGroundingPreventionTime = 0.2f;
-        const float k_GroundCheckDistanceInAir = 0.07f;
+        private Health m_Health;
+        private PlayerInputHandler m_InputHandler;
+        private CharacterController m_Controller;
+        private PlayerWeaponsManager m_WeaponsManager;
+        private Actor m_Actor;
+        private Vector3 m_GroundNormal;
+        private Vector3 m_CharacterVelocity;
+        private Vector3 m_LatestImpactSpeed;
+        private float m_LastTimeJumped;
+        private float m_CameraVerticalAngle;
+        private float m_FootstepDistanceCounter;
+        private float m_TargetCharacterHeight;
+        private bool m_isJumping;
+        private bool m_reachedJumpPeak;
+        private Vector3 m_startPosition;
+        private Vector3 m_endPosition;
+        private bool m_hasAirborneStart;
+        private bool m_wasGrounded;
 
-        void Awake()
+        private void Awake()
         {
             ActorsManager actorsManager = FindFirstObjectByType<ActorsManager>();
             if (actorsManager != null)
+            {
                 actorsManager.SetPlayer(gameObject);
+            }
         }
 
-        void Start()
+        private void Start()
         {
             // fetch components on the same gameObject
             m_Controller = GetComponent<CharacterController>();
@@ -164,13 +173,14 @@ namespace Unity.FPS.Gameplay
             m_Controller.enableOverlapRecovery = true;
 
             m_Health.OnDie += OnDie;
+            m_Health.OnDamaged += OnDamaged;
 
             // force the crouch state to false when starting
             SetCrouchingState(false, true);
             UpdateCharacterHeight(true);
         }
 
-        void Update()
+        private void Update()
         {
             // check for Y kill
             if (!IsDead && transform.position.y < KillHeight)
@@ -180,12 +190,31 @@ namespace Unity.FPS.Gameplay
 
             HasJumpedThisFrame = false;
 
-            bool wasGrounded = IsGrounded;
+            m_wasGrounded = IsGrounded;
             GroundCheck();
 
-            // landing
-            if (IsGrounded && !wasGrounded)
+            // Start airborne telemetry only once when leaving ground without jumping
+            if (!IsGrounded && m_wasGrounded && !m_isJumping)
             {
+                m_startPosition = transform.position;
+                m_endPosition = Vector3.zero;
+                m_hasAirborneStart = true;
+            }
+
+            // landing
+            if (IsGrounded && !m_wasGrounded)
+            {
+                //Get position for AirborneTelemetry
+                m_endPosition = transform.position;
+
+                if (m_hasAirborneStart)
+                {
+                    PlayerWentAirborneTelemetryData evtData = new(m_startPosition, m_endPosition,
+                        AirborneType.Falling);
+                    TelemetryService.TrackPlayerGoAirborne(SessionManager.Instance.SessionID.ToString(), evtData);
+                    m_hasAirborneStart = false;
+                }
+
                 // Fall damage
                 float fallSpeed = -Mathf.Min(CharacterVelocity.y, m_LatestImpactSpeed.y);
                 float fallSpeedRatio = (fallSpeed - MinSpeedForFallDamage) /
@@ -214,23 +243,53 @@ namespace Unity.FPS.Gameplay
             UpdateCharacterHeight(false);
 
             HandleCharacterMovement();
+
+            // check for reached peak
+            if (!m_reachedJumpPeak && m_isJumping && !IsGrounded && Mathf.Abs(m_Controller.velocity.y) < 0.1f)
+            {
+                m_reachedJumpPeak = true;
+                m_endPosition = transform.position;
+
+                PlayerWentAirborneTelemetryData evtData = new(m_startPosition, m_endPosition,
+                    AirborneType.Rising);
+                TelemetryService.TrackPlayerGoAirborne(SessionManager.Instance.SessionID.ToString(), evtData);
+
+                // Set jumpStart Position for telemetry
+                m_startPosition = m_endPosition;
+                //Reset no endPosition
+                m_endPosition = Vector3.zero;
+                m_hasAirborneStart = true;
+            }
         }
 
-        void OnDie()
+        // Gets a reoriented direction that is tangent to a given slope
+        public Vector3 GetDirectionReorientedOnSlope(Vector3 direction, Vector3 slopeNormal)
+        {
+            Vector3 directionRight = Vector3.Cross(direction, transform.up);
+            return Vector3.Cross(slopeNormal, directionRight).normalized;
+        }
+
+        private void OnDie(GameObject instigator)
         {
             IsDead = true;
 
             // Tell the weapons manager to switch to a non-existing weapon in order to lower the weapon
             m_WeaponsManager.SwitchToWeaponIndex(-1, true);
 
-            EventManager.Broadcast(Events.PlayerDeathEvent);
+            PlayerDeathEvent evt = new()
+            {
+                Instigator = instigator != null
+                    ? instigator.GetComponent<Instigator>()
+                    : TelemetryConstants.SystemInstigator
+            };
+            EventManager.Broadcast(evt);
         }
 
-        void GroundCheck()
+        private void GroundCheck()
         {
             // Make sure that the ground check distance while already in air is very small, to prevent suddenly snapping to ground
             float chosenGroundCheckDistance =
-                IsGrounded ? (m_Controller.skinWidth + GroundCheckDistance) : k_GroundCheckDistanceInAir;
+                IsGrounded ? m_Controller.skinWidth + GroundCheckDistance : k_GroundCheckDistanceInAir;
 
             // reset values before the ground check
             IsGrounded = false;
@@ -241,11 +300,16 @@ namespace Unity.FPS.Gameplay
             {
                 // if we're grounded, collect info about the ground normal with a downward capsule cast representing our character capsule
                 if (Physics.CapsuleCast(GetCapsuleBottomHemisphere(), GetCapsuleTopHemisphere(m_Controller.height),
-                    m_Controller.radius, Vector3.down, out RaycastHit hit, chosenGroundCheckDistance, GroundCheckLayers,
-                    QueryTriggerInteraction.Ignore))
+                        m_Controller.radius, Vector3.down, out RaycastHit hit, chosenGroundCheckDistance,
+                        GroundCheckLayers,
+                        QueryTriggerInteraction.Ignore))
                 {
                     // storing the upward direction for the surface found
                     m_GroundNormal = hit.normal;
+
+                    // set IsJumping to false when hitting the ground, even if is not ground (slope)
+                    m_isJumping = false;
+                    m_reachedJumpPeak = false;
 
                     // Only consider this a valid ground hit if the ground normal goes in the same direction as the character up
                     // and if the slope angle is lower than the character controller's limit
@@ -264,13 +328,13 @@ namespace Unity.FPS.Gameplay
             }
         }
 
-        void HandleCharacterMovement()
+        private void HandleCharacterMovement()
         {
             // horizontal character rotation
             {
                 // rotate the transform with the input speed around its local Y axis
                 transform.Rotate(
-                    new Vector3(0f, (m_InputHandler.GetLookInputsHorizontal() * RotationSpeed * RotationMultiplier),
+                    new Vector3(0f, m_InputHandler.GetLookInputsHorizontal() * RotationSpeed * RotationMultiplier,
                         0f), Space.Self);
             }
 
@@ -306,7 +370,10 @@ namespace Unity.FPS.Gameplay
                     Vector3 targetVelocity = worldspaceMoveInput * MaxSpeedOnGround * speedModifier;
                     // reduce speed if crouching by crouch speed ratio
                     if (IsCrouching)
+                    {
                         targetVelocity *= MaxSpeedCrouchedRatio;
+                    }
+
                     targetVelocity = GetDirectionReorientedOnSlope(targetVelocity.normalized, m_GroundNormal) *
                                      targetVelocity.magnitude;
 
@@ -336,12 +403,20 @@ namespace Unity.FPS.Gameplay
                             // Force grounding to false
                             IsGrounded = false;
                             m_GroundNormal = Vector3.up;
+
+                            m_isJumping = true;
+
+                            // Set jumpStart Position for telemetry
+                            m_startPosition = transform.position;
+                            //Reset no endPosition
+                            m_endPosition = Vector3.zero;
+                            m_hasAirborneStart = true;
                         }
                     }
 
                     // footsteps sound
                     float chosenFootstepSfxFrequency =
-                        (isSprinting ? FootstepSfxFrequencyWhileSprinting : FootstepSfxFrequency);
+                        isSprinting ? FootstepSfxFrequencyWhileSprinting : FootstepSfxFrequency;
                     if (m_FootstepDistanceCounter >= 1f / chosenFootstepSfxFrequency)
                     {
                         m_FootstepDistanceCounter = 0f;
@@ -361,7 +436,7 @@ namespace Unity.FPS.Gameplay
                     float verticalVelocity = CharacterVelocity.y;
                     Vector3 horizontalVelocity = Vector3.ProjectOnPlane(CharacterVelocity, Vector3.up);
                     horizontalVelocity = Vector3.ClampMagnitude(horizontalVelocity, MaxSpeedInAir * speedModifier);
-                    CharacterVelocity = horizontalVelocity + (Vector3.up * verticalVelocity);
+                    CharacterVelocity = horizontalVelocity + Vector3.up * verticalVelocity;
 
                     // apply the gravity to the velocity
                     CharacterVelocity += Vector3.down * GravityDownForce * Time.deltaTime;
@@ -376,8 +451,8 @@ namespace Unity.FPS.Gameplay
             // detect obstructions to adjust velocity accordingly
             m_LatestImpactSpeed = Vector3.zero;
             if (Physics.CapsuleCast(capsuleBottomBeforeMove, capsuleTopBeforeMove, m_Controller.radius,
-                CharacterVelocity.normalized, out RaycastHit hit, CharacterVelocity.magnitude * Time.deltaTime, -1,
-                QueryTriggerInteraction.Ignore))
+                    CharacterVelocity.normalized, out RaycastHit hit, CharacterVelocity.magnitude * Time.deltaTime, -1,
+                    QueryTriggerInteraction.Ignore))
             {
                 // We remember the last impact speed because the fall damage logic might need it
                 m_LatestImpactSpeed = CharacterVelocity;
@@ -387,31 +462,24 @@ namespace Unity.FPS.Gameplay
         }
 
         // Returns true if the slope angle represented by the given normal is under the slope angle limit of the character controller
-        bool IsNormalUnderSlopeLimit(Vector3 normal)
+        private bool IsNormalUnderSlopeLimit(Vector3 normal)
         {
             return Vector3.Angle(transform.up, normal) <= m_Controller.slopeLimit;
         }
 
         // Gets the center point of the bottom hemisphere of the character controller capsule    
-        Vector3 GetCapsuleBottomHemisphere()
+        private Vector3 GetCapsuleBottomHemisphere()
         {
-            return transform.position + (transform.up * m_Controller.radius);
+            return transform.position + transform.up * m_Controller.radius;
         }
 
         // Gets the center point of the top hemisphere of the character controller capsule    
-        Vector3 GetCapsuleTopHemisphere(float atHeight)
+        private Vector3 GetCapsuleTopHemisphere(float atHeight)
         {
-            return transform.position + (transform.up * (atHeight - m_Controller.radius));
+            return transform.position + transform.up * (atHeight - m_Controller.radius);
         }
 
-        // Gets a reoriented direction that is tangent to a given slope
-        public Vector3 GetDirectionReorientedOnSlope(Vector3 direction, Vector3 slopeNormal)
-        {
-            Vector3 directionRight = Vector3.Cross(direction, transform.up);
-            return Vector3.Cross(slopeNormal, directionRight).normalized;
-        }
-
-        void UpdateCharacterHeight(bool force)
+        private void UpdateCharacterHeight(bool force)
         {
             // Update height instantly
             if (force)
@@ -435,7 +503,7 @@ namespace Unity.FPS.Gameplay
         }
 
         // returns false if there was an obstruction
-        bool SetCrouchingState(bool crouched, bool ignoreObstructions)
+        private bool SetCrouchingState(bool crouched, bool ignoreObstructions)
         {
             // set appropriate heights
             if (crouched)
@@ -472,6 +540,18 @@ namespace Unity.FPS.Gameplay
 
             IsCrouching = crouched;
             return true;
+        }
+
+        private void OnDamaged(float damage, GameObject damageSource)
+        {
+            ITelemetryInstigator sourceInstigator = damageSource != null
+                ? damageSource.GetComponent<Instigator>()
+                : TelemetryConstants.SystemInstigator;
+
+            PlayerTookDamageTelemetryData evtData = new(damage, CharacterVelocity.magnitude,
+                sourceInstigator,
+                m_Health.CurrentHealth, transform.position);
+            TelemetryService.TrackPlayerTakeDamage(SessionManager.Instance.SessionID.ToString(), evtData);
         }
     }
 }

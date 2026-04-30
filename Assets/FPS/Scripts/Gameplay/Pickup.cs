@@ -1,8 +1,17 @@
 ﻿using Unity.FPS.Game;
+using Unity.FPS.Telemetry;
 using UnityEngine;
 
 namespace Unity.FPS.Gameplay
 {
+    public enum PickupType
+    {
+        Health = 0,
+        Ammo = 1,
+        Weapon = 2,
+        Jetpack = 3
+    }
+
     [RequireComponent(typeof(Rigidbody), typeof(Collider))]
     public class Pickup : MonoBehaviour
     {
@@ -19,9 +28,14 @@ namespace Unity.FPS.Gameplay
 
         public Rigidbody PickupRigidbody { get; private set; }
 
-        Collider m_Collider;
-        Vector3 m_StartPosition;
-        bool m_HasPlayedFeedback;
+        public PickupType Type => m_type;
+
+        protected PickupType m_type;
+
+        private Collider m_Collider;
+        private Vector3 m_StartPosition;
+        private bool m_HasPlayedFeedback;
+
 
         protected virtual void Start()
         {
@@ -38,17 +52,17 @@ namespace Unity.FPS.Gameplay
             m_StartPosition = transform.position;
         }
 
-        void Update()
+        private void Update()
         {
             // Handle bobbing
-            float bobbingAnimationPhase = ((Mathf.Sin(Time.time * VerticalBobFrequency) * 0.5f) + 0.5f) * BobbingAmount;
+            float bobbingAnimationPhase = (Mathf.Sin(Time.time * VerticalBobFrequency) * 0.5f + 0.5f) * BobbingAmount;
             transform.position = m_StartPosition + Vector3.up * bobbingAnimationPhase;
 
             // Handle rotating
             transform.Rotate(Vector3.up, RotatingSpeed * Time.deltaTime, Space.Self);
         }
 
-        void OnTriggerEnter(Collider other)
+        private void OnTriggerEnter(Collider other)
         {
             PlayerCharacterController pickingPlayer = other.GetComponent<PlayerCharacterController>();
 
@@ -59,18 +73,28 @@ namespace Unity.FPS.Gameplay
                 PickupEvent evt = Events.PickupEvent;
                 evt.Pickup = gameObject;
                 EventManager.Broadcast(evt);
-            }
-        }
 
-        protected virtual void OnPicked(PlayerCharacterController playerController)
-        {
-            PlayPickupFeedback();
+                Instigator playerInstigator = other.GetComponent<Instigator>();
+                PlayerWeaponsManager playerWeaponsManager = other.GetComponent<PlayerWeaponsManager>();
+                WeaponController playerActiveWeapon = playerWeaponsManager.GetActiveWeapon();
+                Health playerHealth = other.GetComponent<Health>();
+
+                ItemPickedUpTelemetryData evtData =
+                    new(playerInstigator != null ? playerInstigator.Id : -1,
+                        TelemetryConverterUtility.ConvertToTelemetryPickupType(m_type),
+                        playerActiveWeapon != null ? playerActiveWeapon.GetCurrentAmmo() : -1,
+                        playerHealth != null ? playerHealth.CurrentHealth : -1,
+                        other.transform.position);
+                TelemetryService.TrackItemPickUp(SessionManager.Instance.SessionID.ToString(), evtData);
+            }
         }
 
         public void PlayPickupFeedback()
         {
             if (m_HasPlayedFeedback)
+            {
                 return;
+            }
 
             if (PickupSfx)
             {
@@ -79,10 +103,15 @@ namespace Unity.FPS.Gameplay
 
             if (PickupVfxPrefab)
             {
-                var pickupVfxInstance = Instantiate(PickupVfxPrefab, transform.position, Quaternion.identity);
+                GameObject pickupVfxInstance = Instantiate(PickupVfxPrefab, transform.position, Quaternion.identity);
             }
 
             m_HasPlayedFeedback = true;
+        }
+
+        protected virtual void OnPicked(PlayerCharacterController playerController)
+        {
+            PlayPickupFeedback();
         }
     }
 }
