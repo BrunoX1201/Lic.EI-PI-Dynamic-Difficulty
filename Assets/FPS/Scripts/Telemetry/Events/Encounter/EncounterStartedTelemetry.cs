@@ -34,7 +34,7 @@
             Data.Add("TotalEnemies", data.TotalEnemies);
             Data.Add("PlayerStartHealth", data.PlayerStartHealth);
             Data.Add("PlayerStartAmmo", data.PlayerStartAmmo);
-            Data.Add("Location", data.Location.Location);
+            Data.Add("Location", data.Location?.Location);
         }
     }
 }
