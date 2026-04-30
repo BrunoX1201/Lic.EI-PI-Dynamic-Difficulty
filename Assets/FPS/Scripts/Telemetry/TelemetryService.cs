@@ -78,5 +78,33 @@ namespace Unity.FPS.Telemetry
 
             TelemetryEventBus.Publish(evt);
         }
+
+        public static void TrackEncounterStart(string sessionId, EncounterStartedTelemetryData eventData)
+        {
+            EncounterStartedTelemetry evt = new(sessionId, eventData);
+
+            TelemetryEventBus.Publish(evt);
+        }
+
+        public static void TrackEncounterEnd(string sessionId, EncounterEndedTelemetryData eventData)
+        {
+            EncounterEndedTelemetry evt = new(sessionId, eventData);
+
+            TelemetryEventBus.Publish(evt);
+        }
+
+        public static void TrackEncounterZoneLeave(string sessionId, EncounterZoneLeftTelemetryData eventData)
+        {
+            EncounterZoneLeftTelemetry evt = new(sessionId, eventData);
+
+            TelemetryEventBus.Publish(evt);
+        }
+
+        public static void TrackEncounterZoneEnter(string sessionId, EncounterZoneEnteredTelemetryData eventData)
+        {
+            EncounterZoneEnteredTelemetry evt = new(sessionId, eventData);
+
+            TelemetryEventBus.Publish(evt);
+        }
     }
 }

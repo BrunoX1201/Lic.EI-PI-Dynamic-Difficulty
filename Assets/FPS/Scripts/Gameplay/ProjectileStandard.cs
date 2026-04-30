@@ -110,40 +110,14 @@ namespace Unity.FPS.Gameplay
                     m_HasTrajectoryOverride = false;
                 }
 
-                RaycastHit hit;
-                bool isHit = false;
-
                 if (Physics.Raycast(playerWeaponsManager.WeaponCamera.transform.position, cameraToMuzzle.normalized,
-                        out hit, cameraToMuzzle.magnitude, HittableLayers, k_TriggerInteraction))
+                        out RaycastHit hit, cameraToMuzzle.magnitude, HittableLayers, k_TriggerInteraction))
                 {
-                    isHit = IsHitValid(hit);
-                    if (isHit)
+                    if (IsHitValid(hit))
                     {
                         OnHit(hit.point, hit.normal, hit.collider);
                     }
                 }
-
-                StatisticsManager.Instance.UpdateAccuracy(1, isHit);
-
-                Instigator playerInstigator = Owner.GetComponent<Instigator>();
-                int targetId = (int)SpecialId.Environment;
-                if (isHit)
-                {
-                    Instigator targetInstigator = hit.collider.GetComponent<Instigator>();
-                    targetId = targetInstigator != null ? targetInstigator.Id : -1;
-                }
-
-                PlayerAttackedTelemetryData telemetryData =
-                    new(playerInstigator != null ? playerInstigator.Id : -1,
-                        targetId,
-                        isHit,
-                        StatisticsManager.Instance.Accuracy,
-                        Owner.transform.position,
-                        TelemetryConverterUtility.ConvertToTelemetryWeapon(WeaponUsed.WeaponName), Damage,
-                        TelemetryConverterUtility.ConvertToTelemetryAttackType(WeaponUsed.AttackType),
-                        WeaponUsed.GetCurrentAmmo());
-
-                TelemetryService.TrackPlayerAttack(SessionManager.Instance.SessionID.ToString(), telemetryData);
             }
         }
 
@@ -280,6 +254,43 @@ namespace Unity.FPS.Gameplay
             if (ImpactSfxClip)
             {
                 AudioUtility.CreateSFX(ImpactSfxClip, point, AudioUtility.AudioGroups.Impact, 1f, 3f);
+            }
+
+            // When there is bullets in the game but the owner already got destroyed
+            if (Owner != null)
+            {
+                Instigator playerInstigator = Owner.GetComponent<Instigator>();
+                if (playerInstigator != null && playerInstigator.Type == InstigatorType.Player)
+                {
+                    Instigator targetInstigator = collider.GetComponentInParent<Instigator>();
+                    int targetId = (int)SpecialId.Environment;
+                    bool isTargetEnvironment = true;
+
+                    if (targetInstigator != null)
+                    {
+                        targetId = targetInstigator.Id;
+
+                        // in case of self damage (area of effect damage)
+                        if (targetInstigator.Type != InstigatorType.Player)
+                        {
+                            isTargetEnvironment = false;
+                        }
+                    }
+
+                    StatisticsManager.Instance.UpdateAccuracy(1, !isTargetEnvironment);
+
+                    PlayerAttackedTelemetryData telemetryData =
+                        new(playerInstigator != null ? playerInstigator.Id : -1,
+                            targetId,
+                            !isTargetEnvironment,
+                            StatisticsManager.Instance.Accuracy,
+                            Owner.transform.position,
+                            TelemetryConverterUtility.ConvertToTelemetryWeapon(WeaponUsed.WeaponName), Damage,
+                            TelemetryConverterUtility.ConvertToTelemetryAttackType(WeaponUsed.AttackType),
+                            WeaponUsed.GetCurrentAmmo());
+
+                    TelemetryService.TrackPlayerAttack(SessionManager.Instance.SessionID.ToString(), telemetryData);
+                }
             }
 
             // Self Destruct
