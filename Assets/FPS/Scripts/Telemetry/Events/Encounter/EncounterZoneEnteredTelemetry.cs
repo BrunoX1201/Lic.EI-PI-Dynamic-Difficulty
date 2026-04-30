@@ -6,7 +6,7 @@ namespace Unity.FPS.Telemetry
     {
         public Vector3 PlayerPosition { get; }
 
-        public EncounterZoneEnteredTelemetryData(int id, Vector3 playerPosition) : base(id)
+        public EncounterZoneEnteredTelemetryData(string id, Vector3 playerPosition) : base(id)
         {
             PlayerPosition = playerPosition;
         }

@@ -73,9 +73,12 @@ namespace Unity.FPS.EditorExt
         private Transform m_endPosition;
         private AirborneType m_airborneType;
 
-        private int m_encounterId;
+        private string m_encounterId;
         private EncounterStartReason m_encounterStartReason;
         private EncounterEndReason m_encounterEndReason;
+        private int m_totalEnemies;
+        private int m_remainingEnemies;
+        private MapLocationSO m_encounterLocation;
 
         public override void OnInspectorGUI()
         {
@@ -529,15 +532,31 @@ namespace Unity.FPS.EditorExt
             if (m_encounterStartEventState.IsExpanded)
             {
                 EditorGUILayout.Space(2);
-                m_encounterId = EditorGUILayout.IntField("Encounter Id", m_encounterId);
+                m_encounterId = EditorGUILayout.TextField("Encounter Id", m_encounterId);
 
                 EditorGUILayout.Space(2);
                 m_encounterStartReason =
                     (EncounterStartReason)EditorGUILayout.EnumPopup("Start Reason", m_encounterStartReason);
 
+                EditorGUILayout.Space(2);
+                m_totalEnemies = EditorGUILayout.IntField("Total Enemies", m_totalEnemies);
+
+                EditorGUILayout.Space(2);
+                m_playerCurrentHealth =
+                    EditorGUILayout.Slider("Player Start Health", m_playerCurrentHealth, 0f, 100f);
+
+                EditorGUILayout.Space(2);
+                m_remainingAmmo = EditorGUILayout.FloatField("Player Start Ammo", m_remainingAmmo);
+
+                EditorGUILayout.Space(2);
+                m_encounterLocation =
+                    (MapLocationSO)EditorGUILayout.ObjectField("Encounter Location", m_encounterLocation,
+                        typeof(MapLocationSO), true);
+
                 if (GUILayout.Button("Publish", GUILayout.Width(80)))
                 {
-                    EncounterStartedTelemetryData data = new(m_encounterId, m_encounterStartReason);
+                    EncounterStartedTelemetryData data = new(m_encounterId, m_encounterStartReason, m_totalEnemies,
+                        m_playerCurrentHealth, m_remainingAmmo, m_encounterLocation);
 
                     TelemetryService.TrackEncounterStart(m_sessionId, data);
                 }
@@ -554,15 +573,26 @@ namespace Unity.FPS.EditorExt
             if (m_encounterEndEventState.IsExpanded)
             {
                 EditorGUILayout.Space(2);
-                m_encounterId = EditorGUILayout.IntField("Encounter Id", m_encounterId);
+                m_encounterId = EditorGUILayout.TextField("Encounter Id", m_encounterId);
 
                 EditorGUILayout.Space(2);
                 m_encounterEndReason =
                     (EncounterEndReason)EditorGUILayout.EnumPopup("End Reason", m_encounterEndReason);
 
+                EditorGUILayout.Space(2);
+                m_remainingEnemies = EditorGUILayout.IntField("Remaining Enemies", m_remainingEnemies);
+
+                EditorGUILayout.Space(2);
+                m_playerCurrentHealth =
+                    EditorGUILayout.Slider("Player Remaining Health", m_playerCurrentHealth, 0f, 100f);
+
+                EditorGUILayout.Space(2);
+                m_remainingAmmo = EditorGUILayout.FloatField("Player Remaining Ammo", m_remainingAmmo);
+
                 if (GUILayout.Button("Publish", GUILayout.Width(80)))
                 {
-                    EncounterEndedTelemetryData data = new(m_encounterId, m_encounterEndReason);
+                    EncounterEndedTelemetryData data = new(m_encounterId, m_encounterEndReason, m_playerCurrentHealth,
+                        m_remainingAmmo, m_remainingEnemies);
 
                     TelemetryService.TrackEncounterEnd(m_sessionId, data);
                 }
@@ -579,7 +609,7 @@ namespace Unity.FPS.EditorExt
             if (m_encounterZoneEnterState.IsExpanded)
             {
                 EditorGUILayout.Space(2);
-                m_encounterId = EditorGUILayout.IntField("Encounter Id", m_encounterId);
+                m_encounterId = EditorGUILayout.TextField("Encounter Id", m_encounterId);
 
                 EditorGUILayout.Space(2);
                 m_playerPosition =
@@ -605,7 +635,7 @@ namespace Unity.FPS.EditorExt
             if (m_encounterZoneLeaveState.IsExpanded)
             {
                 EditorGUILayout.Space(2);
-                m_encounterId = EditorGUILayout.IntField("Encounter Id", m_encounterId);
+                m_encounterId = EditorGUILayout.TextField("Encounter Id", m_encounterId);
 
                 EditorGUILayout.Space(2);
                 m_playerPosition =

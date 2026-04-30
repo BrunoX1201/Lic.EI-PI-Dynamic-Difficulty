@@ -2,9 +2,9 @@
 {
     public abstract class EncounterTelemetryData
     {
-        public int Id { get; }
+        public string Id { get; }
 
-        protected EncounterTelemetryData(int id)
+        protected EncounterTelemetryData(string id)
         {
             Id = id;
         }
