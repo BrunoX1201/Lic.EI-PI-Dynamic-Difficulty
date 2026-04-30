@@ -257,29 +257,37 @@ namespace Unity.FPS.Gameplay
             }
 
             Instigator playerInstigator = Owner.GetComponent<Instigator>();
-            Instigator targetInstigator = collider.GetComponentInParent<Instigator>();
-            int targetId = (int)SpecialId.Environment;
-            bool isTargetEnvironment = true;
-
-            if (targetInstigator != null)
+            if (playerInstigator != null && playerInstigator.Type == InstigatorType.Player)
             {
-                targetId = targetInstigator.Id;
-                isTargetEnvironment = false;
+                Instigator targetInstigator = collider.GetComponentInParent<Instigator>();
+                int targetId = (int)SpecialId.Environment;
+                bool isTargetEnvironment = true;
+
+                if (targetInstigator != null)
+                {
+                    targetId = targetInstigator.Id;
+
+                    // in case of self damage (area of effect damage)
+                    if (targetInstigator.Type != InstigatorType.Player)
+                    {
+                        isTargetEnvironment = false;
+                    }
+                }
+
+                StatisticsManager.Instance.UpdateAccuracy(1, !isTargetEnvironment);
+
+                PlayerAttackedTelemetryData telemetryData =
+                    new(playerInstigator != null ? playerInstigator.Id : -1,
+                        targetId,
+                        !isTargetEnvironment,
+                        StatisticsManager.Instance.Accuracy,
+                        Owner.transform.position,
+                        TelemetryConverterUtility.ConvertToTelemetryWeapon(WeaponUsed.WeaponName), Damage,
+                        TelemetryConverterUtility.ConvertToTelemetryAttackType(WeaponUsed.AttackType),
+                        WeaponUsed.GetCurrentAmmo());
+
+                TelemetryService.TrackPlayerAttack(SessionManager.Instance.SessionID.ToString(), telemetryData);
             }
-
-            StatisticsManager.Instance.UpdateAccuracy(1, !isTargetEnvironment);
-
-            PlayerAttackedTelemetryData telemetryData =
-                new(playerInstigator != null ? playerInstigator.Id : -1,
-                    targetId,
-                    !isTargetEnvironment,
-                    StatisticsManager.Instance.Accuracy,
-                    Owner.transform.position,
-                    TelemetryConverterUtility.ConvertToTelemetryWeapon(WeaponUsed.WeaponName), Damage,
-                    TelemetryConverterUtility.ConvertToTelemetryAttackType(WeaponUsed.AttackType),
-                    WeaponUsed.GetCurrentAmmo());
-
-            TelemetryService.TrackPlayerAttack(SessionManager.Instance.SessionID.ToString(), telemetryData);
 
             // Self Destruct
             Destroy(gameObject);
