@@ -3,11 +3,26 @@ using UnityEngine;
 
 namespace Unity.FPS.Game
 {
+    [RequireComponent(typeof(Collider))]
     public class MapZone : MonoBehaviour
     {
         [SerializeField] private MapLocationSO m_mapLocationSO;
 
         public MapLocationSO MapLocation => m_mapLocationSO;
+        
+        private void Awake()
+        {
+            Collider myCollider = GetComponent<Collider>();
+            myCollider.isTrigger = true;
+        }
+
+        private void Reset()
+        {
+            gameObject.layer = 13; // MapLocation
+            Collider myCollider = GetComponent<Collider>();
+            myCollider.isTrigger = true;
+        }
+
 
         private void OnTriggerEnter(Collider other)
         {
@@ -18,9 +33,9 @@ namespace Unity.FPS.Game
             }
 
             bool hasDiscovered = instigator.HasDiscoveredZone(m_mapLocationSO);
-            instigator.UpdateLocation(m_mapLocationSO);
 
-            if (instigator.Type == InstigatorType.Player)
+
+            if (instigator.UpdateLocation(m_mapLocationSO) && instigator.Type == InstigatorType.Player)
             {
                 int timeInLastLocationSeconds =
                     Mathf.Max(0, Mathf.RoundToInt(Time.time - instigator.LocationEnterTime));
@@ -42,6 +57,16 @@ namespace Unity.FPS.Game
 
             if (instigator.MapLocation as MapLocationSO == m_mapLocationSO)
             {
+                int layerMask = 1 << gameObject.layer;
+                
+                Collider[] hitColliders = Physics.OverlapBox(other.transform.position,
+                    other.transform.localScale / 2, Quaternion.identity, layerMask);
+
+                foreach (Collider mapZone in hitColliders)
+                {
+                    if (mapZone.gameObject != gameObject) return;
+                }
+
                 instigator.UpdateLocation(null);
             }
         }

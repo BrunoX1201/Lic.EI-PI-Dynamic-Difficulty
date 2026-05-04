@@ -33,11 +33,11 @@ namespace Unity.FPS.Game
             Id = InstigatorsManager.Instance.GenerateId();
         }
 
-        public void UpdateLocation(MapLocationSO newLocation)
+        public bool UpdateLocation(MapLocationSO newLocation)
         {
             if (m_mapLocation == newLocation)
             {
-                return;
+                return false;
             }
 
             if (m_mapLocation != null)
@@ -49,6 +49,7 @@ namespace Unity.FPS.Game
             MarkZoneDiscovered(newLocation);
 
             LocationEnterTime = Time.time;
+            return true;
         }
 
         public bool HasDiscoveredZone(MapLocationSO zone)
