@@ -7,18 +7,22 @@ namespace Unity.FPS.Game
     public class MapZone : MonoBehaviour
     {
         [SerializeField] private MapLocationSO m_mapLocationSO;
+        private const int k_layer = 13; // MapLocation
+        private const int k_layerMask = 1 << k_layer;
 
         public MapLocationSO MapLocation => m_mapLocationSO;
 
         private void Awake()
         {
+            gameObject.layer = k_layer;
             Collider myCollider = GetComponent<Collider>();
             myCollider.isTrigger = true;
         }
 
+        // Necessario ?
         private void Reset()
         {
-            gameObject.layer = 13; // MapLocation
+            gameObject.layer = k_layer;
             Collider myCollider = GetComponent<Collider>();
             myCollider.isTrigger = true;
         }
@@ -51,10 +55,8 @@ namespace Unity.FPS.Game
 
             if (instigator.MapLocation as MapLocationSO == m_mapLocationSO)
             {
-                int layerMask = 1 << gameObject.layer;
-
                 Collider[] hitColliders = Physics.OverlapBox(other.transform.position,
-                    other.transform.localScale / 2, Quaternion.identity, layerMask);
+                    other.transform.localScale / 2, Quaternion.identity, k_layerMask);
 
                 foreach (Collider mapZone in hitColliders)
                 {
