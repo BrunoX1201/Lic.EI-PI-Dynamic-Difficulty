@@ -40,10 +40,7 @@ namespace Unity.FPS.Game
                 return false;
             }
 
-            if (m_mapLocation != null)
-            {
-                PreviousMapLocation = m_mapLocation;
-            }
+            PreviousMapLocation = m_mapLocation;
 
             m_mapLocation = newLocation;
             MarkZoneDiscovered(newLocation);

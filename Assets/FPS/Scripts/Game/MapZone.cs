@@ -9,7 +9,7 @@ namespace Unity.FPS.Game
         [SerializeField] private MapLocationSO m_mapLocationSO;
 
         public MapLocationSO MapLocation => m_mapLocationSO;
-        
+
         private void Awake()
         {
             Collider myCollider = GetComponent<Collider>();
@@ -33,17 +33,11 @@ namespace Unity.FPS.Game
             }
 
             bool hasDiscovered = instigator.HasDiscoveredZone(m_mapLocationSO);
-
+            float timeInLastLocation = instigator.LocationEnterTime;
 
             if (instigator.UpdateLocation(m_mapLocationSO) && instigator.Type == InstigatorType.Player)
             {
-                int timeInLastLocationSeconds =
-                    Mathf.Max(0, Mathf.RoundToInt(Time.time - instigator.LocationEnterTime));
-                NewLocationDiscoveredTelemetryData telemetryData = new(instigator.PreviousMapLocation,
-                    instigator.MapLocation,
-                    timeInLastLocationSeconds, hasDiscovered);
-
-                TelemetryService.TrackNewLocationDiscover(SessionManager.Instance.SessionID.ToString(), telemetryData);
+                TrackMapZone(instigator, timeInLastLocation, hasDiscovered);
             }
         }
 
@@ -58,17 +52,34 @@ namespace Unity.FPS.Game
             if (instigator.MapLocation as MapLocationSO == m_mapLocationSO)
             {
                 int layerMask = 1 << gameObject.layer;
-                
+
                 Collider[] hitColliders = Physics.OverlapBox(other.transform.position,
                     other.transform.localScale / 2, Quaternion.identity, layerMask);
 
                 foreach (Collider mapZone in hitColliders)
                 {
-                    if (mapZone.gameObject != gameObject) return;
+                    if (mapZone.gameObject != gameObject)
+                    {
+                        return;
+                    }
                 }
 
+                float timeInLastLocation = instigator.LocationEnterTime;
                 instigator.UpdateLocation(null);
+
+                TrackMapZone(instigator, timeInLastLocation, false);
             }
+        }
+
+        private void TrackMapZone(Instigator instigator, float timeInLastLocation, bool hasDiscovered)
+        {
+            int timeInLastLocationSeconds =
+                Mathf.Max(0, Mathf.RoundToInt(Time.time - timeInLastLocation));
+            NewLocationDiscoveredTelemetryData telemetryData = new(instigator.PreviousMapLocation,
+                instigator.MapLocation,
+                timeInLastLocationSeconds, hasDiscovered);
+
+            TelemetryService.TrackNewLocationDiscover(SessionManager.Instance.SessionID.ToString(), telemetryData);
         }
     }
 }
