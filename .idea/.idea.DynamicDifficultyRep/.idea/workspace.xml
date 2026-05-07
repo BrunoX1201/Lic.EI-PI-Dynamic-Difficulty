@@ -30,7 +30,8 @@
     <setting file="file://$PROJECT_DIR$/Assets/FPS/Scripts/Editor/DoorControllerEditor.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/FPS/Scripts/Editor/SessionManagerEditor.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/FPS/Scripts/Game/Managers/SessionManager.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/FPS/Scripts/Gameplay/Obstacles/Door/DoorController.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/FPS/Scripts/Gameplay/Obstacles/Door/Door.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/FPS/Scripts/Gameplay/Obstacles/Obstacle.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/FPS/Scripts/Telemetry/Events/Encounter/EncounterTelemetry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/FPS/Scripts/Telemetry/Events/ItemPickedUpTelemetry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/FPS/Scripts/Telemetry/Shared/Item.cs" root0="FORCE_HIGHLIGHTING" />
@@ -208,7 +209,8 @@
       <workItem from="1778157991671" duration="1172000" />
       <workItem from="1778189713129" duration="2913000" />
       <workItem from="1778192661208" duration="173000" />
-      <workItem from="1778192870261" duration="2370000" />
+      <workItem from="1778192870261" duration="2692000" />
+      <workItem from="1778195701334" duration="509000" />
     </task>
     <servers />
   </component>
