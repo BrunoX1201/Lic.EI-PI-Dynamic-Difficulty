@@ -17,7 +17,7 @@ namespace Unity.FPS.Game
         public static AmmoPickupEvent AmmoPickupEvent = new();
         public static DamageEvent DamageEvent = new();
         public static DisplayMessageEvent DisplayMessageEvent = new();
-        public static ObstacleUnblockEvent ObstacleUnblockEvent = new();
+        public static ObstacleUnblockedEvent ObstacleUnblockedEvent = new();
     }
 
     public class ObjectiveUpdateEvent : GameEvent
@@ -71,7 +71,7 @@ namespace Unity.FPS.Game
         public float DelayBeforeDisplay;
     }
 
-    public class ObstacleUnblockEvent : GameEvent
+    public class ObstacleUnblockedEvent : GameEvent
     {
         public string ObstacleId;
     }
