@@ -10,6 +10,8 @@ namespace Unity.FPS.Gameplay
         private class AnimationConfiguration
         {
             public Vector3 OpenEndOffset;
+            public float Duration;
+            public Ease Ease;
         }
 
         [SerializeField] private Door m_door;
@@ -37,7 +39,7 @@ namespace Unity.FPS.Gameplay
             Vector3 endPosition = m_door.transform.position + m_animationConfiguration.OpenEndOffset;
             Tween.Position(m_door.transform,
                 new TweenSettings<Vector3>(endPosition,
-                    new TweenSettings(2, Ease.OutExpo)));
+                    new TweenSettings(m_animationConfiguration.Duration, m_animationConfiguration.Ease)));
 
             IsOpened = true;
         }
@@ -51,7 +53,7 @@ namespace Unity.FPS.Gameplay
 
             Vector3 endPosition = m_door.transform.position - m_animationConfiguration.OpenEndOffset;
             Tween.Position(m_door.transform,
-                new TweenSettings<Vector3>(endPosition, new TweenSettings(2, Ease.OutExpo)));
+                new TweenSettings<Vector3>(endPosition, new TweenSettings(m_animationConfiguration.Duration, m_animationConfiguration.Ease)));
 
             IsOpened = false;
         }

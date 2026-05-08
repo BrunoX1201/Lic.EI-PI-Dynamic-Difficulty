@@ -15,6 +15,8 @@ namespace Unity.FPS.Gameplay
 
         [SerializeField] private MapLocationSO m_location;
 
+        [SerializeField] private string m_obstacleIdToUnblock;
+
         public bool HasStarted { get; private set; }
         public int TotalEnemies { get; private set; }
         public int RemainingEnemies => m_enemies.Count;
@@ -139,6 +141,16 @@ namespace Unity.FPS.Gameplay
             yield return null;
 
             TrackEncounterEnded(EncounterEndReason.Completed);
+
+            string id = m_obstacleIdToUnblock.Trim();
+            if (id.Equals(string.Empty))
+            {
+                yield break;
+            }
+
+            ObstacleUnblockEvent evt = Events.ObstacleUnblockEvent;
+            evt.ObstacleId = id;
+            EventManager.Broadcast(evt);
         }
 
         private void TrackEncounterStarted(EncounterStartReason reason)
