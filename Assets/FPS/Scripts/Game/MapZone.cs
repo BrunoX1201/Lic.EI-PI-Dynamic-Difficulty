@@ -3,11 +3,30 @@ using UnityEngine;
 
 namespace Unity.FPS.Game
 {
+    [RequireComponent(typeof(Collider))]
     public class MapZone : MonoBehaviour
     {
         [SerializeField] private MapLocationSO m_mapLocationSO;
+        private const int k_layer = 13; // MapLocation
+        private const int k_layerMask = 1 << k_layer;
 
         public MapLocationSO MapLocation => m_mapLocationSO;
+
+        private void Awake()
+        {
+            gameObject.layer = k_layer;
+            Collider myCollider = GetComponent<Collider>();
+            myCollider.isTrigger = true;
+        }
+
+        // Necessario ?
+        private void Reset()
+        {
+            gameObject.layer = k_layer;
+            Collider myCollider = GetComponent<Collider>();
+            myCollider.isTrigger = true;
+        }
+
 
         private void OnTriggerEnter(Collider other)
         {
@@ -18,17 +37,11 @@ namespace Unity.FPS.Game
             }
 
             bool hasDiscovered = instigator.HasDiscoveredZone(m_mapLocationSO);
-            instigator.UpdateLocation(m_mapLocationSO);
+            float timeInLastLocation = instigator.LocationEnterTime;
 
-            if (instigator.Type == InstigatorType.Player)
+            if (instigator.UpdateLocation(m_mapLocationSO) && instigator.Type == InstigatorType.Player)
             {
-                int timeInLastLocationSeconds =
-                    Mathf.Max(0, Mathf.RoundToInt(Time.time - instigator.LocationEnterTime));
-                NewLocationDiscoveredTelemetryData telemetryData = new(instigator.PreviousMapLocation,
-                    instigator.MapLocation,
-                    timeInLastLocationSeconds, hasDiscovered);
-
-                TelemetryService.TrackNewLocationDiscover(SessionManager.Instance.SessionID.ToString(), telemetryData);
+                TrackMapZone(instigator, timeInLastLocation, hasDiscovered);
             }
         }
 
@@ -42,8 +55,33 @@ namespace Unity.FPS.Game
 
             if (instigator.MapLocation as MapLocationSO == m_mapLocationSO)
             {
+                Collider[] hitColliders = Physics.OverlapBox(other.transform.position,
+                    other.transform.localScale / 2, Quaternion.identity, k_layerMask);
+
+                foreach (Collider mapZone in hitColliders)
+                {
+                    if (mapZone.gameObject != gameObject)
+                    {
+                        return;
+                    }
+                }
+
+                float timeInLastLocation = instigator.LocationEnterTime;
                 instigator.UpdateLocation(null);
+
+                TrackMapZone(instigator, timeInLastLocation, false);
             }
+        }
+
+        private void TrackMapZone(Instigator instigator, float timeInLastLocation, bool hasDiscovered)
+        {
+            int timeInLastLocationSeconds =
+                Mathf.Max(0, Mathf.RoundToInt(Time.time - timeInLastLocation));
+            NewLocationDiscoveredTelemetryData telemetryData = new(instigator.PreviousMapLocation,
+                instigator.MapLocation,
+                timeInLastLocationSeconds, hasDiscovered);
+
+            TelemetryService.TrackNewLocationDiscover(SessionManager.Instance.SessionID.ToString(), telemetryData);
         }
     }
 }
