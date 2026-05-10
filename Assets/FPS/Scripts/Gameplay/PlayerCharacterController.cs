@@ -276,12 +276,11 @@ namespace Unity.FPS.Gameplay
             // Tell the weapons manager to switch to a non-existing weapon in order to lower the weapon
             m_WeaponsManager.SwitchToWeaponIndex(-1, true);
 
-            PlayerDeathEvent evt = new()
-            {
-                Instigator = instigator != null
-                    ? instigator.GetComponent<Instigator>()
-                    : TelemetryConstants.SystemInstigator
-            };
+            PlayerDeathEvent evt = Events.PlayerDeathEvent;
+            evt.Instigator = instigator != null
+                ? instigator.GetComponent<Instigator>()
+                : TelemetryConstants.SystemInstigator;
+
             EventManager.Broadcast(evt);
         }
 

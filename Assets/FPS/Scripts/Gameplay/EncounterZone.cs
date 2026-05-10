@@ -16,6 +16,8 @@ namespace Unity.FPS.Gameplay
         [SerializeField] private List<GameObject> m_enemies;
 
         [SerializeField] private MapLocationSO m_location;
+
+        [SerializeField] private string m_obstacleIdToUnblock;
         private const int k_layerMask = 1 << EncounterZoneCollider.Layer;
 
         public bool HasStarted { get; private set; }
@@ -163,6 +165,16 @@ namespace Unity.FPS.Gameplay
             yield return null;
 
             TrackEncounterEnded(EncounterEndReason.Completed);
+
+            string id = m_obstacleIdToUnblock.Trim();
+            if (id.Equals(string.Empty))
+            {
+                yield break;
+            }
+
+            ObstacleUnblockEvent evt = Events.ObstacleUnblockEvent;
+            evt.ObstacleId = id;
+            EventManager.Broadcast(evt);
         }
 
         private void TrackEncounterStarted(EncounterStartReason reason)
