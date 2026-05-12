@@ -9,6 +9,8 @@ namespace Unity.FPS.Gameplay
 {
     public class EncounterZone : MonoBehaviour
     {
+        [SerializeField] private List<EncounterZoneCollider> m_zoneColliders = new();
+
         [SerializeField] private string m_id;
 
         [SerializeField] private List<GameObject> m_enemies;
@@ -16,12 +18,15 @@ namespace Unity.FPS.Gameplay
         [SerializeField] private MapLocationSO m_location;
 
         [SerializeField] private string m_obstacleIdToUnblock;
+        private const int k_layerMask = 1 << EncounterZoneCollider.Layer;
 
         public bool HasStarted { get; private set; }
         public int TotalEnemies { get; private set; }
         public int RemainingEnemies => m_enemies.Count;
 
         private ActorsManager m_actorsManager;
+        private bool m_isPlayerInZone;
+        private GameObject m_lastEnteredCollider;
 
         private void Awake()
         {
@@ -32,7 +37,6 @@ namespace Unity.FPS.Gameplay
         {
             for (int i = 0; i < m_enemies.Count; i++)
             {
-                int index = i;
                 Health enemyHealth = m_enemies[i].GetComponent<Health>();
                 if (enemyHealth == null)
                 {
@@ -50,6 +54,12 @@ namespace Unity.FPS.Gameplay
                 enemyHealth.OnDie += onEnemyDie;
             }
 
+            foreach (EncounterZoneCollider zoneCollider in m_zoneColliders)
+            {
+                zoneCollider.OnPlayerEntered += OnPlayerEnter;
+                zoneCollider.OnPlayerExited += OnPlayerExit;
+            }
+
             m_actorsManager = FindAnyObjectByType<ActorsManager>();
             EventManager.AddListener<EnemyKillEvent>(OnEnemyKilled);
             EventManager.AddListener<PlayerDeathEvent>(OnPlayerDeath);
@@ -61,36 +71,50 @@ namespace Unity.FPS.Gameplay
             EventManager.RemoveListener<PlayerDeathEvent>(OnPlayerDeath);
         }
 
-        private void OnTriggerEnter(Collider other)
-        {
-            Instigator instigator = other.GetComponent<Instigator>();
-            if (instigator == null || instigator.Type != InstigatorType.Player)
-            {
-                return;
-            }
 
+        private void OnPlayerEnter(Instigator player, GameObject colliderEntered)
+        {
             if (!HasStarted)
             {
                 TrackEncounterStarted(EncounterStartReason.Entered);
                 HasStarted = true;
             }
 
-            EncounterZoneEnteredTelemetryData zoneEnteredTelemetryData = new(m_id, other.transform.position);
-            TelemetryService.TrackEncounterZoneEnter(SessionManager.Instance.SessionID.ToString(),
-                zoneEnteredTelemetryData);
+            if (!m_isPlayerInZone)
+            {
+                EncounterZoneEnteredTelemetryData zoneEnteredTelemetryData = new(m_id, player.transform.position);
+                TelemetryService.TrackEncounterZoneEnter(SessionManager.Instance.SessionID.ToString(),
+                    zoneEnteredTelemetryData);
+                m_isPlayerInZone = true;
+            }
+
+            m_lastEnteredCollider = colliderEntered;
         }
 
-        private void OnTriggerExit(Collider other)
+        private void OnPlayerExit(Instigator player, GameObject colliderLeft)
         {
-            Instigator instigator = other.GetComponent<Instigator>();
-            if (instigator == null || instigator.Type != InstigatorType.Player)
+            // Overlapping collider
+            if (m_lastEnteredCollider != colliderLeft)
             {
                 return;
             }
 
-            EncounterZoneLeftTelemetryData telemetryData = new(m_id, other.transform.position);
+            Collider[] hitColliders = Physics.OverlapBox(player.transform.position,
+                player.transform.localScale / 2, Quaternion.identity, k_layerMask);
+
+            foreach (Collider encounterCollider in hitColliders)
+            {
+                // Non-overlapping neighbor collider
+                if (encounterCollider.gameObject != m_lastEnteredCollider)
+                {
+                    return;
+                }
+            }
+
+            EncounterZoneLeftTelemetryData telemetryData = new(m_id, player.transform.position);
             TelemetryService.TrackEncounterZoneLeave(SessionManager.Instance.SessionID.ToString(),
                 telemetryData);
+            m_isPlayerInZone = false;
         }
 
         private void OnEnemyDamaged(float damage, GameObject damageSource)
