@@ -14,10 +14,7 @@ namespace Unity.FPS.Game
 
         [Tooltip("The canvas group of the fade-to-black screen")]
         public CanvasGroup EndGameFadeCanvasGroup;
-
-        [Header("Win")] [Tooltip("This string has to be the name of the scene you want to load when winning")]
-        public string WinSceneName = "WinScene";
-
+        
         [Tooltip("Duration of delay before the fade-to-black, if winning")]
         public float DelayBeforeFadeToBlack = 4f;
 
@@ -27,11 +24,7 @@ namespace Unity.FPS.Game
         public float DelayBeforeWinMessage = 2f;
 
         [Tooltip("Sound played on win")] public AudioClip VictorySound;
-
-        [Header("Lose")] [Tooltip("This string has to be the name of the scene you want to load when losing")]
-        public string LoseSceneName = "LoseScene";
-
-
+        
         public bool GameIsEnding { get; private set; }
 
         private readonly CancellationTokenSource m_gameTimePassedTaskTokenSource = new();
@@ -40,7 +33,7 @@ namespace Unity.FPS.Game
         private ActorsManager m_actorsManager;
 
         private float m_TimeLoadEndGameScene;
-        private string m_SceneToLoad;
+        private SceneName m_SceneToLoad;
 
         private void Awake()
         {
@@ -87,7 +80,7 @@ namespace Unity.FPS.Game
                 // See if it's time to load the end scene (after the delay)
                 if (Time.time >= m_TimeLoadEndGameScene)
                 {
-                    SceneManager.LoadScene(m_SceneToLoad);
+                    LevelManager.Instance.LoadScene(m_SceneToLoad);
                     GameIsEnding = false;
                 }
             }
@@ -130,7 +123,12 @@ namespace Unity.FPS.Game
             EndGameFadeCanvasGroup.gameObject.SetActive(true);
             if (win)
             {
-                m_SceneToLoad = WinSceneName;
+                m_SceneToLoad = LevelManager.Instance.GetNextLevel();
+                if (m_SceneToLoad == SceneName.Unknown)
+                {
+                    m_SceneToLoad = LevelManager.Instance.WinScene;
+                }
+                
                 m_TimeLoadEndGameScene = Time.time + EndSceneLoadDelay + DelayBeforeFadeToBlack;
 
                 // play a sound on win
@@ -155,7 +153,7 @@ namespace Unity.FPS.Game
             }
             else
             {
-                m_SceneToLoad = LoseSceneName;
+                m_SceneToLoad = LevelManager.Instance.LoseScene;
                 m_TimeLoadEndGameScene = Time.time + EndSceneLoadDelay;
             }
 
