@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e846e547c5a296458d079714590b207, type: 3}
   m_Name: Room5_Balcony
   m_EditorClassIdentifier: fps.Game::Unity.FPS.Game.MapLocationSO
-  m_gameProgress: 0
+  m_gameProgress: 70
   m_location: Room5_Balcony
