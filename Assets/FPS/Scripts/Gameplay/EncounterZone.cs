@@ -175,6 +175,8 @@ namespace Unity.FPS.Gameplay
             ObstacleUnblockEvent evt = Events.ObstacleUnblockEvent;
             evt.ObstacleId = id;
             EventManager.Broadcast(evt);
+
+            DestroyEncounter();
         }
 
         private void TrackEncounterStarted(EncounterStartReason reason)
@@ -204,6 +206,16 @@ namespace Unity.FPS.Gameplay
             EncounterEndedTelemetryData telemetryData = new(m_id, reason, playerRemainingHealth,
                 playerRemainingAmmo, RemainingEnemies);
             TelemetryService.TrackEncounterEnd(SessionManager.Instance.SessionID.ToString(), telemetryData);
+        }
+
+        private void DestroyEncounter()
+        {
+            foreach (EncounterZoneCollider collider in m_zoneColliders)
+            {
+                Destroy(collider.gameObject);
+            }
+
+            Destroy(gameObject);
         }
     }
 }
