@@ -3,7 +3,8 @@
     public enum EncounterStartReason
     {
         Entered = 0,
-        AttackedEnemy = 1
+        AttackedEnemy = 1,
+        Detected = 2
     }
 
     public class EncounterStartedTelemetryData : EncounterTelemetryData

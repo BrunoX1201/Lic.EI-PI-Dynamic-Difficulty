@@ -18,6 +18,7 @@ namespace Unity.FPS.Game
         public static DamageEvent DamageEvent = new();
         public static DisplayMessageEvent DisplayMessageEvent = new();
         public static ObstacleUnblockEvent ObstacleUnblockEvent = new();
+        public static EnemyDetectPlayerEvent EnemyDetectPlayerEvent = new();
     }
 
     public class ObjectiveUpdateEvent : GameEvent
@@ -74,5 +75,10 @@ namespace Unity.FPS.Game
     public class ObstacleUnblockEvent : GameEvent
     {
         public string ObstacleId;
+    }
+
+    public class EnemyDetectPlayerEvent : GameEvent
+    {
+        public int InstigatorId;
     }
 }
