@@ -23,6 +23,7 @@ namespace Unity.FPS.Gameplay
         public bool HasStarted { get; private set; }
         public int TotalEnemies { get; private set; }
         public int RemainingEnemies => m_enemies.Count;
+        private readonly List<int> m_enemieIds = new();
 
         private ActorsManager m_actorsManager;
         private bool m_isPlayerInZone;
@@ -37,11 +38,21 @@ namespace Unity.FPS.Gameplay
         {
             for (int i = 0; i < m_enemies.Count; i++)
             {
+                Instigator instigator = m_enemies[i].GetComponent<Instigator>();
+                if (instigator == null)
+                {
+                    continue;
+                }
+
+                m_enemieIds.Add(instigator.Id);
+
+
                 Health enemyHealth = m_enemies[i].GetComponent<Health>();
                 if (enemyHealth == null)
                 {
                     continue;
                 }
+
 
                 UnityAction<GameObject> onEnemyDie = null;
                 onEnemyDie = instigator =>
@@ -63,12 +74,14 @@ namespace Unity.FPS.Gameplay
             m_actorsManager = FindAnyObjectByType<ActorsManager>();
             EventManager.AddListener<EnemyKillEvent>(OnEnemyKilled);
             EventManager.AddListener<PlayerDeathEvent>(OnPlayerDeath);
+            EventManager.AddListener<EnemyDetectPlayerEvent>(OnPlayerDetected);
         }
 
         private void OnDestroy()
         {
             EventManager.RemoveListener<EnemyKillEvent>(OnEnemyKilled);
             EventManager.RemoveListener<PlayerDeathEvent>(OnPlayerDeath);
+            EventManager.RemoveListener<EnemyDetectPlayerEvent>(OnPlayerDetected);
         }
 
 
@@ -115,6 +128,17 @@ namespace Unity.FPS.Gameplay
             TelemetryService.TrackEncounterZoneLeave(SessionManager.Instance.SessionID.ToString(),
                 telemetryData);
             m_isPlayerInZone = false;
+        }
+
+        private void OnPlayerDetected(EnemyDetectPlayerEvent evt)
+        {
+            if (HasStarted || !m_enemieIds.Contains(evt.InstigatorId))
+            {
+                return;
+            }
+
+            TrackEncounterStarted(EncounterStartReason.Detected);
+            HasStarted = true;
         }
 
         private void OnEnemyDamaged(float damage, GameObject damageSource)
@@ -175,6 +199,8 @@ namespace Unity.FPS.Gameplay
             ObstacleUnblockEvent evt = Events.ObstacleUnblockEvent;
             evt.ObstacleId = id;
             EventManager.Broadcast(evt);
+
+            DestroyEncounter();
         }
 
         private void TrackEncounterStarted(EncounterStartReason reason)
@@ -204,6 +230,16 @@ namespace Unity.FPS.Gameplay
             EncounterEndedTelemetryData telemetryData = new(m_id, reason, playerRemainingHealth,
                 playerRemainingAmmo, RemainingEnemies);
             TelemetryService.TrackEncounterEnd(SessionManager.Instance.SessionID.ToString(), telemetryData);
+        }
+
+        private void DestroyEncounter()
+        {
+            foreach (EncounterZoneCollider collider in m_zoneColliders)
+            {
+                Destroy(collider.gameObject);
+            }
+
+            Destroy(gameObject);
         }
     }
 }
