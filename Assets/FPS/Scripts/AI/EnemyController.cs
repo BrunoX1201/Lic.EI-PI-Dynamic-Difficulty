@@ -121,6 +121,7 @@ namespace Unity.FPS.AI
         private WeaponController m_CurrentWeapon;
         private WeaponController[] m_Weapons;
         private NavigationModule m_NavigationModule;
+        private Instigator m_instigator;
 
         private void Start()
         {
@@ -137,6 +138,9 @@ namespace Unity.FPS.AI
 
             m_Actor = GetComponent<Actor>();
             DebugUtility.HandleErrorIfNullGetComponent<Actor, EnemyController>(m_Actor, this, gameObject);
+
+            m_instigator = GetComponent<Instigator>();
+            DebugUtility.HandleErrorIfNullGetComponent<Instigator, EnemyController>(m_instigator, this, gameObject);
 
             NavMeshAgent = GetComponent<NavMeshAgent>();
             m_SelfColliders = GetComponentsInChildren<Collider>();
@@ -422,6 +426,11 @@ namespace Unity.FPS.AI
                 m_EyeRendererData.Renderer.SetPropertyBlock(m_EyeColorMaterialPropertyBlock,
                     m_EyeRendererData.MaterialIndex);
             }
+
+
+            EnemyDetectPlayerEvent evt = Events.EnemyDetectPlayerEvent;
+            evt.InstigatorId = m_instigator.Id;
+            EventManager.Broadcast(evt);
         }
 
         private bool IsPathValid()
