@@ -8,7 +8,7 @@ from .aggregation_attribute import AggregationAttribute
 
 class AverageTimeBetweenKillsAttribute(AggregationAttribute):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset()
 
     @property
