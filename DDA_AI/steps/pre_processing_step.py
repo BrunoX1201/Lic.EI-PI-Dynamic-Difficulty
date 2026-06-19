@@ -311,9 +311,10 @@ class PreProcessingStep:
 
         data_frame = DataFrame([values])
 
+        if not os.path.exists(self.__output_path):
+            os.makedirs(self.__output_path)
+
         output_file_exists = os.path.exists(self.__output_full_path)
-        if not output_file_exists:
-            os.mkdir(self.__output_path)
         data_frame.to_csv(self.__output_full_path, mode="a", header=not output_file_exists, index=False)
 
     def __print_statistics(self) -> None:
