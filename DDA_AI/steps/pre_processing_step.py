@@ -76,20 +76,41 @@ class PreProcessingStep:
                 "call_total_valid": 0
             }
 
+        self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"] = 0
+        self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"] = 0
+
     def transform(self, encounter_id: str) -> list[tuple[str, str | int | float | None]]:
         self.__reset()
 
+        startTotalLinesStartLimit = self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"]
+        startTotalLinesEndLimit = self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"]
         try:
             self.__encounter_start = self.__find_encounter_start(encounter_id)
             self.__encounter_end = self.__find_encounter_end(
                 encounter_id, self.__encounter_start.iloc[0]["timestamp"]
             )
-        except (EncounterStartLimitNotFound, EncounterEndLimitNotFound) as e:
-            print(e)
-            return []
         except Exception as e:
             print("\r\nSomething went wrong.")
             print(e)
+
+            print("-- Rollbacking Limits Batcher ---")
+            print("Previous SkipRows")
+            print(f"- Start Limit: {self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"]}")
+            print(f"- End Limit: {self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"]}")
+            numInvalidLinesStartLimit = self.__event_num_rows_read[Event.ENCOUNTER_STARTED][
+                                            "total"] - startTotalLinesStartLimit
+            numInvalidLinesEndLimit = self.__event_num_rows_read[Event.ENCOUNTER_ENDED][
+                                          "total"] - startTotalLinesEndLimit
+
+            self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"] += numInvalidLinesStartLimit
+            self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"] += numInvalidLinesEndLimit
+
+            print("Current SkipRows")
+            print(
+                f"- Start Limit: {self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] - self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"]}")
+            print(
+                f"- End Limit: {self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] - self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"]}")
+
             return []
 
         print(f"\r\n\r\n--- Start ---\r\n{self.__encounter_start.to_string()}")
@@ -167,7 +188,8 @@ class PreProcessingStep:
                 names=event_attributes_map[Event.ENCOUNTER_STARTED].keys(),
                 dtype=event_attributes_map[Event.ENCOUNTER_STARTED],
                 nrows=self.__batch_size,
-                skiprows=self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"],
+                skiprows=self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] -
+                         self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"],
                 parse_dates=["timestamp"],
                 delimiter=";",
             )
@@ -209,13 +231,14 @@ class PreProcessingStep:
                 names=event_attributes_map[Event.ENCOUNTER_ENDED].keys(),
                 dtype=event_attributes_map[Event.ENCOUNTER_ENDED],
                 nrows=self.__batch_size,
-                skiprows=self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"],
+                skiprows=self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] -
+                         self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"],
                 parse_dates=["timestamp"],
                 delimiter=";",
             )
             num_rows = len(encounter_ends)
             if num_rows < 1:
-                raise EncounterStartLimitNotFound(f"Could not find start of encounter ({encounter_id})")
+                raise EncounterEndLimitNotFound(f"Could not find start of encounter ({encounter_id})")
 
             encounters = encounter_ends[
                 (encounter_ends["encounter_id"] == encounter_id)
