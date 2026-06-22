@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 
 import aggregation_attributes as ag
+from requests import ProcessEncounterRequest
 from steps import PreProcessingStep
 
 app = FastAPI(title="Unity DDA Data Pipeline API")
@@ -10,35 +10,28 @@ EVENT_BASE_PATH = "./testdata/"
 OUTPUT_PATH = "./output"
 OUTPUT_FILE = "test"
 
+attributes = [
+    ag.AverageTimeBetweenKillsAttribute(),
+    ag.EncounterTotalTimeAttribute(),
+    ag.HasCompletedEncounterAttribute(),
+    ag.PlayerAverageAccuracyAttribute(),
+    ag.RemainingEnemiesAttribute(),
+    ag.RemainingPlayerHealthAttribute(),
+    ag.TotalHitsTakenAttribute(),
+]
 
-# Modelo de dados para o pedido do Unity
-class EncounterRequest(BaseModel):
-    encounter_id: str
-
-
-def build_pre_processing_step() -> PreProcessingStep:
-    attributes = [
-        ag.AverageTimeBetweenKillsAttribute(),
-        ag.EncounterTotalTimeAttribute(),
-        ag.HasCompletedEncounterAttribute(),
-        ag.PlayerAverageAccuracyAttribute(),
-        ag.RemainingEnemiesAttribute(),
-        ag.RemainingPlayerHealthAttribute(),
-        ag.TotalHitsTakenAttribute(),
-    ]
-    return PreProcessingStep(EVENT_BASE_PATH, OUTPUT_PATH, OUTPUT_FILE, attributes)
+pre_process = PreProcessingStep(EVENT_BASE_PATH, OUTPUT_PATH, OUTPUT_FILE, attributes)
 
 
-def to_native(value):
+def numpy_to_native(value):
     if hasattr(value, "item"):
         return value.item()
     return value
 
 
 @app.post("/api/process_encounter")
-def process_encounter(request: EncounterRequest):
+def process_encounter(request: ProcessEncounterRequest):
     encounter_id = request.encounter_id
-    pre_process = build_pre_processing_step()
 
     try:
         # 1. Executa a transformação com o ID enviado pelo Unity
@@ -55,7 +48,7 @@ def process_encounter(request: EncounterRequest):
         pre_process.save_output()
 
         # 3. Transforma a lista de tuplos [("nome", valor), ...] num dicionário para o JSON
-        metrics_dict = {attr_name: to_native(attr_value) for attr_name, attr_value in output_data}
+        metrics_dict = {attr_name: numpy_to_native(attr_value) for attr_name, attr_value in output_data}
 
         return {
             "status": "success",
