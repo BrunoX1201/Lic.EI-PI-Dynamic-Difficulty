@@ -78,6 +78,8 @@ class PreProcessingStep:
 
         self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"] = 0
         self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"] = 0
+        self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"] = 0
+        self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"] = 0
 
     def transform(self, encounter_id: str) -> list[tuple[str, str | int | float | None]]:
         self.__reset()
@@ -87,7 +89,7 @@ class PreProcessingStep:
         try:
             self.__encounter_start = self.__find_encounter_start(encounter_id)
             self.__encounter_end = self.__find_encounter_end(
-                encounter_id, self.__encounter_start.iloc[0]["timestamp"]
+                encounter_id, self.__encounter_start.iloc[0]["timestamp"], self.__encounter_start.iloc[0]["session_id"]
             )
         except Exception as e:
             print("\r\nSomething went wrong.")
@@ -105,11 +107,18 @@ class PreProcessingStep:
             self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"] += numInvalidLinesStartLimit
             self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"] += numInvalidLinesEndLimit
 
+            self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"] += numInvalidLinesStartLimit
+            self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"] += numInvalidLinesEndLimit
+
+            # Skip start limit row for next iteration if the end limit is not found
+            if hasattr(self.__encounter_start, "empty"):
+                self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"] -= 1
+
             print("Current SkipRows")
             print(
-                f"- Start Limit: {self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] - self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"]}")
+                f"- Start Limit: {self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] - self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"]}")
             print(
-                f"- End Limit: {self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] - self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"]}")
+                f"- End Limit: {self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] - self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"]}")
 
             return []
 
@@ -156,6 +165,7 @@ class PreProcessingStep:
         except Exception as e:
             print("\r\nSomething went wrong!")
             print(e)
+            return []
 
         return self.__output
 
@@ -163,6 +173,8 @@ class PreProcessingStep:
         self.__output = []
         self.__loaded_events = {}
         self.__events_to_load = []
+        self.__encounter_start = None
+        self.__encounter_end = None
 
         for stats in self.__event_num_rows_read.values():
             stats["call_total"] = 0
@@ -182,17 +194,34 @@ class PreProcessingStep:
         has_found = False
         target = None
         while not has_found:
-            encounter_starts = read_csv(
-                filepath_or_buffer=self.__event_full_paths[Event.ENCOUNTER_STARTED],
-                header=None,
-                names=event_attributes_map[Event.ENCOUNTER_STARTED].keys(),
-                dtype=event_attributes_map[Event.ENCOUNTER_STARTED],
-                nrows=self.__batch_size,
-                skiprows=self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] -
-                         self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"],
-                parse_dates=["timestamp"],
-                delimiter=";",
-            )
+            try:
+                encounter_starts = read_csv(
+                    filepath_or_buffer=self.__event_full_paths[Event.ENCOUNTER_STARTED],
+                    header=None,
+                    names=event_attributes_map[Event.ENCOUNTER_STARTED].keys(),
+                    dtype=event_attributes_map[Event.ENCOUNTER_STARTED],
+                    nrows=self.__batch_size,
+                    skiprows=self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] -
+                             self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"],
+                    parse_dates=["timestamp"],
+                    delimiter=";",
+                    decimal="."
+                )
+            except ValueError as e:
+                print(f" could not load due to value error ({e}), retrying with decimal = ',' ...")
+                encounter_starts = read_csv(
+                    filepath_or_buffer=self.__event_full_paths[Event.ENCOUNTER_STARTED],
+                    header=None,
+                    names=event_attributes_map[Event.ENCOUNTER_STARTED].keys(),
+                    dtype=event_attributes_map[Event.ENCOUNTER_STARTED],
+                    nrows=self.__batch_size,
+                    skiprows=self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] -
+                             self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"],
+                    parse_dates=["timestamp"],
+                    delimiter=";",
+                    decimal=","
+                )
+
             num_rows = len(encounter_starts)
             if num_rows < 1:
                 raise EncounterStartLimitNotFound(f"Could not find start of encounter ({encounter_id})")
@@ -204,7 +233,7 @@ class PreProcessingStep:
                 self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["call_total"] += num_rows
                 continue
 
-            encounters.sort_values(by=["timestamp"], inplace=True, ascending=False)
+            encounters.sort_values(by=["timestamp"], inplace=True)
             target = encounters.iloc[:1]
             has_found = True
 
@@ -221,27 +250,45 @@ class PreProcessingStep:
 
         return target
 
-    def __find_encounter_end(self, encounter_id: str, start_timestamp: datetime) -> DataFrame:
+    def __find_encounter_end(self, encounter_id: str, start_timestamp: datetime, session_id: str) -> DataFrame:
         has_found = False
         target = None
         while not has_found:
-            encounter_ends = read_csv(
-                filepath_or_buffer=self.__event_full_paths[Event.ENCOUNTER_ENDED],
-                header=None,
-                names=event_attributes_map[Event.ENCOUNTER_ENDED].keys(),
-                dtype=event_attributes_map[Event.ENCOUNTER_ENDED],
-                nrows=self.__batch_size,
-                skiprows=self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] -
-                         self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"],
-                parse_dates=["timestamp"],
-                delimiter=";",
-            )
+            try:
+                encounter_ends = read_csv(
+                    filepath_or_buffer=self.__event_full_paths[Event.ENCOUNTER_ENDED],
+                    header=None,
+                    names=event_attributes_map[Event.ENCOUNTER_ENDED].keys(),
+                    dtype=event_attributes_map[Event.ENCOUNTER_ENDED],
+                    nrows=self.__batch_size,
+                    skiprows=self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] -
+                             self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"],
+                    parse_dates=["timestamp"],
+                    delimiter=";",
+                    decimal="."
+                )
+            except ValueError as e:
+                print(f" could not load due to value error ({e}), retrying with decimal = ',' ...")
+                encounter_ends = read_csv(
+                    filepath_or_buffer=self.__event_full_paths[Event.ENCOUNTER_ENDED],
+                    header=None,
+                    names=event_attributes_map[Event.ENCOUNTER_ENDED].keys(),
+                    dtype=event_attributes_map[Event.ENCOUNTER_ENDED],
+                    nrows=self.__batch_size,
+                    skiprows=self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] -
+                             self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"],
+                    parse_dates=["timestamp"],
+                    delimiter=";",
+                    decimal=","
+                )
+
             num_rows = len(encounter_ends)
             if num_rows < 1:
-                raise EncounterEndLimitNotFound(f"Could not find start of encounter ({encounter_id})")
+                raise EncounterEndLimitNotFound(f"Could not find end of encounter ({encounter_id})")
 
             encounters = encounter_ends[
                 (encounter_ends["encounter_id"] == encounter_id)
+                & (encounter_ends["session_id"] == session_id)
                 & (encounter_ends["timestamp"] >= start_timestamp)
                 ]
 
@@ -274,16 +321,31 @@ class PreProcessingStep:
             print(f"loading {event}...", end="")
 
             try:
-                loaded_events = read_csv(
-                    filepath_or_buffer=self.__event_full_paths[event],
-                    header=None,
-                    names=event_attributes_map[event].keys(),
-                    dtype=event_attributes_map[event],
-                    delimiter=";",
-                    nrows=self.__batch_size,
-                    skiprows=self.__event_num_rows_read[event]["total"],
-                    parse_dates=["timestamp"]
-                )
+                try:
+                    loaded_events = read_csv(
+                        filepath_or_buffer=self.__event_full_paths[event],
+                        header=None,
+                        names=event_attributes_map[event].keys(),
+                        dtype=event_attributes_map[event],
+                        delimiter=";",
+                        nrows=self.__batch_size,
+                        skiprows=self.__event_num_rows_read[event]["total"],
+                        parse_dates=["timestamp"],
+                        decimal="."
+                    )
+                except ValueError as e:
+                    print(f" could not load due to value error ({e}), retrying with decimal = ',' ...")
+                    loaded_events = read_csv(
+                        filepath_or_buffer=self.__event_full_paths[event],
+                        header=None,
+                        names=event_attributes_map[event].keys(),
+                        dtype=event_attributes_map[event],
+                        delimiter=";",
+                        nrows=self.__batch_size,
+                        skiprows=self.__event_num_rows_read[event]["total"],
+                        parse_dates=["timestamp"],
+                        decimal=","
+                    )
 
                 num_rows_read = len(loaded_events)
                 if num_rows_read == 0:
@@ -323,7 +385,7 @@ class PreProcessingStep:
             attribute.process(self.__loaded_events)
             print(f"{attribute.name}: {attribute.value}")
 
-    def save_output(self) -> None:
+    def save_output(self, custom_columns: dict[str, str | int | float] = {}) -> None:
         values = {"session_id": self.__encounter_start.iloc[0]["session_id"],
                   "encounter_id": self.__encounter_start.iloc[0]["encounter_id"],
                   "encounter_start_timestamp": self.__encounter_start.iloc[0]["timestamp"],
@@ -332,7 +394,9 @@ class PreProcessingStep:
         for attr_key, attr_value in self.__output:
             values[attr_key] = attr_value
 
-        data_frame = DataFrame([values])
+        all_columns = dict(custom_columns)
+        all_columns.update(values)
+        data_frame = DataFrame([all_columns])
 
         if not os.path.exists(self.__output_path):
             os.makedirs(self.__output_path)
@@ -355,6 +419,39 @@ class PreProcessingStep:
         print("Aggregation Attributes:")
         for attr_name, attr_value in self.__output:
             print(f"{attr_name}: {attr_value}")
+
+    def transform_all(self, output_custom_cols: dict[str, str | int | float]) -> None:
+        num_encounters_processed = 0
+        try:
+            while (True):
+                try:
+                    encounter_starts = read_csv(
+                        filepath_or_buffer=self.__event_full_paths[Event.ENCOUNTER_STARTED],
+                        header=None,
+                        names=event_attributes_map[Event.ENCOUNTER_STARTED].keys(),
+                        dtype=event_attributes_map[Event.ENCOUNTER_STARTED],
+                        nrows=self.__batch_size,
+                        skiprows=num_encounters_processed,
+                        parse_dates=["timestamp"],
+                        delimiter=";",
+                    )
+
+                    if encounter_starts.size < 1:
+                        break
+
+                    for encounter_id in encounter_starts["encounter_id"]:
+                        result = self.transform(encounter_id)
+                        if len(result) > 0:
+                            self.save_output(output_custom_cols)
+                        else:
+                            print(f"Could not save output on encounter {encounter_id}")
+                        num_encounters_processed += 1
+
+                except EmptyDataError:
+                    break
+
+        except Exception as e:
+            print("Error: ", e)
 
     @staticmethod
     def __make_empty_event_df(event: Event) -> DataFrame:
