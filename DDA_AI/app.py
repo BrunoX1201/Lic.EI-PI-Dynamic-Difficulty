@@ -6,7 +6,7 @@ from steps import PreProcessingStep
 
 app = FastAPI(title="Unity DDA Data Pipeline API")
 
-EVENT_BASE_PATH = "./testdata/"
+EVENT_BASE_PATH = "./data/test/"
 OUTPUT_PATH = "./output"
 OUTPUT_FILE = "test"
 
