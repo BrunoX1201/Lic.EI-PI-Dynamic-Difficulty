@@ -1,12 +1,13 @@
 from abc import abstractmethod, ABC
+from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
 
 
 class DDAModel(ABC):
-    _output_path: str
-    _output_full_path: str
+    _output_path: Path
+    _output_full_path: Path
 
     @property
     @abstractmethod
@@ -19,7 +20,7 @@ class DDAModel(ABC):
         pass
 
     def __init__(self, output_path: str) -> None:
-        self._output_path = output_path
+        self._output_path = Path(output_path)
 
     @abstractmethod
     def act(self, observation: npt.NDArray[object]) -> npt.NDArray[np.float32]:

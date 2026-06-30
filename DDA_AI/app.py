@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
 
 import aggregation_attributes as ag
@@ -6,9 +8,9 @@ from steps import PreProcessingStep
 
 app = FastAPI(title="Unity DDA Data Pipeline API")
 
-EVENT_BASE_PATH = "./data/test/"
-OUTPUT_PATH = "./output"
-OUTPUT_FILE = "test"
+EVENT_BASE_PATH = Path("./data/test/")
+OUTPUT_PATH = Path("./output/runtime")
+OUTPUT_FILE = "pre_processing"
 
 attributes = [
     ag.AverageTimeBetweenKillsAttribute(),
@@ -20,7 +22,7 @@ attributes = [
     ag.TotalHitsTakenAttribute(),
 ]
 
-pre_process = PreProcessingStep(EVENT_BASE_PATH, OUTPUT_PATH, OUTPUT_FILE, attributes)
+pre_process = PreProcessingStep(str(EVENT_BASE_PATH), str(OUTPUT_PATH), OUTPUT_FILE, attributes)
 
 
 def numpy_to_native(value):
@@ -57,8 +59,10 @@ def process_encounter(request: ProcessEncounterRequest):
         }
 
     except HTTPException as http_ex:
+        print(f"[ERROR] {http_ex}")
         raise http_ex
     except Exception as e:
+        print(f"[ERROR] {e}")
         raise HTTPException(status_code=500, detail=f"Erro interno no processamento: {str(e)}")
 
 

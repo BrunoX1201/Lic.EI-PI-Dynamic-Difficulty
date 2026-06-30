@@ -1,6 +1,6 @@
 import datetime
 import math
-import os
+from pathlib import Path
 
 from pandas import DataFrame, read_csv, Series
 from pandas.errors import EmptyDataError
@@ -43,9 +43,9 @@ class PreProcessingStep:
     __aggregation_attributes: list[AggregationAttribute]
 
     __output: list[tuple[str, str | int | float]]
-    __output_path: str
+    __output_path: Path
     __output_file: str
-    __output_full_path: str
+    __output_full_path: Path
 
     def __init__(
             self,
@@ -58,9 +58,9 @@ class PreProcessingStep:
         self.__event_base_path = event_base_path
         self.__event_full_paths = {}
         for eventKey, eventFile in self.__event_files.items():
-            self.__event_full_paths[eventKey] = self.__event_base_path + eventFile
+            self.__event_full_paths[eventKey] = Path(f"{self.__event_base_path}/{eventFile}")
 
-        self.__output_path = output_path
+        self.__output_path = Path(output_path)
         self.__output_file = output_file
 
         self.__batch_size = batch_size
@@ -422,18 +422,18 @@ class PreProcessingStep:
         all_columns.update(values)
         data_frame = DataFrame([all_columns])
 
-        path_to_use = self.__output_path if custom_path == "" else custom_path
-        path_dir = os.path.dirname(path_to_use)
-        os.makedirs(path_dir, exist_ok=True)
+        path_to_use = self.__output_path if custom_path == "" else Path(custom_path)
+        path_dir = path_to_use if path_to_use.suffix == "" else path_to_use.parent
+        path_dir.mkdir(parents=True, exist_ok=True)
 
         utc_date = datetime.datetime.now(datetime.timezone.utc)
         timestamp = math.floor(utc_date.timestamp())
-        self.__output_full_path = os.path.join(self.__output_path, f"{self.__output_file}_{timestamp}.csv")
+        self.__output_full_path = Path(f"{self.__output_path}/{self.__output_file}_{timestamp}.csv")
 
         path_to_use = self.__output_full_path if path_to_use == self.__output_path else path_to_use
-        output_file_exists = os.path.exists(path_to_use)
+        output_file_exists = path_to_use.exists()
         data_frame.to_csv(path_to_use, mode="a", header=not output_file_exists, index=False)
-        return path_to_use
+        return str(path_to_use)
 
     def __print_statistics(self) -> None:
         print("\r\n--- Statistics ---")

@@ -1,7 +1,7 @@
 import datetime
 import math
-import os.path
 import pickle
+from pathlib import Path
 
 import numpy as np
 from numpy import typing as npt
@@ -68,17 +68,17 @@ class KMeansModel(FittableModel):
         self.__post_load_setup()
 
     def save(self) -> str:
-        os.makedirs(self._output_path, exist_ok=True)
+        self._output_path.mkdir(parents=True, exist_ok=True)
 
         utc_date = datetime.datetime.now(datetime.timezone.utc)
         timestamp = math.floor(utc_date.timestamp())
-        self._output_full_path = os.path.join(self._output_path, f"{self.name}_{timestamp}.{self.extension}")
+        self._output_full_path = Path(f"{self._output_path}/{self.name}_{timestamp}.{self.extension}")
         print(f"SAVING ({self._output_full_path})...", end="")
         with open(self._output_full_path, "wb") as f:
             pickle.dump(self.__algorithm, f, protocol=5)
         print("OK")
 
-        return self._output_full_path
+        return str(self._output_full_path)
 
     def print_model(self) -> None:
         print(f"--- {self.name} ---")
