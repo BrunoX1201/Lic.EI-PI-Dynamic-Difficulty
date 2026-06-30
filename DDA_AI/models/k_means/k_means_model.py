@@ -22,8 +22,8 @@ class KMeansModel(FittableModel):
     # [total_enemies, enemy_health, enemy_hitbox]
     __player_experience_to_actions_map = {
         PlayerExperience.BEGINNER: np.array([0.5, 0.75, 1.2], dtype=np.float32),
-        PlayerExperience.INTERMEDIATE: np.array([1.2, 1.3, 0.95], dtype=np.float32),
-        PlayerExperience.MEDIUM: np.array([1.4, 1.5, 0.85], dtype=np.float32),
+        PlayerExperience.INTERMEDIATE: np.array([0.9, 1, 1], dtype=np.float32),
+        PlayerExperience.MEDIUM: np.array([1.2, 1.4, 0.85], dtype=np.float32),
         PlayerExperience.ADVANCED: np.array([1.6, 1.8, 0.75], dtype=np.float32),
         PlayerExperience.EXPERT: np.array([2, 2, 0.65], dtype=np.float32),
     }
@@ -68,8 +68,7 @@ class KMeansModel(FittableModel):
         self.__post_load_setup()
 
     def save(self) -> str:
-        if not os.path.exists(self._output_path):
-            os.makedirs(self._output_path)
+        os.makedirs(self._output_path, exist_ok=True)
 
         utc_date = datetime.datetime.now(datetime.timezone.utc)
         timestamp = math.floor(utc_date.timestamp())
@@ -100,7 +99,7 @@ class KMeansModel(FittableModel):
 
         print("Cluster Ranks")
         for i, (cluster, experience) in enumerate(self.__clusters_to_player_experience_map.items()):
-            print(f"{i}º - {cluster} ({experience.name})")
+            print(f"{i + 1}º - {cluster} ({experience.name})")
 
     def __post_load_setup(self) -> None:
         self.__k = self.__algorithm.n_clusters
