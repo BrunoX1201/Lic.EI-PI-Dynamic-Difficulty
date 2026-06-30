@@ -3,8 +3,8 @@ import os
 import aggregation_attributes as ag
 from steps import PreProcessingStep
 
-TRANSFORM_DATA_PATH = "data/transform"
-OUTPUT_PATH = TRANSFORM_DATA_PATH + "/output"
+TRANSFORM_DATA_PATH = os.path.join("data", "transform")
+OUTPUT_PATH = os.path.join(TRANSFORM_DATA_PATH, "output")
 OUTPUT_FILE = "output"
 
 attributes = [
@@ -23,12 +23,14 @@ try:
                  os.path.isdir(os.path.join(TRANSFORM_DATA_PATH, directory))]
     print(f"Directories detected: {data_dirs}")
 
+    path_to_save_next_outputs = ""
     for data_dir in data_dirs:
         events_path = os.path.join(TRANSFORM_DATA_PATH, data_dir, "")
         pre_process = PreProcessingStep(events_path, OUTPUT_PATH, OUTPUT_FILE, attributes)
         print(f"Processing: {data_dir}")
 
-        pre_process.transform_all(output_custom_cols={"source_dir": data_dir})
+        path_to_save_next_outputs = pre_process.execute_all(output_custom_cols={"source_dir": data_dir},
+                                                            custom_output_path=path_to_save_next_outputs)
 
 except OSError as e:
     print("Error: ", e)

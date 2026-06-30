@@ -1,5 +1,6 @@
+import datetime
+import math
 import os
-from datetime import datetime
 
 from pandas import DataFrame, read_csv, Series
 from pandas.errors import EmptyDataError
@@ -41,7 +42,7 @@ class PreProcessingStep:
     __batch_size: int
     __aggregation_attributes: list[AggregationAttribute]
 
-    __output: list[tuple[str, str | int | float | None]]
+    __output: list[tuple[str, str | int | float]]
     __output_path: str
     __output_file: str
     __output_full_path: str
@@ -61,7 +62,7 @@ class PreProcessingStep:
 
         self.__output_path = output_path
         self.__output_file = output_file
-        self.__output_full_path = os.path.join(output_path, output_file + ".csv")
+
         self.__batch_size = batch_size
         self.__aggregation_attributes = aggregation_attributes
 
@@ -81,11 +82,22 @@ class PreProcessingStep:
         self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"] = 0
         self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"] = 0
 
-    def transform(self, encounter_id: str) -> list[tuple[str, str | int | float | None]]:
+    def execute(self, encounter_id: str) -> list[tuple[str, str | int | float]]:
         self.__reset()
 
+        output = self.__aggregate(encounter_id)
+        if len(output) < 1:
+            return output
+        self.__transform(output)
+        self.__output = [(key, value) for key, value in output.items()]
+
+        self.__print_statistics()
+        return self.__output
+
+    def __aggregate(self, encounter_id: str) -> dict[str, str | int | float | None]:
         startTotalLinesStartLimit = self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"]
         startTotalLinesEndLimit = self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"]
+        output = {}
         try:
             self.__encounter_start = self.__find_encounter_start(encounter_id)
             self.__encounter_end = self.__find_encounter_end(
@@ -95,7 +107,7 @@ class PreProcessingStep:
             print("\r\nSomething went wrong.")
             print(e)
 
-            print("-- Rollbacking Limits Batcher ---")
+            print("-- Rollback Limits Batcher ---")
             print("Previous SkipRows")
             print(f"- Start Limit: {self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"]}")
             print(f"- End Limit: {self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"]}")
@@ -120,7 +132,7 @@ class PreProcessingStep:
             print(
                 f"- End Limit: {self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] - self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"]}")
 
-            return []
+            return {}
 
         print(f"\r\n\r\n--- Start ---\r\n{self.__encounter_start.to_string()}")
         print(f"\r\n--- End ---\r\n{self.__encounter_end.to_string()}")
@@ -158,16 +170,28 @@ class PreProcessingStep:
 
             for attr in self.__aggregation_attributes:
                 attr.finalize()
-                self.__output.append(attr.output())
-
-            self.__print_statistics()
+                attr_output = attr.output()
+                output[attr_output[0]] = attr_output[1]
 
         except Exception as e:
             print("\r\nSomething went wrong!")
             print(e)
-            return []
+            return {}
 
-        return self.__output
+        return output
+
+    def __transform(self, aggregation: dict[str, str | int | float | None]) -> None:
+
+        if aggregation["average_time_between_kills_seconds"] is None:
+            aggregation["average_time_between_kills_seconds"] = 0.0
+        else:
+            aggregation["average_time_between_kills_seconds"] = round(aggregation["average_time_between_kills_seconds"],
+                                                                      2)
+
+        aggregation["has_completed_encounter"] = int(aggregation["has_completed_encounter"])
+        aggregation["encounter_total_time_seconds"] = round(aggregation["encounter_total_time_seconds"], 0)
+        aggregation["player_average_accuracy"] = round(aggregation["player_average_accuracy"], 2)
+        aggregation["remaining_player_health"] = round(aggregation["remaining_player_health"], 1)
 
     def __reset(self) -> None:
         self.__output = []
@@ -190,7 +214,7 @@ class PreProcessingStep:
         for attr in self.__aggregation_attributes:
             attr.reset()
 
-    def __find_encounter_start(self, encounter_id: str) -> DataFrame:
+    def __find_encounter_start(self, encounter_id: str) -> DataFrame | None:
         has_found = False
         target = None
         while not has_found:
@@ -250,7 +274,7 @@ class PreProcessingStep:
 
         return target
 
-    def __find_encounter_end(self, encounter_id: str, start_timestamp: datetime, session_id: str) -> DataFrame:
+    def __find_encounter_end(self, encounter_id: str, start_timestamp: datetime, session_id: str) -> DataFrame | None:
         has_found = False
         target = None
         while not has_found:
@@ -385,7 +409,7 @@ class PreProcessingStep:
             attribute.process(self.__loaded_events)
             print(f"{attribute.name}: {attribute.value}")
 
-    def save_output(self, custom_columns: dict[str, str | int | float] = {}) -> None:
+    def save_output(self, custom_columns: dict[str, str | int | float] = {}, custom_path: str = "") -> str:
         values = {"session_id": self.__encounter_start.iloc[0]["session_id"],
                   "encounter_id": self.__encounter_start.iloc[0]["encounter_id"],
                   "encounter_start_timestamp": self.__encounter_start.iloc[0]["timestamp"],
@@ -398,11 +422,18 @@ class PreProcessingStep:
         all_columns.update(values)
         data_frame = DataFrame([all_columns])
 
-        if not os.path.exists(self.__output_path):
-            os.makedirs(self.__output_path)
+        path_to_use = self.__output_path if custom_path == "" else custom_path
+        path_dir = os.path.dirname(path_to_use)
+        os.makedirs(path_dir, exist_ok=True)
 
-        output_file_exists = os.path.exists(self.__output_full_path)
-        data_frame.to_csv(self.__output_full_path, mode="a", header=not output_file_exists, index=False)
+        utc_date = datetime.datetime.now(datetime.timezone.utc)
+        timestamp = math.floor(utc_date.timestamp())
+        self.__output_full_path = os.path.join(self.__output_path, f"{self.__output_file}_{timestamp}.csv")
+
+        path_to_use = self.__output_full_path if path_to_use == self.__output_path else path_to_use
+        output_file_exists = os.path.exists(path_to_use)
+        data_frame.to_csv(path_to_use, mode="a", header=not output_file_exists, index=False)
+        return path_to_use
 
     def __print_statistics(self) -> None:
         print("\r\n--- Statistics ---")
@@ -420,10 +451,11 @@ class PreProcessingStep:
         for attr_name, attr_value in self.__output:
             print(f"{attr_name}: {attr_value}")
 
-    def transform_all(self, output_custom_cols: dict[str, str | int | float]) -> None:
+    def execute_all(self, output_custom_cols: dict[str, str | int | float], custom_output_path: str = "") -> str:
         num_encounters_processed = 0
+        saved_path = ""
         try:
-            while (True):
+            while True:
                 try:
                     encounter_starts = read_csv(
                         filepath_or_buffer=self.__event_full_paths[Event.ENCOUNTER_STARTED],
@@ -440,9 +472,10 @@ class PreProcessingStep:
                         break
 
                     for encounter_id in encounter_starts["encounter_id"]:
-                        result = self.transform(encounter_id)
+                        result = self.execute(encounter_id)
                         if len(result) > 0:
-                            self.save_output(output_custom_cols)
+                            saved_path = self.save_output(output_custom_cols,
+                                                          saved_path if saved_path != "" else custom_output_path)
                         else:
                             print(f"Could not save output on encounter {encounter_id}")
                         num_encounters_processed += 1
@@ -452,6 +485,9 @@ class PreProcessingStep:
 
         except Exception as e:
             print("Error: ", e)
+            return ""
+
+        return saved_path
 
     @staticmethod
     def __make_empty_event_df(event: Event) -> DataFrame:

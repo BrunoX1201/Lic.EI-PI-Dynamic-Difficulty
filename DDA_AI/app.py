@@ -35,7 +35,7 @@ def process_encounter(request: ProcessEncounterRequest):
 
     try:
         # 1. Executa a transformação com o ID enviado pelo Unity
-        output_data = pre_process.transform(encounter_id)
+        output_data = pre_process.execute(encounter_id)
 
         # Se a lista voltar vazia, significa que o ID não foi encontrado nos CSVs
         if not output_data:
