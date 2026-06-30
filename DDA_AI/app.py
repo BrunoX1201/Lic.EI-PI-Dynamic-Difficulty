@@ -1,3 +1,5 @@
+import datetime
+import math
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -23,6 +25,7 @@ attributes = [
 ]
 
 pre_process = PreProcessingStep(str(EVENT_BASE_PATH), str(OUTPUT_PATH), OUTPUT_FILE, attributes)
+pre_process_last_save_path = ""
 
 
 def numpy_to_native(value):
@@ -33,6 +36,7 @@ def numpy_to_native(value):
 
 @app.post("/api/process_encounter")
 def process_encounter(request: ProcessEncounterRequest):
+    global pre_process_last_save_path
     encounter_id = request.encounter_id
 
     try:
@@ -47,7 +51,9 @@ def process_encounter(request: ProcessEncounterRequest):
             )
 
         # 2. Guarda o output no CSV local
-        pre_process.save_output()
+        executed_time = datetime.datetime.now(datetime.timezone.utc)
+        pre_process_last_save_path = pre_process.save_output({"processed_at": math.floor(executed_time.timestamp())},
+                                                             pre_process_last_save_path)
 
         # 3. Transforma a lista de tuplos [("nome", valor), ...] num dicionário para o JSON
         metrics_dict = {attr_name: numpy_to_native(attr_value) for attr_name, attr_value in output_data}
