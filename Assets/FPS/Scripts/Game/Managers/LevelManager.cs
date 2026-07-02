@@ -32,7 +32,10 @@ namespace Unity.FPS.Game
         public override void Awake()
         {
             base.Awake();
-            if (m_isBeingDestroyed) return;
+            if (m_isBeingDestroyed)
+            {
+                return;
+            }
 
             m_levels = new List<SceneName>
             {
@@ -41,12 +44,19 @@ namespace Unity.FPS.Game
             };
 
             string activeSceneName = SceneManager.GetActiveScene().name;
-            if (!Enum.TryParse(activeSceneName, out SceneName activeScene)) return;
+            if (!Enum.TryParse(activeSceneName, out SceneName activeScene))
+            {
+                return;
+            }
 
             if (m_levels.IndexOf(activeScene) >= 0)
+            {
                 m_currentLevel = activeScene;
+            }
             else
+            {
                 m_currentLevel = SceneName.Unknown;
+            }
         }
 
         public void LoadScene(SceneName scene)
@@ -65,13 +75,19 @@ namespace Unity.FPS.Game
                 return;
             }
 
-            if (scene == SceneName.CurrentLevel) LoadCurrentLevel();
+            if (scene == SceneName.CurrentLevel)
+            {
+                LoadCurrentLevel();
+            }
         }
 
         public SceneName GetNextLevel()
         {
             int index = m_levels.IndexOf(m_currentLevel);
-            if (index < 0) return FirstLevel;
+            if (index < 0)
+            {
+                return FirstLevel;
+            }
 
             return index + 1 >= m_levels.Count ? SceneName.Unknown : m_levels[index + 1];
         }
@@ -89,7 +105,11 @@ namespace Unity.FPS.Game
 
         private void LoadFirstLevel()
         {
-            if (m_levels.Count <= 0) return;
+            if (m_levels.Count <= 0)
+            {
+                return;
+            }
+
             m_currentLevel = FirstLevel;
             LoadScene(FirstLevel);
         }

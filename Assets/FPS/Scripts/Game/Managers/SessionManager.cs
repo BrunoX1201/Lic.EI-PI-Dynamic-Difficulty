@@ -6,10 +6,8 @@ namespace Unity.FPS.Game
     {
         public Guid SessionID { get; private set; }
 
-        public override void Awake()
+        public SessionManager()
         {
-            base.Awake();
-
             GenerateSessionID();
         }
 
