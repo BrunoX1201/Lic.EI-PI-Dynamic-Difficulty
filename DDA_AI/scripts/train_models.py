@@ -28,7 +28,7 @@ except Exception as e:
     print(e)
     exit(1)
 
-k_means_model = KMeansModel(MODELS_OUTPUT_PATH)
+k_means_model = KMeansModel(str(MODELS_OUTPUT_PATH))
 
 models_to_train = [k_means_model]
 for model in models_to_train:
