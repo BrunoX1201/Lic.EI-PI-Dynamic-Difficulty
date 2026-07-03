@@ -11,7 +11,7 @@ from shared import Event
 from utils import event_attributes_map
 
 
-class PreProcessingStep:
+class DataPreparationStep:
     __event_base_path: str
     __event_files: dict[Event, str] = {
         Event.ENCOUNTER_ENDED: "encounter_ended_event.csv",

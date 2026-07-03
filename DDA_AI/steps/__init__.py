@@ -1,3 +1,3 @@
-from .pre_processing_step import PreProcessingStep
+from .data_preparation_step import DataPreparationStep
 
-__all__ = ["PreProcessingStep"]
+__all__ = ["DataPreparationStep"]
