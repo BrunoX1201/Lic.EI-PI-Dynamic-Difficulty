@@ -102,5 +102,11 @@ namespace Unity.FPS.Game
                 OnDie?.Invoke(instigator);
             }
         }
+        
+        public void SetMaxHealth(float newMax)
+        {
+            m_MaxHealth = Mathf.Max(0.01f, newMax);
+            CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, m_MaxHealth);
+        }
     }
 }
