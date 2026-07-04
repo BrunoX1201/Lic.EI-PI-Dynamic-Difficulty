@@ -33,6 +33,23 @@ def numpy_to_native(value):
         return value.item()
     return value
 
+@app.post("/api/process_encounter/test")
+def process_encounter_test(request: ProcessEncounterRequest):
+    try:
+        return {
+            "status": "success",
+            "agent": "K_means",
+            "action": "<ação tomada pelo agente>",
+            "action_params": {
+                "total_enemies": 2,
+                "enemy_health": 0.25,
+                "enemy_hitbox": 1.1
+            }
+        }
+    except Exception as e:
+        print(f"[ERROR] {e}")
+        raise HTTPException(status_code=500, detail=f"Erro interno no processamento: {str(e)}")
+
 
 @app.post("/api/process_encounter")
 def process_encounter(request: ProcessEncounterRequest):
@@ -60,20 +77,22 @@ def process_encounter(request: ProcessEncounterRequest):
 
         return {
             "status": "success",
-            "encounter_id": encounter_id,
-            "metrics": metrics_dict
+            "agent": "<nome do agente usado>",
+            "action": "<ação tomada pelo agente>",
+            "action_params": {
+                "total_enemies": 2,
+                "enemy_health": 0.25,
+                "enemy_hitbox": 1
+            }
         }
 
-    except HTTPException as http_ex:
-        print(f"[ERROR] {http_ex}")
-        raise http_ex
     except Exception as e:
         print(f"[ERROR] {e}")
         raise HTTPException(status_code=500, detail=f"Erro interno no processamento: {str(e)}")
-
 
 # Para correr o servidor diretamente pelo Python
 if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="127.0.0.1", port=8000)
+
