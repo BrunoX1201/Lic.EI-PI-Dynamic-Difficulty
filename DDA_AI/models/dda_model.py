@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
+from pandas import DataFrame
 
 
 class DDAModel(ABC):
@@ -36,4 +37,8 @@ class DDAModel(ABC):
 
     @abstractmethod
     def print_model(self) -> None:
+        pass
+
+    @abstractmethod
+    def print_scores(self, x: DataFrame) -> None:
         pass

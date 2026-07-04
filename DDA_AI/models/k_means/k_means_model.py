@@ -7,6 +7,7 @@ import numpy as np
 from numpy import typing as npt
 from pandas import DataFrame, Series
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 
 from models.fittable_model import FittableModel
 from models.k_means.player_experience import PlayerExperience
@@ -100,6 +101,16 @@ class KMeansModel(FittableModel):
         print("Cluster Ranks")
         for i, (cluster, experience) in enumerate(self.__clusters_to_player_experience_map.items()):
             print(f"{i + 1}º - {cluster} ({experience.name})")
+
+    def print_scores(self, x) -> None:
+        silhouette = silhouette_score(x, self.__algorithm.labels_)
+        db_index = davies_bouldin_score(x, self.__algorithm.labels_)
+        ch_index = calinski_harabasz_score(x, self.__algorithm.labels_)
+
+        print("--- Scores ---")
+        print(f"Silhouette Score (closer to 1 is better): {silhouette:.2f}")
+        print(f"Davies-Bouldin Index (lower score is better): {db_index:.2f}")
+        print(f"Calinski-Harabasz Index (higher score is better): {ch_index:.2f}")
 
     def __post_load_setup(self) -> None:
         self.__k = self.__algorithm.n_clusters
