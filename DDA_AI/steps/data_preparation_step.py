@@ -74,18 +74,14 @@ class DataPreparationStep:
                 "total": 0,
                 "total_valid": 0,
                 "call_total": 0,
-                "call_total_valid": 0
+                "call_total_valid": 0,
+                "total_lines_to_rollback": 0
             }
 
-        self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"] = 0
-        self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"] = 0
-        self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"] = 0
-        self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"] = 0
-
-    def execute(self, encounter_id: str) -> list[tuple[str, str | int | float]]:
+    def execute(self, encounter_id: str, rollback_on_success: bool = False) -> list[tuple[str, str | int | float]]:
         self.__reset()
 
-        output = self.__aggregate(encounter_id)
+        output = self.__aggregate(encounter_id, rollback_on_success)
         if len(output) < 1:
             return output
         self.__transform(output)
@@ -94,9 +90,14 @@ class DataPreparationStep:
         self.__print_statistics()
         return self.__output
 
-    def __aggregate(self, encounter_id: str) -> dict[str, str | int | float | None]:
-        startTotalLinesStartLimit = self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"]
-        startTotalLinesEndLimit = self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"]
+    def __aggregate(self, encounter_id: str, rollback_on_success: bool) -> dict[str, str | int | float | None]:
+        start_total_lines_tracker = {
+            Event.ENCOUNTER_STARTED: self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"],
+            Event.ENCOUNTER_ENDED: self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"]
+        }
+        for event in self.__events_to_load:
+            start_total_lines_tracker[event] = self.__event_num_rows_read[event]["total"]
+
         output = {}
         try:
             self.__encounter_start = self.__find_encounter_start(encounter_id)
@@ -108,29 +109,18 @@ class DataPreparationStep:
             print(e)
 
             print("-- Rollback Limits Batcher ---")
-            print("Previous SkipRows")
-            print(f"- Start Limit: {self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"]}")
-            print(f"- End Limit: {self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"]}")
-            numInvalidLinesStartLimit = self.__event_num_rows_read[Event.ENCOUNTER_STARTED][
-                                            "total"] - startTotalLinesStartLimit
-            numInvalidLinesEndLimit = self.__event_num_rows_read[Event.ENCOUNTER_ENDED][
-                                          "total"] - startTotalLinesEndLimit
+            self.__rollback_events(start_total_lines_tracker)
 
-            self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalInvalidLines"] += numInvalidLinesStartLimit
-            self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalInvalidLines"] += numInvalidLinesEndLimit
-
-            self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"] += numInvalidLinesStartLimit
-            self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"] += numInvalidLinesEndLimit
-
-            # Skip start limit row for next iteration if the end limit is not found
-            if hasattr(self.__encounter_start, "empty"):
-                self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"] -= 1
-
-            print("Current SkipRows")
-            print(
-                f"- Start Limit: {self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] - self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"]}")
-            print(
-                f"- End Limit: {self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] - self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"]}")
+            # If the ENCOUNTER_STARTED was found and it was the first row when reading from the csv but its matching ENCOUNTER_ENDED
+            # was not then ignore this ENCOUNTER_STARTED and rollback to next row (rollback - 1).
+            diff_encounter_start_totals = self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] - \
+                                          start_total_lines_tracker[Event.ENCOUNTER_STARTED]
+            if diff_encounter_start_totals == 1 and self.__encounter_end is None:
+                previous_rows_to_skip = self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] - \
+                                        self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total_lines_to_rollback"]
+                self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total_lines_to_rollback"] -= 1
+                print(
+                    f"Rollbacking 1 less row in ENCOUNTER.STARTED since it was found but ENCOUNTER_ENDED was not found. ({previous_rows_to_skip} -> {previous_rows_to_skip + 1})")
 
             return {}
 
@@ -176,7 +166,15 @@ class DataPreparationStep:
         except Exception as e:
             print("\r\nSomething went wrong!")
             print(e)
+
+            print("--- Rollback Events ---")
+            self.__rollback_events(start_total_lines_tracker)
+
             return {}
+
+        if rollback_on_success:
+            print("\r\n--- Force Rollback ---")
+            self.__rollback_events(start_total_lines_tracker)
 
         return output
 
@@ -226,7 +224,7 @@ class DataPreparationStep:
                     dtype=event_attributes_map[Event.ENCOUNTER_STARTED],
                     nrows=self.__batch_size,
                     skiprows=self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] -
-                             self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"],
+                             self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total_lines_to_rollback"],
                     parse_dates=["timestamp"],
                     delimiter=";",
                     decimal="."
@@ -240,7 +238,7 @@ class DataPreparationStep:
                     dtype=event_attributes_map[Event.ENCOUNTER_STARTED],
                     nrows=self.__batch_size,
                     skiprows=self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] -
-                             self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["totalLinesToRollback"],
+                             self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total_lines_to_rollback"],
                     parse_dates=["timestamp"],
                     delimiter=";",
                     decimal=","
@@ -286,7 +284,7 @@ class DataPreparationStep:
                     dtype=event_attributes_map[Event.ENCOUNTER_ENDED],
                     nrows=self.__batch_size,
                     skiprows=self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] -
-                             self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"],
+                             self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total_lines_to_rollback"],
                     parse_dates=["timestamp"],
                     delimiter=";",
                     decimal="."
@@ -300,7 +298,7 @@ class DataPreparationStep:
                     dtype=event_attributes_map[Event.ENCOUNTER_ENDED],
                     nrows=self.__batch_size,
                     skiprows=self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"] -
-                             self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["totalLinesToRollback"],
+                             self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total_lines_to_rollback"],
                     parse_dates=["timestamp"],
                     delimiter=";",
                     decimal=","
@@ -353,7 +351,8 @@ class DataPreparationStep:
                         dtype=event_attributes_map[event],
                         delimiter=";",
                         nrows=self.__batch_size,
-                        skiprows=self.__event_num_rows_read[event]["total"],
+                        skiprows=self.__event_num_rows_read[event]["total"] -
+                                 self.__event_num_rows_read[event]["total_lines_to_rollback"],
                         parse_dates=["timestamp"],
                         decimal="."
                     )
@@ -366,7 +365,8 @@ class DataPreparationStep:
                         dtype=event_attributes_map[event],
                         delimiter=";",
                         nrows=self.__batch_size,
-                        skiprows=self.__event_num_rows_read[event]["total"],
+                        skiprows=self.__event_num_rows_read[event]["total"] -
+                                 self.__event_num_rows_read[event]["total_lines_to_rollback"],
                         parse_dates=["timestamp"],
                         decimal=","
                     )
@@ -488,6 +488,16 @@ class DataPreparationStep:
             return ""
 
         return saved_path
+
+    def __rollback_events(self, events_to_rollback: dict[Event, int]) -> None:
+        for event, start_rows_read in events_to_rollback.items():
+            print(f"Rollbacking {event.name}...", end="")
+            current_rows_read = self.__event_num_rows_read[event]["total"]
+            current_rows_to_skip = current_rows_read - self.__event_num_rows_read[event]["total_lines_to_rollback"]
+            rows_to_rollback = current_rows_read - start_rows_read
+            self.__event_num_rows_read[event]["total_lines_to_rollback"] += rows_to_rollback
+            new_rows_to_skip = current_rows_read - self.__event_num_rows_read[event]["total_lines_to_rollback"]
+            print(f"OK ({current_rows_to_skip} -> {new_rows_to_skip})")
 
     @staticmethod
     def __make_empty_event_df(event: Event) -> DataFrame:
