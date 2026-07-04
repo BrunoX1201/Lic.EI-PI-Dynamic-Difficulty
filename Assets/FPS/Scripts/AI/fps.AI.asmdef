@@ -3,7 +3,12 @@
   "references": [
     "GUID:9c5543eabb73a6249ac07b2c065ee8b4",
     "GUID:ff1eed87f3fa9dd4fb9044beebceb232",
-    "GUID:27b7e9efd224f064990a97ed99e4456f"
+    "GUID:27b7e9efd224f064990a97ed99e4456f",
+    "GUID:defccc6f737e40619061cec1e18e1670",
+    "GUID:80ecb87cae9c44d19824e70ea7229748",
+    "GUID:9b75a211bc674cd2906483cd8aa2159d",
+    "GUID:2f1f0462514f541c7851be3650ccd0ff",
+    "GUID:96901b66f89944bf6aa2338f07026648"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

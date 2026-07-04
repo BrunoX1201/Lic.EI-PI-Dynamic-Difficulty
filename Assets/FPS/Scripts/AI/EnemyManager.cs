@@ -18,12 +18,14 @@ namespace Unity.FPS.AI
         public void RegisterEnemy(EnemyController enemy)
         {
             Enemies.Add(enemy);
-
             NumberOfEnemiesTotal++;
         }
 
         public void UnregisterEnemy(EnemyController enemyKilled)
         {
+            if (!Enemies.Contains(enemyKilled))
+                return;
+
             int enemiesRemainingNotification = NumberOfEnemiesRemaining - 1;
 
             EnemyKillEvent evt = Events.EnemyKillEvent;
@@ -31,7 +33,6 @@ namespace Unity.FPS.AI
             evt.RemainingEnemyCount = enemiesRemainingNotification;
             EventManager.Broadcast(evt);
 
-            // removes the enemy from the list, so that we can keep track of how many are left on the map
             Enemies.Remove(enemyKilled);
         }
     }
