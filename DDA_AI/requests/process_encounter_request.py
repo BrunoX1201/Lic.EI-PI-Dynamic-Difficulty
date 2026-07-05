@@ -8,4 +8,4 @@ class ProcessOptions(BaseModel):
 # Modelo de dados para o pedido do Unity
 class ProcessEncounterRequest(BaseModel):
     encounter_id: str
-    options: ProcessOptions = None
+    options: ProcessOptions = ProcessOptions()
