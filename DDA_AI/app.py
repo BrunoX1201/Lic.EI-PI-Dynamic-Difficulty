@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 import aggregation_attributes as ag
 from requests import ProcessEncounterRequest
 from steps import DataPreparationStep
+from utils import numpy_to_native
 
 app = FastAPI(title="Unity DDA Data Pipeline API")
 
@@ -24,19 +25,11 @@ attributes = [
     ag.TotalHitsTakenAttribute(),
 ]
 
-data_preparation = DataPreparationStep(str(EVENT_BASE_PATH), str(OUTPUT_PATH), OUTPUT_FILE, attributes)
-data_preparation_last_save = ""
-
-
-def numpy_to_native(value):
-    if hasattr(value, "item"):
-        return value.item()
-    return value
+data_preparation = DataPreparationStep(EVENT_BASE_PATH, attributes)
 
 
 @app.post("/api/process_encounter")
 def process_encounter(request: ProcessEncounterRequest):
-    global data_preparation_last_save
     encounter_id = request.encounter_id
 
     try:
@@ -52,9 +45,7 @@ def process_encounter(request: ProcessEncounterRequest):
 
         # 2. Guarda o output no CSV local
         executed_time = datetime.datetime.now(datetime.timezone.utc)
-        data_preparation_last_save = data_preparation.save_output(
-            {"processed_at": math.floor(executed_time.timestamp())},
-            data_preparation_last_save)
+        data_preparation.save_output(OUTPUT_PATH, OUTPUT_FILE, {"processed_at": math.floor(executed_time.timestamp())})
 
         # 3. Transforma a lista de tuplos [("nome", valor), ...] num dicionário para o JSON
         metrics_dict = {attr_name: numpy_to_native(attr_value) for attr_name, attr_value in output_data}
