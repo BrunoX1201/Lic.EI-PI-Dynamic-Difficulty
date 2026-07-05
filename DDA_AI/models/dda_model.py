@@ -7,9 +7,6 @@ from pandas import DataFrame
 
 
 class DDAModel(ABC):
-    _output_path: Path
-    _output_full_path: Path
-
     @property
     @abstractmethod
     def name(self) -> str:
@@ -20,9 +17,6 @@ class DDAModel(ABC):
     def extension(self) -> str:
         pass
 
-    def __init__(self, output_path: str) -> None:
-        self._output_path = Path(output_path)
-
     @abstractmethod
     def act(self, observation: npt.NDArray[object]) -> npt.NDArray[np.float32]:
         pass
@@ -32,7 +26,7 @@ class DDAModel(ABC):
         pass
 
     @abstractmethod
-    def save(self) -> None:
+    def save(self, path: Path, file_name: str) -> Path:
         pass
 
     @abstractmethod

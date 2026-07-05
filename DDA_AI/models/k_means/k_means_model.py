@@ -1,5 +1,3 @@
-import datetime
-import math
 import pickle
 from pathlib import Path
 
@@ -38,7 +36,6 @@ class KMeansModel(FittableModel):
         return "pkl"
 
     def __init__(self, model_path: str) -> None:
-        super().__init__(model_path)
         self.__k = 5
         self.__algorithm = KMeans(n_clusters=self.__k)
         self.__clusters_to_player_experience_map = {}
@@ -68,18 +65,16 @@ class KMeansModel(FittableModel):
 
         self.__post_load_setup()
 
-    def save(self) -> str:
-        self._output_path.mkdir(parents=True, exist_ok=True)
+    def save(self, path: Path, file_name: str) -> Path:
+        path.mkdir(parents=True, exist_ok=True)
 
-        utc_date = datetime.datetime.now(datetime.timezone.utc)
-        timestamp = math.floor(utc_date.timestamp())
-        self._output_full_path = Path(f"{self._output_path}/{self.name}_{timestamp}.{self.extension}")
-        print(f"SAVING ({self._output_full_path})...", end="")
-        with open(self._output_full_path, "wb") as f:
+        full_path = Path(f"{path}/{file_name}.{self.extension}")
+        print(f"SAVING ({full_path})...", end="")
+        with open(full_path, "wb") as f:
             pickle.dump(self.__algorithm, f, protocol=5)
         print("OK")
 
-        return str(self._output_full_path)
+        return full_path
 
     def print_model(self) -> None:
         print(f"--- {self.name} ---")

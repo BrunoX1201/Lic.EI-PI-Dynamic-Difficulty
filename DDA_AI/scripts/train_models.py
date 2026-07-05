@@ -1,3 +1,5 @@
+import datetime
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -32,12 +34,16 @@ k_means_model = KMeansModel(str(MODELS_OUTPUT_PATH))
 
 models_to_train = [k_means_model]
 for model in models_to_train:
+    utc_date = datetime.datetime.now(datetime.timezone.utc)
+    timestamp = math.floor(utc_date.timestamp())
+
+    file_name = f"{model.name}_{timestamp}"
     try:
         print(f"[TRAINING] {model.name} model...", end="")
         model.fit(filtered_data)
         print("OK")
         model.print_model()
-        model.save()
+        model.save(MODELS_OUTPUT_PATH, file_name)
 
     except Exception as e:
         print("FAILED")
