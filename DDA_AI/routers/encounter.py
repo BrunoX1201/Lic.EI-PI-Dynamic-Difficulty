@@ -1,6 +1,5 @@
 import datetime
 import math
-from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
@@ -8,8 +7,7 @@ from dependencies import session_dependency, dda_pipeline_dependency
 from requests import ProcessEncounterRequest
 from utils import numpy_to_native
 
-__OUTPUT_PATH = Path("./output/runtime")
-__OUTPUT_FILE = "data_preparation"
+__DATA_PREPARATION_OUTPUT_FILE = "data_preparation"
 
 router = APIRouter()
 
@@ -37,7 +35,7 @@ def process_encounter(request: ProcessEncounterRequest, session_service: session
 
         # 2. Guarda o output no CSV local
         executed_time = datetime.datetime.now(datetime.timezone.utc)
-        dda_pipeline_service.data_preparation.save_output(__OUTPUT_PATH, __OUTPUT_FILE,
+        dda_pipeline_service.data_preparation.save_output(session_service.output_path, __DATA_PREPARATION_OUTPUT_FILE,
                                                           {"processed_at": math.floor(executed_time.timestamp())})
 
         # 3. Transforma a lista de tuplos [("nome", valor), ...] num dicionário para o JSON
