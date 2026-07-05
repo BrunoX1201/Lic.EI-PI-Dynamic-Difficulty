@@ -9,9 +9,9 @@ from pandas import DataFrame, Series
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 
-from models.fittable_model import FittableModel
-from models.k_means.player_experience import PlayerExperience
 from utils import sort_clusters
+from .player_experience import PlayerExperience
+from ..fittable_model import FittableModel
 
 
 class KMeansModel(FittableModel):
