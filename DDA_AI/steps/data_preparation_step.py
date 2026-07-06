@@ -1,8 +1,10 @@
 import datetime
 from pathlib import Path
 
+import numpy
 from pandas import DataFrame, read_csv, Series
 from pandas.errors import EmptyDataError
+from sklearn.preprocessing import normalize
 
 from aggregation_attributes import AggregationAttribute
 from exceptions import EncounterStartLimitNotFound, EncounterEndLimitNotFound
@@ -75,7 +77,7 @@ class DataPreparationStep:
         output = self.__aggregate(encounter_id, rollback_on_success)
         if len(output) < 1:
             return output
-        self.__transform(output)
+        output = self.__transform(output)
         self.__output = [(key, value) for key, value in output.items()]
 
         self.__print_statistics()
@@ -169,18 +171,29 @@ class DataPreparationStep:
 
         return output
 
-    def __transform(self, aggregation: dict[str, str | int | float | None]) -> None:
-
-        if aggregation["average_time_between_kills_seconds"] is None:
-            aggregation["average_time_between_kills_seconds"] = 0.0
+    def __transform(self, aggregation: dict[str, str | int | float | None]) -> dict[str, str | int | float]:
+        copy = aggregation.copy()
+        copy.pop("has_completed_encounter")
+        if copy["average_time_between_kills_seconds"] is None:
+            copy["average_time_between_kills_seconds"] = 0.0
         else:
-            aggregation["average_time_between_kills_seconds"] = round(aggregation["average_time_between_kills_seconds"],
-                                                                      2)
+            copy["average_time_between_kills_seconds"] = round(copy["average_time_between_kills_seconds"],
+                                                               2)
 
-        aggregation["has_completed_encounter"] = int(aggregation["has_completed_encounter"])
-        aggregation["encounter_total_time_seconds"] = round(aggregation["encounter_total_time_seconds"], 0)
-        aggregation["player_average_accuracy"] = round(aggregation["player_average_accuracy"], 2)
-        aggregation["remaining_player_health"] = round(aggregation["remaining_player_health"], 1)
+        copy["encounter_total_time_seconds"] = round(copy["encounter_total_time_seconds"], 0)
+        copy["player_average_accuracy"] = round(copy["player_average_accuracy"], 2)
+        copy["remaining_player_health"] = round(copy["remaining_player_health"], 1)
+
+        vector = numpy.array([val for val in copy.values()])
+        normalized = normalize(vector.reshape(1, -1))
+        output = {
+            "has_completed_encounter": int(aggregation["has_completed_encounter"]),
+        }
+
+        for index, key in enumerate(copy.keys()):
+            output[key] = normalized[0][index]
+
+        return output
 
     def __reset(self) -> None:
         self.__output = []

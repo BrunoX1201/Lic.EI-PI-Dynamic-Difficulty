@@ -22,7 +22,7 @@ class DDAModel(ABC):
         pass
 
     @abstractmethod
-    def load(self, model_path: str) -> None:
+    def load(self, model_path: Path) -> None:
         pass
 
     @abstractmethod

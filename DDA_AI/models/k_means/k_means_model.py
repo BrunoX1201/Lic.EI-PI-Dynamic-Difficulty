@@ -57,7 +57,7 @@ class KMeansModel(FittableModel):
         print(f"[ACTION] {self.name} decided action: {np.array2string(action)}")
         return action
 
-    def load(self, model_path: str) -> None:
+    def load(self, model_path: Path) -> None:
         print(f"LOADING ({model_path})...", end="")
         with open(model_path, "rb") as f:
             self.__algorithm = pickle.load(f)
@@ -78,6 +78,7 @@ class KMeansModel(FittableModel):
 
     def print_model(self) -> None:
         print(f"--- {self.name} ---")
+        print(f"Total Iterations Ran: {self.__algorithm.n_iter_}")
         print(f"Clusters ({self.__k})")
         n_rows, n_cols = self.__algorithm.cluster_centers_.shape
         feature_names = self.__algorithm.get_feature_names_out()
