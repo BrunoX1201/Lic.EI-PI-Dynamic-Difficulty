@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Unity.FPS.Gameplay
 {
+    // TODO: Add o DDAService.Instance.NotifyEncounterCompleted(Id); e EncounterZoneManager.Instance?.QueueDoorUnblock(Id, m_obstacleIdToUnblock);
+    // Para passar os limites
+    // Adicionar o evento da telemetria para impedir o DDA ir ler antes da Telemetry acabar (bool)
     public class EncounterZoneManager : MonoBehaviour
     {
         public static EncounterZoneManager Instance { get; private set; }

@@ -11,21 +11,21 @@ namespace Unity.FPS.DDA
         [Serializable]
         private class ActionParams
         {
-            public int total_enemies;
-            public float enemy_health;
-            public float enemy_hitbox;
+            public int TotalEnemies;
+            public float EnemyHealth;
+            public float EnemyHitbox;
         }
 
         [Serializable]
         private class ApiResponse
         {
-            public string status;
-            public string agent;
-            public string action;
-            public ActionParams action_params;
+            public string Status;
+            public string Agent;
+            public string Action;
+            public ActionParams ActionParams;
         }
 
-        private static string m_encounterId;
+        private static string s_encounterId;
 
         public static void Initialize()
         {
@@ -58,7 +58,7 @@ namespace Unity.FPS.DDA
                 return;
             }
 
-            m_encounterId = evt.EncounterId;
+            s_encounterId = evt.EncounterId;
             ProcessResponse(request.downloadHandler.text);
         }
 
@@ -68,24 +68,24 @@ namespace Unity.FPS.DDA
             {
                 ApiResponse response = JsonUtility.FromJson<ApiResponse>(json);
 
-                if (response.status != "success" || response.action_params == null)
+                if (response.Status != "success" || response.ActionParams == null)
                     throw new Exception("Default modifiers will be kept.");
 
                 Debug.Log(
-                    $"[DDA] Model output received successfully (agent={response.agent}, action={response.action}).");
+                    $"[DDA] Model output received successfully (Agent={response.Agent}, Action={response.Action}).");
 
                 DDAEventManager.Broadcast(new DDAModelOutputReceived(
-                    response.action_params.total_enemies,
-                    response.action_params.enemy_health,
-                    response.action_params.enemy_hitbox,
-                    response.agent,
-                    response.action
+                    response.ActionParams.TotalEnemies,
+                    response.ActionParams.EnemyHealth,
+                    response.ActionParams.EnemyHitbox,
+                    response.Agent,
+                    response.Action
                 ));
             }
             catch (Exception e)
             {
                 Debug.LogError($"[DDA] Failed to process response: {e.Message}");
-                DDAEventManager.Broadcast(new DDAPredictionFailed(m_encounterId));
+                DDAEventManager.Broadcast(new DDAPredictionFailed(s_encounterId));
             }
         }
     }

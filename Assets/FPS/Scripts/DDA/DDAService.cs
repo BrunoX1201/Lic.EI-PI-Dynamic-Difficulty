@@ -4,8 +4,8 @@ namespace Unity.FPS.DDA
 {
     public class DDAService
     {
-        private static DDAService m_instance = new();
-        public static DDAService Instance => m_instance;
+        private static DDAService s_instance = new();
+        public static DDAService Instance => s_instance;
 
         static DDAService()
         {
