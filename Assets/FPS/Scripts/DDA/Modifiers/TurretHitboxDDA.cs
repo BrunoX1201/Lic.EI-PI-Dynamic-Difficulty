@@ -1,12 +1,11 @@
 ﻿namespace Unity.FPS.DDA
 {
-    public class EnemyHealthDDA : DDAModifier<float>
+    public class TurretHitboxDDA : DDAModifier<float>
     {
-        private const float k_thresholdMin = 0.2f;
-        private const float k_thresholdMax = 0.4f;
+        private const float k_thresholdMin = 0.05f;
+        private const float k_thresholdMax = 0.1f;
 
-        public EnemyHealthDDA(float value, float minValue = 0.1f, float maxValue = 3f)
-            : base(value, minValue, maxValue, (a, b) => a + b, (a, b) => a * b)
+        public TurretHitboxDDA(float value) : base(value, (a, b) => a + b)
         {
         }
 

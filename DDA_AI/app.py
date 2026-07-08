@@ -41,9 +41,16 @@ def process_encounter_test(request: ProcessEncounterRequest):
             "agent": "K_means",
             "action": "<ação tomada pelo agente>",
             "action_params": {
-                "total_enemies": 2,
-                "enemy_health": 0.25,
-                "enemy_hitbox": 1.1
+                "turret": {
+                "health": 1.0,
+                "hitbox": 0.1,
+                "count": 1
+                },
+                "mobile": {
+                "health": 1.0,
+                "hitbox": 0.1,
+                "count": 1
+                }
             }
         }
     except Exception as e:
@@ -80,9 +87,18 @@ def process_encounter(request: ProcessEncounterRequest):
             "agent": "<nome do agente usado>",
             "action": "<ação tomada pelo agente>",
             "action_params": {
-                "total_enemies": 2,
-                "enemy_health": 0.25,
-                "enemy_hitbox": 1
+                "total_turrets": 1,
+                "total_mobiles": 2,
+                "turret": {
+                    "health": 120.0,
+                    "hitbox": 1.0,
+                    "count": 1
+                },
+                "mobile": {
+                    "health": 100,
+                    "hitbox": 1.1,
+                    "count": 2
+                }
             }
         }
 

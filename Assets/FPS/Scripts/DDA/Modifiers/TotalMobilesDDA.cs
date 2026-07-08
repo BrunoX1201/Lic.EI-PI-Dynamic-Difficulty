@@ -1,12 +1,12 @@
 ﻿namespace Unity.FPS.DDA
 {
-    public class TotalEnemiesDDA : DDAModifier<int>
+    public class TotalMobilesDDA : DDAModifier<int>
     {
         private const int k_thresholdMin = 1;
         private const int k_thresholdMax = 2;
 
-        public TotalEnemiesDDA(int value, int minValue = 1, int maxValue = 10)
-            : base(value, minValue, maxValue, (a, b) => a + b, (a, b) => a * b)
+        public TotalMobilesDDA(int value)
+            : base(value, (a, b) => a + b)
         {
         }
 

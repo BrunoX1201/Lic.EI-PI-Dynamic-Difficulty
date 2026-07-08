@@ -14,38 +14,38 @@
     /// <summary>Published by DDAController with the raw model output.</summary>
     public class DDAModelOutputReceived : DDAEvent
     {
-        public int TotalEnemies { get; }
-        public float EnemyHealth { get; }
-        public float EnemyHitbox { get; }
+        public int TotalMobiles { get; }
+        public int TotalTurrets { get; }
+        public float MobileHealth { get; }
+        public float MobileHitbox { get; }
+        public float TurretHealth { get; }
+        public float TurretHitbox { get; }
         public string Agent { get; }
         public string Action { get; }
 
-        public DDAModelOutputReceived(int totalEnemies, float enemyHealth, float enemyHitbox, string agent,
-            string action)
+        public DDAModelOutputReceived(int totalMobiles, int totalTurrets,
+            float mobileHealth, float mobileHitbox, float turretHealth, float turretHitbox, string agent, string action)
         {
-            TotalEnemies = totalEnemies;
-            EnemyHealth = enemyHealth;
-            EnemyHitbox = enemyHitbox;
+            TotalMobiles = totalMobiles;
+            TotalTurrets = totalTurrets;
+            MobileHealth = mobileHealth;
+            MobileHitbox = mobileHitbox;
+            TurretHealth = turretHealth;
+            TurretHitbox = turretHitbox;
             Agent = agent;
             Action = action;
         }
     }
 
-    /// <summary>
-    /// Published by DDAModifierState sempre que o estado completo dos modificadores muda.
-    /// EncounterZoneManager escuta isto para saber quando aplicar a próxima previsão.
-    /// </summary>
     public class ModifiersUpdated : DDAEvent
     {
-        public int TotalEnemies { get; }
-        public float EnemyHealth { get; }
-        public float EnemyHitbox { get; }
+        public int TotalMobiles { get; }
+        public int TotalBosses { get; }
 
-        public ModifiersUpdated(int totalEnemies, float enemyHealth, float enemyHitbox)
+        public ModifiersUpdated(int totalMobiles, int totalBosses)
         {
-            TotalEnemies = totalEnemies;
-            EnemyHealth = enemyHealth;
-            EnemyHitbox = enemyHitbox;
+            TotalMobiles = totalMobiles;
+            TotalBosses = totalBosses;
         }
     }
 

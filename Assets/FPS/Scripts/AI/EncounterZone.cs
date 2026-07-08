@@ -32,8 +32,43 @@ namespace Unity.FPS.Gameplay
         [SerializeField] [Tooltip("Boss-only spawn points (01-005: 1 point, 01-010: 2 points).")]
         private List<Transform> m_bossSpawnPoints = new();
 
-        [SerializeField] [Tooltip("Maximum number of bosses to spawn. Only relevant if BossEnemyPrefab is assigned.")]
-        private int m_maxBosses = 0;
+        [Header("Restrições DDA — Mobiles (standard)")] [SerializeField]
+        private int m_defaultMobiles = 3;
+
+        [SerializeField] private int m_minMobiles = 1;
+        [SerializeField] private int m_maxMobiles = 10;
+
+        [Header("Restrições DDA — Bosses (turret)")] [SerializeField]
+        private int m_defaultBosses = 0;
+
+        [SerializeField] private int m_minBosses = 0;
+        [SerializeField] private int m_maxBosses = 0;
+
+        [Header("Restrições DDA — Vida/Hitbox Mobile")] [SerializeField]
+        private float m_defaultMobileHealth = 100f;
+
+        [SerializeField] private float m_minMobileHealth = 50f;
+        [SerializeField] private float m_maxMobileHealth = 300f;
+        [SerializeField] private float m_defaultMobileHitbox = 1f;
+        [SerializeField] private float m_minMobileHitbox = 0.5f;
+        [SerializeField] private float m_maxMobileHitbox = 2f;
+
+        [Header("Restrições DDA — Vida/Hitbox Turret")] [SerializeField]
+        private float m_defaultTurretHealth = 150f;
+
+        [SerializeField] private float m_minTurretHealth = 80f;
+        [SerializeField] private float m_maxTurretHealth = 400f;
+        [SerializeField] private float m_defaultTurretHitbox = 1f;
+        [SerializeField] private float m_minTurretHitbox = 0.5f;
+        [SerializeField] private float m_maxTurretHitbox = 2f;
+
+        public DDAEncounterRestrictions Restrictions => new(
+            m_defaultMobiles, m_minMobiles, m_maxMobiles,
+            m_defaultBosses, m_minBosses, m_maxBosses,
+            m_defaultMobileHealth, m_minMobileHealth, m_maxMobileHealth,
+            m_defaultMobileHitbox, m_minMobileHitbox, m_maxMobileHitbox,
+            m_defaultTurretHealth, m_minTurretHealth, m_maxTurretHealth,
+            m_defaultTurretHitbox, m_minTurretHitbox, m_maxTurretHitbox);
 
         private const int k_layerMask = 1 << EncounterZoneCollider.Layer;
 
@@ -55,9 +90,9 @@ namespace Unity.FPS.Gameplay
         private void Start()
         {
             // DDA: override enemy count if a model output has been received
-            TotalEnemiesDDA totalEnemiesModifier = DDAModifierState.TotalEnemiesModifier;
-            if (DDAModifierState.HasReceivedOutput && totalEnemiesModifier.Value < m_enemies.Count)
-                m_enemies = m_enemies.Take(totalEnemiesModifier.Value).ToList();
+            TotalMobilesDDA totalMobilesModifier = DDAModifierState.TotalMobilesModifier;
+            if (DDAModifierState.HasReceivedOutput && totalMobilesModifier.Value < m_enemies.Count)
+                m_enemies = m_enemies.Take(totalMobilesModifier.Value).ToList();
 
             TotalEnemies = m_enemies.Count;
 
@@ -180,7 +215,7 @@ namespace Unity.FPS.Gameplay
         {
             if (!HasStarted) return;
 
-            PlayerPrefs.SetString(DDAConfig.PENDING_RETRY_ENCOUNTER_ID, Id);
+            PlayerPrefs.SetString(DDAConfig.K_PENDING_RETRY_ENCOUNTER_ID, Id);
             PlayerPrefs.Save();
 
             TrackEncounterEnded(EncounterEndReason.PlayerDied);
@@ -196,7 +231,7 @@ namespace Unity.FPS.Gameplay
             DestroyEncounter();
         }
 
-        public void SpawnDDAEnemies(int totalEnemies)
+        public void SpawnDDAEnemies(int totalMobiles, int totalBosses)
         {
             foreach (GameObject enemy in m_enemies)
             {
@@ -206,30 +241,16 @@ namespace Unity.FPS.Gameplay
             m_enemies.Clear();
             m_enemieIds.Clear();
 
-            bool canSpawnBoss = m_bossEnemyPrefab != null && m_bossSpawnPoints.Count > 0;
-            int totalRequested = totalEnemies;
-
-            int bossCount = 0;
-            int bossSpawned = 0;
-
-            if (canSpawnBoss)
+            int bossesToSpawn =
+                Mathf.Min(totalBosses, m_bossSpawnPoints.Count); // limite físico de spawn points, não de dificuldade
+            for (int i = 0; i < bossesToSpawn; i++)
             {
-                int maxPossibleBosses = Mathf.Min(m_maxBosses, m_bossSpawnPoints.Count);
-                bossCount = Mathf.Min(totalRequested, maxPossibleBosses);
-
-                for (int i = 0; i < bossCount; i++)
-                {
-                    if (Random.value > 0.5f) continue;
-                    bossSpawned++;
-                    Transform spawnPoint = m_bossSpawnPoints[i];
-                    SpawnEnemy(m_bossEnemyPrefab, spawnPoint.position, spawnPoint.rotation);
-                }
+                Transform spawnPoint = m_bossSpawnPoints[i];
+                SpawnEnemy(m_bossEnemyPrefab, spawnPoint.position, spawnPoint.rotation);
             }
 
-            int standardCount = totalRequested - bossSpawned;
             List<Transform> availableSpawnPoints = new(m_spawnPoints);
-
-            for (int i = 0; i < standardCount; i++)
+            for (int i = 0; i < totalMobiles; i++)
             {
                 Vector3 position;
                 Quaternion rotation;
@@ -247,11 +268,9 @@ namespace Unity.FPS.Gameplay
                     Vector2 offset = Random.insideUnitCircle * 2f;
                     Vector3 candidate = reference.position + new Vector3(offset.x, 0f, offset.y);
 
-                    if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, 3f, NavMesh.AllAreas))
-                        position = hit.position;
-                    else
-                        position = reference.position;
-
+                    position = NavMesh.SamplePosition(candidate, out NavMeshHit hit, 3f, NavMesh.AllAreas)
+                        ? hit.position
+                        : reference.position;
                     rotation = reference.rotation;
                 }
 
@@ -259,10 +278,8 @@ namespace Unity.FPS.Gameplay
             }
 
             TotalEnemies = m_enemies.Count;
-
             Debug.Log(
-                $"[EncounterZone] {Id} — DDA spawned {TotalEnemies} enemies ({bossCount} bosses, {TotalEnemies - bossCount} standard).");
-
+                $"[EncounterZone] {Id} — DDA spawned {TotalEnemies} enemies ({bossesToSpawn} bosses, {totalMobiles} standard).");
             DDAEventManager.Broadcast(new EncounterEnemiesSpawnedEvent(Id));
         }
 

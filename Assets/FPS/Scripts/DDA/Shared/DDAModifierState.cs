@@ -4,9 +4,15 @@ namespace Unity.FPS.DDA
 {
     public static class DDAModifierState
     {
-        public static TotalEnemiesDDA TotalEnemiesModifier { get; } = new(1);
-        public static EnemyHealthDDA EnemyHealthModifier { get; } = new(1f);
-        public static EnemyHitboxDDA EnemyHitboxModifier { get; } = new(1f);
+        public static TotalMobilesDDA TotalMobilesModifier { get; } = new(1);
+        public static TotalTurretsDDA TotalTurretsModifier { get; } = new(0);
+
+        public static MobileHealth MobileHealthModifier { get; } = new(1f);
+        public static MobileHitboxDDA MobileHitboxModifier { get; } = new(1f);
+
+        public static MobileHealth TurretHealthModifier { get; } = new(1f);
+        public static MobileHitboxDDA TurretHitboxModifier { get; } = new(1f);
+
         public static bool HasReceivedOutput { get; private set; }
 
         public static void Initialize()
@@ -16,38 +22,21 @@ namespace Unity.FPS.DDA
 
         private static void OnModelOutputReceived(DDAModelOutputReceived output)
         {
-            TotalEnemiesModifier.Update(output.TotalEnemies, output.Agent);
-            EnemyHealthModifier.Update(output.EnemyHealth, output.Agent);
-            EnemyHitboxModifier.Update(output.EnemyHitbox, output.Agent);
+            TotalMobilesModifier.Update(output.TotalMobiles);
+            TotalTurretsModifier.Update(output.TotalTurrets);
+            MobileHealthModifier.Update(output.MobileHealth);
+            MobileHitboxModifier.Update(output.MobileHitbox);
+            TurretHealthModifier.Update(output.TurretHealth);
+            TurretHitboxModifier.Update(output.TurretHitbox);
             HasReceivedOutput = true;
 
             Debug.Log($"[DDAModifierState] Modifiers updated (agent={output.Agent}) → " +
-                      $"TotalEnemies={TotalEnemiesModifier.Value} ({TotalEnemiesModifier.Direction}), " +
-                      $"EnemyHealth={EnemyHealthModifier.Value} ({EnemyHealthModifier.Direction}), " +
-                      $"EnemyHitbox={EnemyHitboxModifier.Value} ({EnemyHitboxModifier.Direction})");
+                      $"Mobiles={TotalMobilesModifier.Value}({TotalMobilesModifier.Direction}), " +
+                      $"Bosses={TotalTurretsModifier.Value}({TotalTurretsModifier.Direction}), " +
+                      $"MobileHealth={MobileHealthModifier.Value}, MobileHitbox={MobileHitboxModifier.Value}, " +
+                      $"TurretHealth={TurretHealthModifier.Value}, TurretHitbox={TurretHitboxModifier.Value}");
 
-            DDAEventManager.Broadcast(new ModifiersUpdated(
-                TotalEnemiesModifier.Value, EnemyHealthModifier.Value, EnemyHitboxModifier.Value));
-        }
-
-        // --- Usado pelo custom editor/debug para ajustar modificadores individualmente em runtime ---
-
-        public static void SetTotalEnemies(int value, string agent)
-        {
-            TotalEnemiesModifier.Update(value, agent);
-            DDAEventManager.Broadcast(new TotalEnemiesModifierChanged(value));
-        }
-
-        public static void SetEnemyHealth(float value, string agent)
-        {
-            EnemyHealthModifier.Update(value, agent);
-            DDAEventManager.Broadcast(new EnemyHealthModifierChanged(value));
-        }
-
-        public static void SetEnemyHitbox(float value, string agent)
-        {
-            EnemyHitboxModifier.Update(value, agent);
-            DDAEventManager.Broadcast(new EnemyHitboxModifierChanged(value));
+            DDAEventManager.Broadcast(new ModifiersUpdated(TotalMobilesModifier.Value, TotalTurretsModifier.Value));
         }
     }
 }

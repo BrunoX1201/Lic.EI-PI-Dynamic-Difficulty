@@ -149,20 +149,28 @@ namespace Unity.FPS.AI
             // DDA: scale enemy health and hitbox using the current global modifiers
             if (DDAModifierState.HasReceivedOutput)
             {
-                float healthMult = DDAModifierState.EnemyHealthModifier.Value;
-                m_Health.SetMaxHealth(m_Health.MaxHealth * healthMult);
+                bool isTurret = GetComponent<EnemyTurret>() != null;
+
+                float healthValue = isTurret
+                    ? DDAModifierState.TurretHealthModifier.Value
+                    : DDAModifierState.MobileHealthModifier.Value;
+                float hitboxScale = isTurret
+                    ? DDAModifierState.TurretHitboxModifier.Value
+                    : DDAModifierState.MobileHitboxModifier.Value;
+
+                m_Health.SetMaxHealth(healthValue); // valor absoluto, não multiplicador
                 m_Health.CurrentHealth = m_Health.MaxHealth;
 
-                float hitboxMult = Mathf.Max(0.1f, DDAModifierState.EnemyHitboxModifier.Value);
+                float safeHitboxScale = Mathf.Max(0.1f, hitboxScale); // salvaguarda física, não limite de dificuldade
                 foreach (Collider col in m_SelfColliders)
                 {
                     switch (col)
                     {
-                        case BoxCollider box: box.size *= hitboxMult; break;
-                        case SphereCollider sphere: sphere.radius *= hitboxMult; break;
+                        case BoxCollider box: box.size *= safeHitboxScale; break;
+                        case SphereCollider sphere: sphere.radius *= safeHitboxScale; break;
                         case CapsuleCollider cap:
-                            cap.radius *= hitboxMult;
-                            cap.height *= hitboxMult;
+                            cap.radius *= safeHitboxScale;
+                            cap.height *= safeHitboxScale;
                             break;
                     }
                 }

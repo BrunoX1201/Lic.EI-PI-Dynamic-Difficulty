@@ -10,7 +10,6 @@ namespace Unity.FPS.DDA
         static DDAService()
         {
             DDAModifierState.Initialize();
-            DDAController.Initialize();
         }
 
         public void NotifyEncounterCompleted(string encounterId)

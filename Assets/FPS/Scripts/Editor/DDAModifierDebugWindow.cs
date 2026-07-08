@@ -7,25 +7,19 @@ namespace Unity.FPS.EditorExt
 {
     public class DDAModifierDebugWindow : EditorWindow
     {
-        private int m_simTotalEnemies = 5;
-        private float m_simEnemyHealth = 1f;
-        private float m_simEnemyHitbox = 1f;
-        private Agent m_simAgent;
-        private DDADirection m_simAction;
+        private int m_simTotalMobiles = 3;
+        private int m_simTotalBosses = 0;
+        private float m_simMobileHealth = 100f;
+        private float m_simMobileHitbox = 1f;
+        private float m_simTurretHealth = 150f;
+        private float m_simTurretHitbox = 1f;
+        private string m_simAgent = "K_means";
+        private string m_simAction = "None";
 
         [MenuItem("Tools/DDA/Modifier Debug Window")]
         private static void ShowWindow()
         {
             GetWindow<DDAModifierDebugWindow>("DDA Debug");
-        }
-        
-        private void OnInspectorUpdate()
-        {
-            // Se estiver em Play Mode, força o OnGUI a rodar a cada frame do editor por causa do "Estado atual"
-            if (Application.isPlaying)
-            {
-                Repaint();
-            }
         }
 
         private void OnGUI()
@@ -37,35 +31,54 @@ namespace Unity.FPS.EditorExt
             EditorGUI.BeginDisabledGroup(!Application.isPlaying);
 
             EditorGUILayout.LabelField("Estado atual", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("HasReceivedOutput", Application.isPlaying
-                ? DDAModifierState.HasReceivedOutput.ToString()
-                : "-");
             if (Application.isPlaying)
             {
-                EditorGUILayout.LabelField("TotalEnemies",
-                    $"{DDAModifierState.TotalEnemiesModifier.Value} ({DDAModifierState.TotalEnemiesModifier.Direction})");
-                EditorGUILayout.LabelField("EnemyHealth",
-                    $"{DDAModifierState.EnemyHealthModifier.Value} ({DDAModifierState.EnemyHealthModifier.Direction})");
-                EditorGUILayout.LabelField("EnemyHitbox",
-                    $"{DDAModifierState.EnemyHitboxModifier.Value} ({DDAModifierState.EnemyHitboxModifier.Direction})");
+                EditorGUILayout.LabelField("HasReceivedOutput", DDAModifierState.HasReceivedOutput.ToString());
+                EditorGUILayout.LabelField("Mobiles",
+                    $"{DDAModifierState.TotalMobilesModifier.Value} ({DDAModifierState.TotalMobilesModifier.Direction})");
+                EditorGUILayout.LabelField("Bosses",
+                    $"{DDAModifierState.TotalTurretsModifier.Value} ({DDAModifierState.TotalTurretsModifier.Direction})");
+                EditorGUILayout.LabelField("Mobile Health/Hitbox",
+                    $"{DDAModifierState.MobileHealthModifier.Value} / {DDAModifierState.MobileHitboxModifier.Value}");
+                EditorGUILayout.LabelField("Turret Health/Hitbox",
+                    $"{DDAModifierState.TurretHealthModifier.Value} / {DDAModifierState.TurretHitboxModifier.Value}");
+            }
+            else
+            {
+                EditorGUILayout.LabelField("—");
             }
 
             EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("Simulate Full Prediction (DDAModelOutputReceived)", EditorStyles.boldLabel);
-            m_simTotalEnemies = EditorGUILayout.IntField("Total Enemies", m_simTotalEnemies);
-            m_simEnemyHealth = EditorGUILayout.FloatField("Enemy Health", m_simEnemyHealth);
-            m_simEnemyHitbox = EditorGUILayout.FloatField("Enemy Hitbox", m_simEnemyHitbox);
-            m_simAgent = EditorGUILayout.EnumPopup("Agent", m_simAgent) as Agent? ?? m_simAgent;
-            m_simAction = EditorGUILayout.EnumPopup("Action", m_simAction) as DDADirection? ?? m_simAction;
 
-            if (GUILayout.Button("Simulate"))
+            m_simAgent = EditorGUILayout.TextField("Agent (log only)", m_simAgent);
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Mobile", EditorStyles.miniBoldLabel);
+            m_simTotalMobiles = EditorGUILayout.IntField("Count", m_simTotalMobiles);
+            m_simMobileHealth = EditorGUILayout.FloatField("Health", m_simMobileHealth);
+            m_simMobileHitbox = EditorGUILayout.FloatField("Hitbox", m_simMobileHitbox);
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Turret", EditorStyles.miniBoldLabel);
+            m_simTotalBosses = EditorGUILayout.IntField("Count", m_simTotalBosses);
+            m_simTurretHealth = EditorGUILayout.FloatField("Health", m_simTurretHealth);
+            m_simTurretHitbox = EditorGUILayout.FloatField("Hitbox", m_simTurretHitbox);
+
+            EditorGUILayout.Space(2);
+            m_simAction = EditorGUILayout.TextField("Action (log only)", m_simAction);
+
+            EditorGUILayout.Space(8);
+            if (GUILayout.Button("Simulate + Force Spawn"))
             {
                 DDAEventManager.Broadcast(new DDAModelOutputReceived(
-                    m_simTotalEnemies, m_simEnemyHealth, m_simEnemyHitbox, m_simAgent.ToString(),
-                    m_simAction.ToString()));
+                    m_simTotalMobiles, m_simTotalBosses,
+                    m_simMobileHealth, m_simMobileHitbox,
+                    m_simTurretHealth, m_simTurretHitbox,
+                    m_simAgent, m_simAction));
 
                 if (EncounterZoneManager.Instance != null)
-                    EncounterZoneManager.Instance.ForceSpawnEncounter(m_simTotalEnemies);
+                    EncounterZoneManager.Instance.ForceSpawnEncounter(m_simTotalMobiles, m_simTotalBosses);
                 else
                     Debug.LogWarning(
                         "[DDAModifierDebugWindow] EncounterZoneManager.Instance é null — está em Play Mode?");
