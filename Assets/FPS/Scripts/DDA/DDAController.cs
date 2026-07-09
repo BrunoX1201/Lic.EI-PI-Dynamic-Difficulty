@@ -11,25 +11,25 @@ namespace Unity.FPS.DDA
         [System.Serializable]
         private class EnemyTypeParams
         {
-            public float Health;
-            public float Hitbox;
-            public int Count;
+            public float health;
+            public float hitbox;
+            public int count;
         }
 
         [System.Serializable]
         private class ActionParams
         {
-            public EnemyTypeParams Turret;
-            public EnemyTypeParams Mobile;
+            public EnemyTypeParams turret;
+            public EnemyTypeParams mobile;
         }
 
         [System.Serializable]
         private class ApiResponse
         {
-            public string Status;
-            public string Agent;
-            public string Action;
-            public ActionParams ActionParams;
+            public string status;
+            public string agent;
+            public string action;
+            public ActionParams action_params;
         }
 
         public static void RequestPrediction(string encounterId, DDAEncounterRestrictions next,
@@ -110,21 +110,21 @@ namespace Unity.FPS.DDA
             {
                 ApiResponse response = JsonUtility.FromJson<ApiResponse>(json);
 
-                if (response.Status != "success" || response.ActionParams == null)
+                if (response.status != "success" || response.action_params == null)
                     throw new System.Exception("Unexpected response format.");
 
                 Debug.Log(
-                    $"[DDA] Model output received successfully (Agent={response.Agent}, Action={response.Action}).");
+                    $"[DDA] Model output received successfully (agent={response.agent}, action={response.action}).");
 
                 DDAEventManager.Broadcast(new DDAModelOutputReceived(
-                    response.ActionParams.Mobile.Count,
-                    response.ActionParams.Turret.Count,
-                    response.ActionParams.Mobile.Health,
-                    response.ActionParams.Mobile.Hitbox,
-                    response.ActionParams.Turret.Health,
-                    response.ActionParams.Turret.Hitbox,
-                    response.Agent,
-                    response.Action
+                    response.action_params.mobile.count,
+                    response.action_params.turret.count,
+                    response.action_params.mobile.health,
+                    response.action_params.mobile.hitbox,
+                    response.action_params.turret.health,
+                    response.action_params.turret.hitbox,
+                    response.agent,
+                    response.action
                 ));
             }
             catch (System.Exception e)
