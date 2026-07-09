@@ -12542,23 +12542,23 @@ MonoBehaviour:
   - {fileID: 1715053150}
   - {fileID: 1923862420}
   m_bossSpawnPoints: []
-  m_defaultMobiles: 3
+  m_defaultMobiles: 1
   m_minMobiles: 1
   m_maxMobiles: 10
   m_defaultBosses: 0
   m_minBosses: 0
   m_maxBosses: 0
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
+  m_defaultMobileHealth: 1
+  m_minMobileHealth: 1
   m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
+  m_defaultMobileHitbox: 0.1
+  m_minMobileHitbox: 0.1
   m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
+  m_defaultTurretHealth: 1
+  m_minTurretHealth: 1
   m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
+  m_defaultTurretHitbox: 0.1
+  m_minTurretHitbox: 0.1
   m_maxTurretHitbox: 2
 --- !u!1 &1256589453
 GameObject:
@@ -23206,7 +23206,7 @@ MonoBehaviour:
   - {fileID: 1834626432}
   - {fileID: 252262049}
   - {fileID: 1524222419}
-  m_awaitingSpawn: 0
+  m_awaitingSpawn: 1
 --- !u!4 &2103240531
 Transform:
   m_ObjectHideFlags: 0

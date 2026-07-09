@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Unity.FPS.AI;
 using Unity.FPS.Game;
 using Unity.FPS.Telemetry;
@@ -71,6 +72,7 @@ namespace Unity.FPS.Gameplay
             m_defaultTurretHitbox, m_minTurretHitbox, m_maxTurretHitbox);
 
         private const int k_layerMask = 1 << EncounterZoneCollider.Layer;
+        private ObjectiveKillEnemies m_currentObjective;
 
         public bool HasStarted { get; private set; }
         public int TotalEnemies { get; private set; }
@@ -224,8 +226,12 @@ namespace Unity.FPS.Gameplay
         private IEnumerator TrackEncounterEndedByCompletion()
         {
             yield return null;
-
             TrackEncounterEnded(EncounterEndReason.Completed);
+
+            //TODO: Verificar qualidade deste metodo
+            Task flushTask = TelemetryService.FlushAsync();
+            yield return new WaitUntil(() => flushTask.IsCompleted);
+
             DDAService.Instance.NotifyEncounterCompleted(Id);
             EncounterZoneManager.Instance?.QueueDoorUnblock(Id, m_obstacleIdToUnblock);
             DestroyEncounter();
@@ -278,6 +284,15 @@ namespace Unity.FPS.Gameplay
             }
 
             TotalEnemies = m_enemies.Count;
+
+            if (m_currentObjective != null) Destroy(m_currentObjective);
+            m_currentObjective = gameObject.AddComponent<ObjectiveKillEnemies>();
+            m_currentObjective.Title = "Eliminate all enemies";
+            m_currentObjective.Description = "Defeat all the enemies in this encounter";
+            m_currentObjective.MustKillAllEnemies = true;
+            m_currentObjective.IsOptional = false;
+            m_currentObjective.DelayVisible = 6;
+
             Debug.Log(
                 $"[EncounterZone] {Id} — DDA spawned {TotalEnemies} enemies ({bossesToSpawn} bosses, {totalMobiles} standard).");
             DDAEventManager.Broadcast(new EncounterEnemiesSpawnedEvent(Id));
