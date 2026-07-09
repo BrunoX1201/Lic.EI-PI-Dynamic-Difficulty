@@ -1,5 +1,6 @@
 ﻿namespace Unity.FPS.DDA
 {
+    // converter para um scriptableObject
     [System.Serializable]
     public struct DDAEncounterRestrictions
     {
@@ -55,7 +56,7 @@
             MaxTurretHitbox = maxTurretHitbox;
         }
 
-        /// <summary>Usado só quando a próxima zona ainda não está disponível (ex: último encontro de um nível).</summary> /TODO: APAGAR NÃO NECESSARIO
+        /// <summary>Usado só quando a próxima zona ainda não está disponível (ex: último encontro de um nível).</summary> //TODO: APAGAR NÃO NECESSARIO, usar os previous
         public static DDAEncounterRestrictions GlobalFallback => new(
             1, 1, 10,
             0, 0, 2,
