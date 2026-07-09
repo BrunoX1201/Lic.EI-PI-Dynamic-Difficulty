@@ -61,7 +61,7 @@ namespace Unity.FPS.DDA
 
             ProcessResponse(encounterId, request.downloadHandler.text);
         }
-
+        
         private static string BuildPayload(string encounterId, DDAEncounterRestrictions next, bool? rollbackOnSuccess)
         {
             float previousMobileHp = DDAModifierState.MobileHealthModifier.Value;
@@ -69,39 +69,42 @@ namespace Unity.FPS.DDA
             float previousTurretHp = DDAModifierState.TurretHealthModifier.Value;
             float previousTurretHitbox = DDAModifierState.TurretHitboxModifier.Value;
 
-            string F(float v)
+            // Funções auxiliares para garantir o ponto decimal (.) em vez da vírgula (,)
+            string F(float v) => v.ToString(CultureInfo.InvariantCulture);
+            string I(int v) => v.ToString(CultureInfo.InvariantCulture);
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("{");
+            sb.Append($"\"encounter_id\":\"{encounterId}\",");
+            sb.Append("\"next_encounter_restrictions\":{");
+                
+                // Objeto TURRET
+                sb.Append("\"turret\":{");
+                sb.Append($"\"count\":{{\"min_limit\":{I(next.MinBosses)},\"max_limit\":{I(next.MaxBosses)},\"previous_value\":{I(next.DefaultBosses)}}},");
+                sb.Append($"\"health\":{{\"min_limit\":{F(next.MinTurretHealth)},\"max_limit\":{F(next.MaxTurretHealth)},\"previous_value\":{F(previousTurretHp)}}},");
+                sb.Append($"\"hitbox\":{{\"min_limit\":{F(next.MinTurretHitbox)},\"max_limit\":{F(next.MaxTurretHitbox)},\"previous_value\":{F(previousTurretHitbox)}}}");
+                sb.Append("},"); // Fecha turret
+
+                // Objeto MOBILE
+                sb.Append("\"mobile\":{");
+                sb.Append($"\"count\":{{\"min_limit\":{I(next.MinMobiles)},\"max_limit\":{I(next.MaxMobiles)},\"previous_value\":{I(next.DefaultMobiles)}}},");
+                sb.Append($"\"health\":{{\"min_limit\":{F(next.MinMobileHealth)},\"max_limit\":{F(next.MaxMobileHealth)},\"previous_value\":{F(previousMobileHp)}}},");
+                sb.Append($"\"hitbox\":{{\"min_limit\":{F(next.MinMobileHitbox)},\"max_limit\":{F(next.MaxMobileHitbox)},\"previous_value\":{F(previousMobileHitbox)}}}");
+                sb.Append("}"); // Fecha mobile
+
+            sb.Append("}"); // Fecha next_encounter_restrictions
+
+            // Opcional: rollbackOnSuccess
+            if (rollbackOnSuccess.HasValue)
             {
-                return v.ToString(CultureInfo.InvariantCulture);
+                string boolStr = rollbackOnSuccess.Value ? "true" : "false";
+                sb.Append($",\"options\":{{\"rollback_on_success\":{boolStr}}}");
             }
 
-            string json = "{" +
-                          $"\"encounter_id\":\"{encounterId}\"," +
-                          "\"next_encounter_restrictions\":{" +
-                          $"\"default\":{next.DefaultMobiles}," +
-                          $"\"min_enemies\":{next.MinMobiles}," +
-                          $"\"max_enemies\":{next.MaxMobiles}," +
-                          $"\"default_bosses\":{next.DefaultBosses}," +
-                          $"\"min_bosses\":{next.MinBosses}," +
-                          $"\"max_bosses\":{next.MaxBosses}," +
-                          $"\"previous_mobile_hp\":{F(previousMobileHp)}," +
-                          $"\"min_mobile_hp\":{F(next.MinMobileHealth)}," +
-                          $"\"max_mobile_hp\":{F(next.MaxMobileHealth)}," +
-                          $"\"previous_mobile_hitbox\":{F(previousMobileHitbox)}," +
-                          $"\"min_mobile_hitbox\":{F(next.MinMobileHitbox)}," +
-                          $"\"max_mobile_hitbox\":{F(next.MaxMobileHitbox)}," +
-                          $"\"previous_turret_hp\":{F(previousTurretHp)}," +
-                          $"\"min_turret_hp\":{F(next.MinTurretHealth)}," +
-                          $"\"max_turret_hp\":{F(next.MaxTurretHealth)}," +
-                          $"\"previous_turret_hitbox\":{F(previousTurretHitbox)}," +
-                          $"\"min_turret_hitbox\":{F(next.MinTurretHitbox)}," +
-                          $"\"max_turret_hitbox\":{F(next.MaxTurretHitbox)}" +
-                          "}";
+            sb.Append("}"); // Fecha o JSON principal
 
-            if (rollbackOnSuccess.HasValue)
-                json += $",\"options\":{{\"rollback_on_success\":{(rollbackOnSuccess.Value ? "true" : "false")}}}";
-
-            json += "}";
-            return json;
+            return sb.ToString();
         }
 
         private static void ProcessResponse(string encounterId, string json)
