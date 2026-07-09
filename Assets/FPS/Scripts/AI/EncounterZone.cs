@@ -33,43 +33,10 @@ namespace Unity.FPS.Gameplay
         [SerializeField] [Tooltip("Boss-only spawn points (01-005: 1 point, 01-010: 2 points).")]
         private List<Transform> m_bossSpawnPoints = new();
 
-        [Header("Restrições DDA — Mobiles (standard)")] [SerializeField]
-        private int m_defaultMobiles = 3;
+        [Header("Restrições DDA")]
+        [SerializeField] private DDAEncounterRestrictionsSO m_restrictions;
 
-        [SerializeField] private int m_minMobiles = 1;
-        [SerializeField] private int m_maxMobiles = 10;
-
-        [Header("Restrições DDA — Bosses (turret)")] [SerializeField]
-        private int m_defaultBosses = 0;
-
-        [SerializeField] private int m_minBosses = 0;
-        [SerializeField] private int m_maxBosses = 0;
-
-        [Header("Restrições DDA — Vida/Hitbox Mobile")] [SerializeField]
-        private float m_defaultMobileHealth = 100f;
-
-        [SerializeField] private float m_minMobileHealth = 50f;
-        [SerializeField] private float m_maxMobileHealth = 300f;
-        [SerializeField] private float m_defaultMobileHitbox = 1f;
-        [SerializeField] private float m_minMobileHitbox = 0.5f;
-        [SerializeField] private float m_maxMobileHitbox = 2f;
-
-        [Header("Restrições DDA — Vida/Hitbox Turret")] [SerializeField]
-        private float m_defaultTurretHealth = 150f;
-
-        [SerializeField] private float m_minTurretHealth = 80f;
-        [SerializeField] private float m_maxTurretHealth = 400f;
-        [SerializeField] private float m_defaultTurretHitbox = 1f;
-        [SerializeField] private float m_minTurretHitbox = 0.5f;
-        [SerializeField] private float m_maxTurretHitbox = 2f;
-
-        public DDAEncounterRestrictions Restrictions => new(
-            m_defaultMobiles, m_minMobiles, m_maxMobiles,
-            m_defaultBosses, m_minBosses, m_maxBosses,
-            m_defaultMobileHealth, m_minMobileHealth, m_maxMobileHealth,
-            m_defaultMobileHitbox, m_minMobileHitbox, m_maxMobileHitbox,
-            m_defaultTurretHealth, m_minTurretHealth, m_maxTurretHealth,
-            m_defaultTurretHitbox, m_minTurretHitbox, m_maxTurretHitbox);
+        public DDAEncounterRestrictionsSO Restrictions => m_restrictions;
 
         private const int k_layerMask = 1 << EncounterZoneCollider.Layer;
         private ObjectiveKillEnemies m_currentObjective;

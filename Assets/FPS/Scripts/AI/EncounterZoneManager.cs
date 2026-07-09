@@ -19,7 +19,10 @@ namespace Unity.FPS.Gameplay
 
         [Header("Fallback (sem dados da DDA)")]
         [Tooltip(
-            "Número de inimigos usado quando ainda não há nenhuma previsão da DDA disponível (primeira vez a jogar, ou falha da API). Vida/hitbox usam sempre o valor base do prefab nestes casos.")]
+            "Usado APENAS no primeiro encontro do jogo, quando ainda não existe nenhuma restrição previamente utilizada pela DDA (DDAModifierState.LastUsedRestrictions). Em qualquer falha posterior (sem próxima zona, API indisponível, etc.), são reutilizados os últimos valores efetivamente usados.")]
+        [SerializeField]
+        private DDAEncounterRestrictionsSO m_firstEncounterDefaults;
+        
         [SerializeField]
         private bool m_awaitingSpawn;
 
@@ -58,8 +61,8 @@ namespace Unity.FPS.Gameplay
                 Debug.Log($"[EncounterZoneManager] Retry detectado para '{pendingRetryId}'.");
 
                 EncounterZone nextZone = GetNextEncounterZone();
-                DDAEncounterRestrictions nextRestrictions =
-                    nextZone != null ? nextZone.Restrictions : DDAEncounterRestrictions.GlobalFallback;
+                DDAEncounterRestrictionsSO nextRestrictions =
+                    nextZone != null ? nextZone.Restrictions : GetFallbackRestrictions();
 
                 m_awaitingSpawn = true;
                 m_startupRequestIssued = true;
@@ -72,20 +75,19 @@ namespace Unity.FPS.Gameplay
             if (!string.IsNullOrEmpty(pendingLevelEncounterId))
             {
                 PlayerPrefs.DeleteKey(DDAConfig.K_PENDING_LEVEL_TRANSITION_ENCOUNTER_ID);
-                PlayerPrefs.DeleteKey(DDAConfig.K_PENDING_LEVEL_TRANSITION_RESTRICTIONS);
                 PlayerPrefs.Save();
 
 
                 EncounterZone nextZone = GetNextEncounterZone();
-                DDAEncounterRestrictions nextRestrictions =
-                    nextZone != null ? nextZone.Restrictions : DDAEncounterRestrictions.GlobalFallback;
+                DDAEncounterRestrictionsSO nextRestrictionsSo =
+                    nextZone != null ? nextZone.Restrictions : GetFallbackRestrictions();
 
                 Debug.Log(
                     $"[EncounterZoneManager] Transição de nível detectada. A pedir previsão à DDA com base em '{pendingLevelEncounterId}'.");
 
                 m_awaitingSpawn = true;
                 m_startupRequestIssued = true;
-                DDAController.RequestPrediction(pendingLevelEncounterId, nextRestrictions);
+                DDAController.RequestPrediction(pendingLevelEncounterId, nextRestrictionsSo);
             }
         }
 
@@ -109,30 +111,27 @@ namespace Unity.FPS.Gameplay
             DDAEventManager.RemoveListener<DDAPredictionFailed>(OnPredictionFailed);
             DDAEventManager.RemoveListener<EncounterEnemiesSpawnedEvent>(OnZoneEnemiesSpawned);
         }
-
-        /// <summary>
-        /// Retorna a próxima zona de encontro que ainda não foi iniciada.
-        /// </summary>
+        
         public EncounterZone GetNextEncounterZone()
         {
             return m_encounterZones.FirstOrDefault(zone => zone != null && !zone.HasStarted);
         }
+        
+        private DDAEncounterRestrictionsSO GetFallbackRestrictions()
+        {
+            return DDAModifierState.LastUsedRestrictions != null
+                ? DDAModifierState.LastUsedRestrictions
+                : m_firstEncounterDefaults;
+        }
 
         private void OnEncounterCompleted(EncounterCompleted evt)
         {
-            EncounterZone completedZone = m_encounterZones.FirstOrDefault(z => z != null && z.Id == evt.EncounterId);
-            DDAEncounterRestrictions previousRestrictions = completedZone != null
-                ? completedZone.Restrictions
-                : DDAEncounterRestrictions.GlobalFallback;
-
             if (IsLastEncounter(evt.EncounterId))
             {
                 Debug.Log(
                     $"[EncounterZoneManager] Último encontro do nível ('{evt.EncounterId}'). A previsão será pedida na próxima cena.");
 
                 PlayerPrefs.SetString(DDAConfig.K_PENDING_LEVEL_TRANSITION_ENCOUNTER_ID, evt.EncounterId);
-                PlayerPrefs.SetString(DDAConfig.K_PENDING_LEVEL_TRANSITION_RESTRICTIONS,
-                    JsonUtility.ToJson(previousRestrictions));
                 PlayerPrefs.Save();
 
                 m_awaitingSpawn = false;
@@ -142,8 +141,8 @@ namespace Unity.FPS.Gameplay
             m_awaitingSpawn = true;
 
             EncounterZone nextZone = GetNextEncounterZone();
-            DDAEncounterRestrictions nextRestrictions =
-                nextZone != null ? nextZone.Restrictions : DDAEncounterRestrictions.GlobalFallback;
+            DDAEncounterRestrictionsSO nextRestrictions =
+                nextZone != null ? nextZone.Restrictions : GetFallbackRestrictions();
 
             DDAController.RequestPrediction(evt.EncounterId, nextRestrictions);
         }

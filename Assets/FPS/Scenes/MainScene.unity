@@ -2877,24 +2877,7 @@ MonoBehaviour:
   - {fileID: 1287815393}
   - {fileID: 1932999886}
   m_bossSpawnPoints: []
-  m_defaultMobiles: 3
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 0
-  m_minBosses: 0
-  m_maxBosses: 0
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: 327b53c1cd45f9f4a8ae8e92af8ed35d, type: 2}
 --- !u!1 &256381593
 GameObject:
   m_ObjectHideFlags: 0
@@ -3497,24 +3480,7 @@ MonoBehaviour:
   - {fileID: 1769736115}
   - {fileID: 239271359}
   m_bossSpawnPoints: []
-  m_defaultMobiles: 3
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 0
-  m_minBosses: 0
-  m_maxBosses: 0
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: 327b53c1cd45f9f4a8ae8e92af8ed35d, type: 2}
 --- !u!1001 &339225481
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5558,24 +5524,7 @@ MonoBehaviour:
   - {fileID: 1855274421}
   - {fileID: 972242553}
   m_bossSpawnPoints: []
-  m_defaultMobiles: 3
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 0
-  m_minBosses: 0
-  m_maxBosses: 0
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: 327b53c1cd45f9f4a8ae8e92af8ed35d, type: 2}
 --- !u!1 &542169977
 GameObject:
   m_ObjectHideFlags: 0
@@ -6985,24 +6934,7 @@ MonoBehaviour:
   - {fileID: 2112129436}
   - {fileID: 1813913925}
   m_bossSpawnPoints: []
-  m_defaultMobiles: 3
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 0
-  m_minBosses: 0
-  m_maxBosses: 0
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: 327b53c1cd45f9f4a8ae8e92af8ed35d, type: 2}
 --- !u!4 &759076696 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5382970231489497029, guid: 4612dab1e987c984e8995eb7732fd0d0,
@@ -12542,24 +12474,7 @@ MonoBehaviour:
   - {fileID: 1715053150}
   - {fileID: 1923862420}
   m_bossSpawnPoints: []
-  m_defaultMobiles: 1
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 0
-  m_minBosses: 0
-  m_maxBosses: 0
-  m_defaultMobileHealth: 1
-  m_minMobileHealth: 1
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 0.1
-  m_minMobileHitbox: 0.1
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 1
-  m_minTurretHealth: 1
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 0.1
-  m_minTurretHitbox: 0.1
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: 327b53c1cd45f9f4a8ae8e92af8ed35d, type: 2}
 --- !u!1 &1256589453
 GameObject:
   m_ObjectHideFlags: 0
@@ -16638,24 +16553,7 @@ MonoBehaviour:
   m_bossSpawnPoints:
   - {fileID: 2066047405}
   - {fileID: 1249543434}
-  m_defaultMobiles: 3
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 2
-  m_minBosses: 0
-  m_maxBosses: 2
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: d33d861ec5415234582fd5c10de3d1d9, type: 2}
 --- !u!1001 &1532467378
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17191,24 +17089,7 @@ MonoBehaviour:
   - {fileID: 2084637625}
   m_bossSpawnPoints:
   - {fileID: 1280562718}
-  m_defaultMobiles: 3
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 1
-  m_minBosses: 0
-  m_maxBosses: 1
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: ffd2d2be63e1dd9439b60c783c22a22c, type: 2}
 --- !u!1 &1602751553
 GameObject:
   m_ObjectHideFlags: 0
@@ -19984,24 +19865,7 @@ MonoBehaviour:
   - {fileID: 1554246520}
   - {fileID: 2109489703}
   m_bossSpawnPoints: []
-  m_defaultMobiles: 3
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 0
-  m_minBosses: 0
-  m_maxBosses: 0
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: 327b53c1cd45f9f4a8ae8e92af8ed35d, type: 2}
 --- !u!1 &1791973617
 GameObject:
   m_ObjectHideFlags: 0
@@ -21301,24 +21165,7 @@ MonoBehaviour:
   - {fileID: 17190039}
   - {fileID: 845788079}
   m_bossSpawnPoints: []
-  m_defaultMobiles: 3
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 0
-  m_minBosses: 0
-  m_maxBosses: 0
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: 327b53c1cd45f9f4a8ae8e92af8ed35d, type: 2}
 --- !u!4 &1835006387 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5158517510919717932, guid: 659fddafec3ba284aaa98efbc1d55aed,
@@ -23206,6 +23053,7 @@ MonoBehaviour:
   - {fileID: 1834626432}
   - {fileID: 252262049}
   - {fileID: 1524222419}
+  m_firstEncounterDefaults: {fileID: 0}
   m_awaitingSpawn: 1
 --- !u!4 &2103240531
 Transform:
@@ -23673,24 +23521,7 @@ MonoBehaviour:
   - {fileID: 2120114249}
   - {fileID: 287619655}
   m_bossSpawnPoints: []
-  m_defaultMobiles: 3
-  m_minMobiles: 1
-  m_maxMobiles: 10
-  m_defaultBosses: 0
-  m_minBosses: 0
-  m_maxBosses: 0
-  m_defaultMobileHealth: 100
-  m_minMobileHealth: 50
-  m_maxMobileHealth: 300
-  m_defaultMobileHitbox: 1
-  m_minMobileHitbox: 0.5
-  m_maxMobileHitbox: 2
-  m_defaultTurretHealth: 150
-  m_minTurretHealth: 80
-  m_maxTurretHealth: 400
-  m_defaultTurretHitbox: 1
-  m_minTurretHitbox: 0.5
-  m_maxTurretHitbox: 2
+  m_restrictions: {fileID: 11400000, guid: 327b53c1cd45f9f4a8ae8e92af8ed35d, type: 2}
 --- !u!1001 &2117457695
 PrefabInstance:
   m_ObjectHideFlags: 0

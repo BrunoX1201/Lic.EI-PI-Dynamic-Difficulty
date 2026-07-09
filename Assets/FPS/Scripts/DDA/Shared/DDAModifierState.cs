@@ -14,6 +14,13 @@ namespace Unity.FPS.DDA
         public static MobileHitboxDDA TurretHitboxModifier { get; } = new(1f);
 
         public static bool HasReceivedOutput { get; private set; }
+        public static DDAEncounterRestrictionsSO LastUsedRestrictions { get; private set; }
+        
+        public static void SetLastUsedRestrictions(DDAEncounterRestrictionsSO restrictions)
+        {
+            if (restrictions != null)
+                LastUsedRestrictions = restrictions;
+        }
 
         public static void Initialize()
         {

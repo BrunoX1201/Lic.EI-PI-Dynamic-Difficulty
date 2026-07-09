@@ -8,13 +8,13 @@ namespace Unity.FPS.DDA
     {
         private static readonly IApiClient s_ApiClient = new ApiClient();
 
-        public static void RequestPrediction(string encounterId, DDAEncounterRestrictions next,
+        public static void RequestPrediction(string encounterId, DDAEncounterRestrictionsSO next,
             bool? rollbackOnSuccess = null)
         {
             _ = SendRequest(encounterId, next, rollbackOnSuccess);
         }
 
-        private static async Task SendRequest(string encounterId, DDAEncounterRestrictions next,
+        private static async Task SendRequest(string encounterId, DDAEncounterRestrictionsSO next,
             bool? rollbackOnSuccess)
         {
             IProcessEncounterRequest request = BuildRequest(encounterId, next, rollbackOnSuccess);
@@ -45,9 +45,10 @@ namespace Unity.FPS.DDA
             ));
         }
 
-        private static ProcessEncounterRequest BuildRequest(string encounterId, DDAEncounterRestrictions next,
+        private static ProcessEncounterRequest BuildRequest(string encounterId, DDAEncounterRestrictionsSO next,
             bool? rollbackOnSuccess)
         {
+            DDAModifierState.SetLastUsedRestrictions(next);
             ProcessEncounterRequest request = new()
             {
                 EncounterId = encounterId,
