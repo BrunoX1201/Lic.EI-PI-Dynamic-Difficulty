@@ -7,12 +7,12 @@ namespace Unity.FPS.EditorExt
 {
     public class DDAModifierDebugWindow : EditorWindow
     {
-        private int m_simTotalMobiles = 3;
+        private int m_simTotalMobiles = 1;
         private int m_simTotalBosses = 0;
-        private float m_simMobileHealth = 100f;
-        private float m_simMobileHitbox = 1f;
-        private float m_simTurretHealth = 150f;
-        private float m_simTurretHitbox = 1f;
+        private float m_simMobileHealth = 10f;
+        private float m_simMobileHitbox = 0.05f;
+        private float m_simTurretHealth = 0f;
+        private float m_simTurretHitbox = 0f;
         private string m_simAgent = "K_means";
         private string m_simAction = "None";
 
@@ -78,7 +78,7 @@ namespace Unity.FPS.EditorExt
                     m_simAgent, m_simAction));
 
                 if (EncounterZoneManager.Instance != null)
-                    EncounterZoneManager.Instance.ForceSpawnEncounter(m_simTotalMobiles, m_simTotalBosses);
+                    EncounterZoneManager.Instance.ForceSpawnEncounter(DDAModifierState.TotalMobilesModifier.Value, DDAModifierState.TotalTurretsModifier.Value);
                 else
                     Debug.LogWarning(
                         "[DDAModifierDebugWindow] EncounterZoneManager.Instance é null — está em Play Mode?");
