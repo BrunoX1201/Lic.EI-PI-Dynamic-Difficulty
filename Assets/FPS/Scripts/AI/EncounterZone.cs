@@ -33,8 +33,8 @@ namespace Unity.FPS.Gameplay
         [SerializeField] [Tooltip("Boss-only spawn points (01-005: 1 point, 01-010: 2 points).")]
         private List<Transform> m_bossSpawnPoints = new();
 
-        [Header("Restrições DDA")]
-        [SerializeField] private DDAEncounterRestrictionsSO m_restrictions;
+        [Header("Restrições DDA")] [SerializeField]
+        private DDAEncounterRestrictionsSO m_restrictions;
 
         public DDAEncounterRestrictionsSO Restrictions => m_restrictions;
 

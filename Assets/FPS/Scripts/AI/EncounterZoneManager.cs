@@ -17,13 +17,20 @@ namespace Unity.FPS.Gameplay
         [Header("Zonas de Encontro")] [SerializeField]
         private List<EncounterZone> m_encounterZones = new();
 
+        [Header("Porta de Entrada (Encounter 1)")]
+        [Tooltip(
+            "ID do obstáculo/porta a abrir assim que o primeiro encontro desta cena ficar pronto (spawnado). Deixa vazio se esta cena não tiver porta de entrada.")]
+        [SerializeField]
+        private string m_entryObstacleId;
+
+        private bool m_entryDoorOpened;
+
         [Header("Fallback (sem dados da DDA)")]
         [Tooltip(
             "Usado APENAS no primeiro encontro do jogo, quando ainda não existe nenhuma restrição previamente utilizada pela DDA (DDAModifierState.LastUsedRestrictions). Em qualquer falha posterior (sem próxima zona, API indisponível, etc.), são reutilizados os últimos valores efetivamente usados.")]
         [SerializeField]
         private DDAEncounterRestrictionsSO m_firstEncounterDefaults;
-        
-        [SerializeField]
+
         private bool m_awaitingSpawn;
 
         private bool m_startupRequestIssued;
@@ -111,12 +118,12 @@ namespace Unity.FPS.Gameplay
             DDAEventManager.RemoveListener<DDAPredictionFailed>(OnPredictionFailed);
             DDAEventManager.RemoveListener<EncounterEnemiesSpawnedEvent>(OnZoneEnemiesSpawned);
         }
-        
+
         public EncounterZone GetNextEncounterZone()
         {
             return m_encounterZones.FirstOrDefault(zone => zone != null && !zone.HasStarted);
         }
-        
+
         private DDAEncounterRestrictionsSO GetFallbackRestrictions()
         {
             return DDAModifierState.LastUsedRestrictions != null
@@ -211,6 +218,8 @@ namespace Unity.FPS.Gameplay
 
         private void OnZoneEnemiesSpawned(EncounterEnemiesSpawnedEvent evt)
         {
+            TryOpenEntryDoor(evt.EncounterId);
+
             if (m_pendingDoorObstacleId == null) return;
             if (evt.EncounterId != m_pendingDoorNextZoneId) return;
 
@@ -227,6 +236,19 @@ namespace Unity.FPS.Gameplay
             ObstacleUnblockEvent evt = Events.ObstacleUnblockEvent;
             evt.ObstacleId = obstacleId;
             EventManager.Broadcast(evt);
+        }
+
+        private void TryOpenEntryDoor(string readyEncounterId)
+        {
+            if (m_entryDoorOpened) return;
+            if (string.IsNullOrEmpty(m_entryObstacleId)) return;
+            if (m_encounterZones.Count == 0 || m_encounterZones[0] == null) return;
+            if (m_encounterZones[0].Id != readyEncounterId) return;
+
+            Debug.Log(
+                $"[EncounterZoneManager] '{readyEncounterId}' (primeiro encontro) pronto — abrindo porta de entrada '{m_entryObstacleId}'.");
+            OpenDoor(m_entryObstacleId);
+            m_entryDoorOpened = true;
         }
 
         private void OnPredictionFailed(DDAPredictionFailed evt)

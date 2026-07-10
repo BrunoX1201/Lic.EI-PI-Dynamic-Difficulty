@@ -15,7 +15,7 @@ namespace Unity.FPS.DDA
 
         public static bool HasReceivedOutput { get; private set; }
         public static DDAEncounterRestrictionsSO LastUsedRestrictions { get; private set; }
-        
+
         public static void SetLastUsedRestrictions(DDAEncounterRestrictionsSO restrictions)
         {
             if (restrictions != null)

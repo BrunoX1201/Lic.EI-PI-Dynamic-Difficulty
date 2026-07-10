@@ -19,7 +19,7 @@ namespace Unity.FPS.Gameplay
 
         public bool IsOpened { get; private set; }
 
-        private void Start()
+        private void Awake()
         {
             m_door.OnUnblocked += Open;
         }
