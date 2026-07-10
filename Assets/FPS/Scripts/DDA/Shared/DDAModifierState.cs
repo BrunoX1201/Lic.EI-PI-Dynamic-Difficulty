@@ -10,8 +10,8 @@ namespace Unity.FPS.DDA
         public static MobileHealth MobileHealthModifier { get; } = new(1f);
         public static MobileHitboxDDA MobileHitboxModifier { get; } = new(1f);
 
-        public static MobileHealth TurretHealthModifier { get; } = new(1f);
-        public static MobileHitboxDDA TurretHitboxModifier { get; } = new(1f);
+        public static TurretHealthDDA TurretHealthModifier { get; } = new(1f);
+        public static TurretHitboxDDA TurretHitboxModifier { get; } = new(1f);
 
         public static bool HasReceivedOutput { get; private set; }
         public static DDAEncounterRestrictionsSO LastUsedRestrictions { get; private set; }
