@@ -35,5 +35,10 @@ namespace Unity.FPS.AI
 
             Enemies.Remove(enemyKilled);
         }
+        
+        public void UnregisterEnemySilently(EnemyController enemy)
+        {
+            Enemies.Remove(enemy);
+        }
     }
 }

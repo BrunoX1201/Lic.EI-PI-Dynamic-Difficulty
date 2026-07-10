@@ -18,10 +18,15 @@ namespace Unity.FPS.Game
         public float DelayVisible;
 
         public bool IsCompleted { get; private set; }
-        public bool IsBlocking() => !(IsOptional || IsCompleted);
+
+        public bool IsBlocking()
+        {
+            return !(IsOptional || IsCompleted);
+        }
 
         public static event Action<Objective> OnObjectiveCreated;
         public static event Action<Objective> OnObjectiveCompleted;
+        public static event Action<Objective> OnObjectiveDestroyed;
 
         protected virtual void Start()
         {
@@ -57,6 +62,15 @@ namespace Unity.FPS.Game
             EventManager.Broadcast(evt);
 
             OnObjectiveCompleted?.Invoke(this);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            ObjectiveRemovedEvent evt = Events.ObjectiveRemovedEvent;
+            evt.Objective = this;
+            EventManager.Broadcast(evt);
+
+            OnObjectiveDestroyed?.Invoke(this);
         }
     }
 }

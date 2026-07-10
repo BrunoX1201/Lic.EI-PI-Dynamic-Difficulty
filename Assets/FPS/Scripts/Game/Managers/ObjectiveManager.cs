@@ -11,9 +11,11 @@ namespace Unity.FPS.Game
         void Awake()
         {
             Objective.OnObjectiveCreated += RegisterObjective;
+            Objective.OnObjectiveDestroyed += UnregisterObjective;
         }
 
         void RegisterObjective(Objective objective) => m_Objectives.Add(objective);
+        void UnregisterObjective(Objective objective) => m_Objectives.Remove(objective);
 
         void Update()
         {
@@ -37,6 +39,7 @@ namespace Unity.FPS.Game
         void OnDestroy()
         {
             Objective.OnObjectiveCreated -= RegisterObjective;
+            Objective.OnObjectiveDestroyed -= UnregisterObjective;
         }
     }
 }

@@ -39,7 +39,9 @@ namespace Unity.FPS.Gameplay
         public DDAEncounterRestrictionsSO Restrictions => m_restrictions;
 
         private const int k_layerMask = 1 << EncounterZoneCollider.Layer;
+        
         private ObjectiveKillEnemies m_currentObjective;
+        private EnemyManager m_enemyManager;
 
         public bool HasStarted { get; private set; }
         public int TotalEnemies { get; private set; }
@@ -99,6 +101,7 @@ namespace Unity.FPS.Gameplay
             }
 
             m_actorsManager = FindAnyObjectByType<ActorsManager>();
+            m_enemyManager = FindAnyObjectByType<EnemyManager>();
 
             EventManager.AddListener<EnemyKillEvent>(OnEnemyKilled);
             EventManager.AddListener<PlayerDeathEvent>(OnPlayerDeath);
@@ -188,6 +191,9 @@ namespace Unity.FPS.Gameplay
             PlayerPrefs.Save();
 
             TrackEncounterEnded(EncounterEndReason.PlayerDied);
+
+            _ = TelemetryService
+                .FlushAsync(); //TODO: verificar vericidade, fire-and-forget — há tempo de sobra até o jogador clicar em retry
         }
 
         private IEnumerator TrackEncounterEndedByCompletion()
@@ -208,6 +214,14 @@ namespace Unity.FPS.Gameplay
         {
             foreach (GameObject enemy in m_enemies)
             {
+                if (enemy == null) continue;
+
+                EnemyController enemyController = enemy.GetComponent<EnemyController>();
+                if (enemyController != null && m_enemyManager != null)
+                {
+                    m_enemyManager.UnregisterEnemySilently(enemyController);
+                }
+                
                 Destroy(enemy);
             }
 
@@ -258,7 +272,7 @@ namespace Unity.FPS.Gameplay
             m_currentObjective.Description = "Defeat all the enemies in this encounter";
             m_currentObjective.MustKillAllEnemies = true;
             m_currentObjective.IsOptional = false;
-            m_currentObjective.DelayVisible = 6;
+            m_currentObjective.DelayVisible = 1;
 
             Debug.Log(
                 $"[EncounterZone] {Id} — DDA spawned {TotalEnemies} enemies ({bossesToSpawn} bosses, {totalMobiles} standard).");

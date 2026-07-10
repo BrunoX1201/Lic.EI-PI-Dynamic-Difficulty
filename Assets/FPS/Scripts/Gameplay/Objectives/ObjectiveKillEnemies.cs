@@ -74,6 +74,7 @@ namespace Unity.FPS.Gameplay
         void OnDestroy()
         {
             EventManager.RemoveListener<EnemyKillEvent>(OnEnemyKilled);
+            base.OnDestroy();
         }
     }
 }

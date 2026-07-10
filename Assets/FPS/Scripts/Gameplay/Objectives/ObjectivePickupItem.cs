@@ -33,6 +33,7 @@ namespace Unity.FPS.Gameplay
         void OnDestroy()
         {
             EventManager.RemoveListener<PickupEvent>(OnPickupEvent);
+            base.OnDestroy();
         }
     }
 }
