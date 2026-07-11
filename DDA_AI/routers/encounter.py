@@ -5,9 +5,15 @@ from fastapi import APIRouter, HTTPException
 
 from dependencies import session_dependency, dda_pipeline_dependency
 from requests import ProcessEncounterRequest
-from utils import numpy_to_native
+from utils import convert_process_encounter_request_restrictions, numpy_to_native
 
 __DATA_PREPARATION_OUTPUT_FILE = "data_preparation"
+__DECISIONS_OUTPUT_FILE = "decisions"
+__RESPONSE_ACTION_PARAMS_ROUNDINGS = {
+    "count": 0,
+    "health": 1,
+    "hitbox": 2,
+}
 
 router = APIRouter()
 
@@ -15,19 +21,17 @@ router = APIRouter()
 @router.post("/process_encounter")
 def process_encounter(request: ProcessEncounterRequest, session_service: session_dependency,
                       dda_pipeline_service: dda_pipeline_dependency):
-    if not session_service.is_configured:
-        msg = "The session has not yet been configured."
-        print(f"[ERROR] {msg}")
-        raise HTTPException(status_code=409, detail=msg)
-
     encounter_id = request.encounter_id
 
     try:
         # 1. Executa a transformação com o ID enviado pelo Unity
-        output_data = dda_pipeline_service.data_preparation.execute(encounter_id, request.options.rollback_on_success)
+        data_prep_output = dda_pipeline_service.data_preparation.execute(encounter_id,
+                                                                         request.options.rollback_on_success)
+        encounter_start = dda_pipeline_service.data_preparation.encounter_start
+        encounter_end = dda_pipeline_service.data_preparation.encounter_end
 
         # Se a lista voltar vazia, significa que o ID não foi encontrado nos CSVs
-        if not output_data:
+        if not data_prep_output:
             raise HTTPException(
                 status_code=404,
                 detail=f"Encounter ID '{encounter_id}' não foi encontrado ou falhou nos limites."
@@ -38,13 +42,52 @@ def process_encounter(request: ProcessEncounterRequest, session_service: session
         dda_pipeline_service.data_preparation.save_output(session_service.output_path, __DATA_PREPARATION_OUTPUT_FILE,
                                                           {"processed_at": math.floor(executed_time.timestamp())})
 
-        # 3. Transforma a lista de tuplos [("nome", valor), ...] num dicionário para o JSON
-        metrics_dict = {attr_name: numpy_to_native(attr_value) for attr_name, attr_value in output_data}
+        full_observation = {key: val for key, val in data_prep_output}
+        converted_restrictions = convert_process_encounter_request_restrictions(request.next_encounter_restrictions)
+        full_observation.update({"restrictions": converted_restrictions})
+
+        decision_maker_output = dda_pipeline_service.decision_maker.decide(full_observation)
+        executed_time = datetime.datetime.now(datetime.timezone.utc)
+        dda_pipeline_service.decision_maker.save_output(session_service.output_path, __DECISIONS_OUTPUT_FILE,
+                                                        {
+                                                            "processed_at": math.floor(executed_time.timestamp()),
+                                                            "session_id": encounter_start["session_id"],
+                                                            "encounter_id": encounter_id,
+                                                            "encounter_start_timestamp": encounter_start["timestamp"],
+                                                            "encounter_end_timestamp": encounter_end["timestamp"],
+                                                        })
+
+        action_name = decision_maker_output.pop(0)[1]
+        params = {"turret": {"count": 0.0, "health": 0.0, "hitbox": 0.0},
+                  "mobile": {"count": 0.0, "health": 0.0, "hitbox": 0.0}}
+
+        i = 0
+        for key in params.keys():
+            for sub_key in params[key].keys():
+                curr_val = decision_maker_output[i][1]
+                next_val = decision_maker_output[i + 1][1]
+
+                if curr_val != 0:
+                    params[key][sub_key] = curr_val
+                elif next_val != 0:
+                    params[key][sub_key] = -next_val
+                else:
+                    params[key][sub_key] = 0.0
+
+                i += 2
+
+        for key in params.keys():
+            for sub_key, value in params[key].items():
+                native_val = numpy_to_native(value)
+                params[key][sub_key] = native_val if not isinstance(native_val, float) else round(native_val,
+                                                                                                  __RESPONSE_ACTION_PARAMS_ROUNDINGS[
+                                                                                                      sub_key])
 
         return {
             "status": "success",
-            "encounter_id": encounter_id,
-            "metrics": metrics_dict
+            "agent": dda_pipeline_service.decision_maker.selected_model.name,
+            "action": action_name,
+            "action_params": params,
         }
 
     except Exception as e:
