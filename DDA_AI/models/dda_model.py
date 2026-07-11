@@ -5,6 +5,8 @@ import numpy as np
 import numpy.typing as npt
 from pandas import DataFrame
 
+from shared import ObservationRestriction
+
 
 class DDAModel(ABC):
     @property
@@ -18,7 +20,8 @@ class DDAModel(ABC):
         pass
 
     @abstractmethod
-    def act(self, observation: npt.NDArray[object]) -> npt.NDArray[np.float32]:
+    def act(self, observation: dict[str, str | int | float | ObservationRestriction]) -> tuple[
+        str, npt.NDArray[np.float32]]:
         pass
 
     @abstractmethod

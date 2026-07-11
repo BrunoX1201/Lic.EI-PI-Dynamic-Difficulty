@@ -1,5 +1,6 @@
 import pickle
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 from numpy import typing as npt
@@ -7,7 +8,8 @@ from pandas import DataFrame, Series
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 
-from utils import sort_clusters
+from shared import ObservationRestriction, Restriction, TurretNPCRestriction, MobileNPCRestriction
+from utils import sort_clusters, calculate_additive_offset
 from .player_experience import PlayerExperience
 from ..fittable_model import FittableModel
 
@@ -17,14 +19,18 @@ class KMeansModel(FittableModel):
 
     __k: int
     __clusters_to_player_experience_map: dict[int, PlayerExperience]
+    __encounter_classification: PlayerExperience
 
-    # [total_enemies, enemy_health, enemy_hitbox]
-    __player_experience_to_actions_map = {
-        PlayerExperience.BEGINNER: np.array([0.5, 0.75, 1.2], dtype=np.float32),
-        PlayerExperience.INTERMEDIATE: np.array([0.9, 1, 1], dtype=np.float32),
-        PlayerExperience.MEDIUM: np.array([1.2, 1.4, 0.85], dtype=np.float32),
-        PlayerExperience.ADVANCED: np.array([1.6, 1.8, 0.75], dtype=np.float32),
-        PlayerExperience.EXPERT: np.array([2, 2, 0.65], dtype=np.float32),
+    # Multipliers:
+    # - enemy_count: Higher values spawn more enemies (within each enemy type's restrictions).
+    # - enemy_health: Higher values increase all enemies' health (within each enemy type's restrictions).
+    # - enemy_hitbox: Higher values increase all enemies' hitbox size (within each enemy type's restrictions).
+    __player_experience_to_base_actions_map: dict[PlayerExperience, npt.NDArray[np.float32]] = {
+        PlayerExperience.BEGINNER: np.array([0.7, 0.7, 1.20], dtype=np.float32),
+        PlayerExperience.INTERMEDIATE: np.array([0.9, 0.9, 1.15], dtype=np.float32),
+        PlayerExperience.MEDIUM: np.array([1, 1, 1], dtype=np.float32),
+        PlayerExperience.ADVANCED: np.array([1.1, 1.2, 0.90], dtype=np.float32),
+        PlayerExperience.EXPERT: np.array([1.3, 1.4, 0.85], dtype=np.float32),
     }
 
     @property
@@ -35,10 +41,11 @@ class KMeansModel(FittableModel):
     def extension(self) -> str:
         return "pkl"
 
-    def __init__(self, model_path: str) -> None:
+    def __init__(self) -> None:
         self.__k = 5
         self.__algorithm = KMeans(n_clusters=self.__k)
         self.__clusters_to_player_experience_map = {}
+        self.__encounter_classification = None
 
     def fit(self, X: DataFrame) -> None:
         self.__algorithm.fit(X=X)
@@ -47,15 +54,25 @@ class KMeansModel(FittableModel):
     def fit_with_labels(self, X: DataFrame, Y: Series) -> None:
         pass
 
-    def act(self, observation: npt.NDArray[np.float64]) -> npt.NDArray[np.float32]:
+    def act(self, observation: dict[str, str | int | float | dict[str, ObservationRestriction]]) -> tuple[
+        str, npt.NDArray[
+            np.float32]]:
+        cp_observation = observation.copy()
+        restrictions = cp_observation.pop("restrictions", None)
+        if restrictions is None:
+            raise KeyError(f"{self.name}: observation is incomplete")
 
-        classification = self.__algorithm.predict([observation])[0]
-        experience = self.__clusters_to_player_experience_map[classification]
-        print(f"[ACTION] {self.name} classified {np.array2string(observation)} as {experience.name} ({classification})")
+        x = DataFrame([list(cp_observation.values())], columns=self.__algorithm.feature_names_in_)
+        classification = self.__algorithm.predict(x)[0]
+        self.__encounter_classification = self.__clusters_to_player_experience_map[classification]
+        print(
+            f"[ACTION] {self.name} classified {str(observation)} as {self.__encounter_classification.name} ({classification})")
 
-        action = self.__player_experience_to_actions_map[experience]
-        print(f"[ACTION] {self.name} decided action: {np.array2string(action)}")
-        return action
+        base_action = self.__player_experience_to_base_actions_map[self.__encounter_classification]
+        print(f"[ACTION] {self.name} decided base action: {np.array2string(base_action)}")
+
+        full_action = self.__transform_base_action(base_action, restrictions)
+        return self.__encounter_classification.name, full_action
 
     def load(self, model_path: Path) -> None:
         print(f"LOADING ({model_path})...", end="")
@@ -119,3 +136,77 @@ class KMeansModel(FittableModel):
 
         for i, cluster in enumerate(sorted_clusters):
             self.__clusters_to_player_experience_map[cluster] = PlayerExperience((len(PlayerExperience) - 1) - i)
+
+    def __transform_base_action(self, base_action: npt.NDArray[np.float32],
+                                restrictions: dict[str, ObservationRestriction]) -> npt.NDArray[np.float32]:
+        full_action = {}
+
+        turret_restriction = cast(TurretNPCRestriction, restrictions[Restriction.TURRET_NPC])
+        mobile_restriction = cast(MobileNPCRestriction, restrictions[Restriction.MOBILE_NPC])
+
+        turret_count_step = 0
+        turret_hp_step = 0.0
+        turret_hitbox_step = 0.0
+        mobile_count_step = 0
+        mobile_hp_step = 0.0
+        mobile_hitbox_step = 0.0
+        if self.__encounter_classification != PlayerExperience.MEDIUM:
+            turret_count_step = calculate_additive_offset(turret_restriction.min_count,
+                                                          turret_restriction.max_count,
+                                                          turret_restriction.default_count,
+                                                          turret_restriction.previous_count,
+                                                          base_action[0],
+                                                          0)
+            turret_hp_step = calculate_additive_offset(turret_restriction.min_hp,
+                                                       turret_restriction.max_hp,
+                                                       turret_restriction.default_hp,
+                                                       turret_restriction.previous_hp,
+                                                       base_action[1],
+                                                       1)
+            turret_hitbox_step = calculate_additive_offset(turret_restriction.min_hitbox,
+                                                           turret_restriction.max_hitbox,
+                                                           turret_restriction.default_hitbox,
+                                                           turret_restriction.previous_hitbox,
+                                                           base_action[2], 2)
+
+            mobile_count_step = calculate_additive_offset(mobile_restriction.min_count,
+                                                          mobile_restriction.max_count,
+                                                          mobile_restriction.default_count,
+                                                          mobile_restriction.previous_count,
+                                                          base_action[0],
+                                                          0)
+
+            mobile_hp_step = calculate_additive_offset(mobile_restriction.min_hp,
+                                                       mobile_restriction.max_hp,
+                                                       mobile_restriction.default_hp,
+                                                       mobile_restriction.previous_hp,
+                                                       base_action[1],
+                                                       1)
+
+            mobile_hitbox_step = calculate_additive_offset(mobile_restriction.min_hitbox,
+                                                           mobile_restriction.max_hitbox,
+                                                           mobile_restriction.default_hitbox,
+                                                           mobile_restriction.previous_hitbox,
+                                                           base_action[2],
+                                                           2)
+
+        steps = {
+            "turret_count_#_step": turret_count_step,
+            "turret_hp_#_step": turret_hp_step,
+            "turret_hitbox_#_step": turret_hitbox_step,
+            "mobile_count_#_step": mobile_count_step,
+            "mobile_hp_#_step": mobile_hp_step,
+            "mobile_hitbox_#_step": mobile_hitbox_step}
+
+        for key, val in steps.items():
+            is_float = isinstance(val, float)
+            empty_val = 0.0 if is_float else 0
+            if val > 0:
+                full_action[key.replace("#", "add")] = val
+                full_action[key.replace("#", "subtract")] = empty_val
+            else:
+                full_action[key.replace("#", "add")] = empty_val
+                full_action[key.replace("#", "subtract")] = abs(val)
+
+        print(f"[ACTION] Transformed based action: {str(full_action)}")
+        return np.array([val for val in full_action.values()], dtype=np.float32)
