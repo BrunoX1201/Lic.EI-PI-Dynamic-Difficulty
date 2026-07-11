@@ -1,5 +1,6 @@
 import datetime
 from pathlib import Path
+from typing import Any
 
 import numpy
 from pandas import DataFrame, read_csv, Series
@@ -28,7 +29,7 @@ class DataPreparationStep:
         Event.PLAYER_WENT_AIRBORNE: "player_went_airborne_event.csv",
         Event.TARGET_KILLED: "target_killed_event.csv",
     }
-    __event_full_paths: dict[Event, str]
+    __event_full_paths: dict[Event, Path]
     __loaded_events: dict[Event, DataFrame]
     __events_to_load: list[Event]
     __event_num_rows_read: dict[Event, dict[str, int]]
@@ -44,6 +45,20 @@ class DataPreparationStep:
     __aggregation_attributes: list[AggregationAttribute]
 
     __output: list[tuple[str, str | int | float]]
+
+    @property
+    def encounter_start(self) -> dict[str, Any]:
+        if self.__encounter_start is None:
+            return {}
+
+        return self.__encounter_start.iloc[0].to_dict()
+
+    @property
+    def encounter_end(self) -> dict[str, Any]:
+        if self.__encounter_end is None:
+            return {}
+
+        return self.__encounter_end.iloc[0].to_dict()
 
     def __init__(
             self,
