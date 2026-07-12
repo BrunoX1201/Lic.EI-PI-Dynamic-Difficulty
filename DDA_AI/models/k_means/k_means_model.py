@@ -19,7 +19,7 @@ class KMeansModel(FittableModel):
 
     __k: int
     __clusters_to_player_experience_map: dict[int, PlayerExperience]
-    __encounter_classification: PlayerExperience
+    __encounter_classification: PlayerExperience | None
 
     # Multipliers:
     # - enemy_count: Higher values spawn more enemies (within each enemy type's restrictions).
@@ -128,10 +128,11 @@ class KMeansModel(FittableModel):
     def __post_load_setup(self) -> None:
         self.__k = self.__algorithm.n_clusters
         self.__map_clusters_to_player_experience()
+        self.__encounter_classification = None
 
     def __map_clusters_to_player_experience(self) -> None:
         sorted_clusters = sort_clusters(self.__algorithm.cluster_centers_,
-                                        [0.5, 0.6, 1.0, 0.3, 0.8, 0.9, 0.4],
+                                        [1.0, 0.5, 0.6, 0.3, 0.8, 0.9, 0.4],
                                         ["min", "min", "max", "max", "min", "max", "min"])
 
         for i, cluster in enumerate(sorted_clusters):
