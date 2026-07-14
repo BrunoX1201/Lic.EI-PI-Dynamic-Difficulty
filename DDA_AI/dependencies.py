@@ -4,9 +4,12 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Request
 
 import aggregation_attributes as ag
+from config import config
 from models import KMeansModel, QLearningAgent
 from services import Session, DDAPipeline
 from steps import DataPreparationStep, DecisionStep
+
+__ENVIRONMENT = config["ENVIRONMENT"]
 
 # Session
 __session = Session()
@@ -28,7 +31,8 @@ session_dependency = Annotated[Session, Depends(get_session)]
 # DDA PIPELINE
 
 ## DATA PREPARATION STEP
-__EVENT_BASE_PATH = Path("./data/test/")
+__EVENT_BASE_PATH = Path(
+    config["TELEMETRY_EVENTS_TESTING_PATH"] if __ENVIRONMENT == "dev" else config["TELEMETRY_EVENTS_PATH"])
 __ATTRIBUTES = [
     ag.AverageTimeBetweenKillsAttribute(),
     ag.EncounterTotalTimeAttribute(),
@@ -41,13 +45,17 @@ __ATTRIBUTES = [
 __data_preparation_step = DataPreparationStep(__EVENT_BASE_PATH, __ATTRIBUTES)
 
 ## DECISION STEP
-__K_MEANS_MODEL_PATH = Path("./data/shared/k-means_1783292308.pkl")
-__k_model = KMeansModel()
-__k_model.load(__K_MEANS_MODEL_PATH)
+__AVAILABLE_MODELS = []
+
+if __ENVIRONMENT == "dev":
+    __K_MEANS_MODEL_PATH = Path(config["K_MEANS_MODEL_PATH"])
+    __k_model = KMeansModel()
+    __k_model.load(__K_MEANS_MODEL_PATH)
+    __AVAILABLE_MODELS.append(__k_model)
 
 __q_agent = QLearningAgent()
+__AVAILABLE_MODELS.append(__q_agent)
 
-__AVAILABLE_MODELS = [__k_model, __q_agent]
 __decision_step = DecisionStep(__AVAILABLE_MODELS, __q_agent)
 
 __dda_pipeline = DDAPipeline(__data_preparation_step, __decision_step)

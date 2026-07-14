@@ -3,12 +3,13 @@ import math
 
 from fastapi import APIRouter, HTTPException
 
+from config import config
 from dependencies import session_dependency, dda_pipeline_dependency
 from requests import ProcessEncounterRequest
 from utils import convert_process_encounter_request_restrictions, numpy_to_native
 
-__DATA_PREPARATION_OUTPUT_FILE = "data_preparation"
-__DECISIONS_OUTPUT_FILE = "decisions"
+__DATA_PREPARATION_OUTPUT_FILE = config["DATA_PREPARATION_STEP_OUTPUT_FILENAME"]
+__DECISIONS_OUTPUT_FILE = config["DECISION_MAKER_STEP_OUTPUT_FILENAME"]
 __RESPONSE_ACTION_PARAMS_ROUNDINGS = {
     "count": 0,
     "health": 1,

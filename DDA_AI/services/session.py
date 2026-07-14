@@ -1,8 +1,10 @@
 from pathlib import Path
 
+from config import config
+
 
 class Session:
-    __OUTPUT_BASE_PATH: Path = Path("./output/runtime")
+    __OUTPUT_BASE_PATH: Path = Path(config["OUTPUT_RUNTIME_PATH"])
     __output_path: Path
 
     __id: str | None
