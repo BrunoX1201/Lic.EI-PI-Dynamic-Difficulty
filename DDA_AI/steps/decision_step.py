@@ -29,7 +29,7 @@ class DecisionStep:
     def decide(self, observation: dict[str, str | int | float | ObservationRestriction]) -> list[
         tuple[str, str | int | float]]:
         self.__output = []
-        action_name, output = self.__selected_model.act(observation)
+        action_name, action_direction, output = self.__selected_model.act(observation)
 
         self.__output = [(key, val) for key, val in
                          zip(["turret_count_add_step", "turret_count_subtract_step", "turret_hp_add_step",
@@ -39,6 +39,7 @@ class DecisionStep:
                              output)]
         self.__output.insert(0, ("decision_maker", self.__selected_model.name))
         self.__output.insert(1, ("action_name", action_name))
+        self.__output.insert(2, ("action_direction", action_direction.name))
 
         return self.__output
 

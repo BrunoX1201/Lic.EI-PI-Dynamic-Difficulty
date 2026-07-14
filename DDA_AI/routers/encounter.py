@@ -48,10 +48,11 @@ def process_encounter(request: ProcessEncounterRequest, session_service: session
         full_observation.update({"restrictions": converted_restrictions})
 
         decision_maker_output = dda_pipeline_service.decision_maker.decide(full_observation)
-        # decision-maker and action name
-        extra_info = [decision_maker_output.pop(0), decision_maker_output.pop(0)]
+        # decision-maker, action name and action direction
+        extra_info = [decision_maker_output.pop(0), decision_maker_output.pop(0), decision_maker_output.pop(0)]
         instigator = extra_info[0][1]
         action_name = extra_info[1][1]
+        action_direction = extra_info[2][1]
 
         executed_time = datetime.datetime.now(datetime.timezone.utc)
         dda_pipeline_service.decision_maker.save_output(session_service.output_path, __DECISIONS_OUTPUT_FILE,
@@ -59,6 +60,7 @@ def process_encounter(request: ProcessEncounterRequest, session_service: session
                                                             "processed_at": math.floor(executed_time.timestamp()),
                                                             "decision_maker": instigator,
                                                             "action_name": action_name,
+                                                            "action_direction": action_direction,
                                                             "session_id": encounter_start["session_id"],
                                                             "encounter_id": encounter_id,
                                                             "encounter_start_timestamp": encounter_start["timestamp"],
@@ -93,7 +95,7 @@ def process_encounter(request: ProcessEncounterRequest, session_service: session
         return {
             "status": "success",
             "agent": dda_pipeline_service.decision_maker.selected_model.name,
-            "action": action_name,
+            "action": action_direction,
             "action_params": params,
         }
 

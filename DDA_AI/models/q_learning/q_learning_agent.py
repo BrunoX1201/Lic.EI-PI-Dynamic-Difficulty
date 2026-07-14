@@ -8,7 +8,7 @@ import numpy as np
 from numpy import typing as npt
 from pandas import DataFrame
 
-from shared import ObservationRestriction, Restriction, TurretNPCRestriction, MobileNPCRestriction
+from shared import ObservationRestriction, Restriction, TurretNPCRestriction, MobileNPCRestriction, ActionDirection
 from utils import calculate_additive_offset
 from .action import Action
 from .state import State
@@ -78,7 +78,7 @@ class QLearningAgent(DDAModel):
         self.__calculate_score_intervals()
 
     def act(self, observation: dict[str, str | int | float | ObservationRestriction]) -> tuple[
-        str, npt.NDArray[np.float32]]:
+        str, ActionDirection, npt.NDArray[np.float32]]:
 
         cp_observation = observation.copy()
         restrictions = cp_observation.pop("restrictions", None)
@@ -122,10 +122,11 @@ class QLearningAgent(DDAModel):
         self.__eps_curr = max(self.__eps_min, self.__eps_curr * self.__eps_decay)
 
         base_action_params = self.__base_actions_map[chosen_action]
-        print(f"[ACTION] {self.name} decided base action: {chosen_action.name}")
+        act_dir = ActionDirection(chosen_action.value)
+        print(f"[ACTION] {self.name} decided base action: {chosen_action.name} ({act_dir})")
 
         transform_action_params = self.__transform_base_action(base_action_params, restrictions, chosen_action)
-        return chosen_action.name, transform_action_params
+        return chosen_action.name, act_dir, transform_action_params
 
     def load(self, model_path: Path) -> None:
         print(f"LOADING ({model_path})...", end="")

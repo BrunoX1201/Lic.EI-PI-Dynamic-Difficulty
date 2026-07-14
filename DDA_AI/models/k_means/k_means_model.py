@@ -8,7 +8,7 @@ from pandas import DataFrame, Series
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 
-from shared import ObservationRestriction, Restriction, TurretNPCRestriction, MobileNPCRestriction
+from shared import ObservationRestriction, Restriction, TurretNPCRestriction, MobileNPCRestriction, ActionDirection
 from utils import sort_clusters, calculate_additive_offset
 from .player_experience import PlayerExperience
 from ..fittable_model import FittableModel
@@ -55,7 +55,7 @@ class KMeansModel(FittableModel):
         pass
 
     def act(self, observation: dict[str, str | int | float | dict[str, ObservationRestriction]]) -> tuple[
-        str, npt.NDArray[
+        str, ActionDirection, npt.NDArray[
             np.float32]]:
         cp_observation = observation.copy()
         restrictions = cp_observation.pop("restrictions", None)
@@ -65,14 +65,15 @@ class KMeansModel(FittableModel):
         x = DataFrame([list(cp_observation.values())], columns=self.__algorithm.feature_names_in_)
         classification = self.__algorithm.predict(x)[0]
         self.__encounter_classification = self.__clusters_to_player_experience_map[classification]
+        act_dir = ActionDirection(self.__encounter_classification.value)
         print(
             f"[ACTION] {self.name} classified {str(observation)} as {self.__encounter_classification.name} ({classification})")
 
         base_action = self.__player_experience_to_base_actions_map[self.__encounter_classification]
-        print(f"[ACTION] {self.name} decided base action: {np.array2string(base_action)}")
+        print(f"[ACTION] {self.name} decided base action: {np.array2string(base_action)} ({act_dir})")
 
         full_action = self.__transform_base_action(base_action, restrictions)
-        return self.__encounter_classification.name, full_action
+        return self.__encounter_classification.name, act_dir, full_action
 
     def load(self, model_path: Path) -> None:
         print(f"LOADING ({model_path})...", end="")
