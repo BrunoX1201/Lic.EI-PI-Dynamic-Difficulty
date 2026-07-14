@@ -13,8 +13,8 @@ namespace Unity.FPS.EditorExt
         private float m_simMobileHitbox = 0.05f;
         private float m_simTurretHealth = 0f;
         private float m_simTurretHitbox = 0f;
-        private string m_simAgent = "K_means";
-        private string m_simAction = "None";
+        private Agent m_simAgent = Agent.K_means;
+        private DDADirection m_simAction = DDADirection.Same;
 
         [MenuItem("Tools/DDA/Modifier Debug Window")]
         private static void ShowWindow()
@@ -51,7 +51,7 @@ namespace Unity.FPS.EditorExt
             EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("Simulate Full Prediction (DDAModelOutputReceived)", EditorStyles.boldLabel);
 
-            m_simAgent = EditorGUILayout.TextField("Agent (log only)", m_simAgent);
+            m_simAgent = EditorGUILayout.EnumPopup("Agent", m_simAgent) as Agent? ?? m_simAgent;
 
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField("Mobile", EditorStyles.miniBoldLabel);
@@ -66,7 +66,7 @@ namespace Unity.FPS.EditorExt
             m_simTurretHitbox = EditorGUILayout.FloatField("Hitbox", m_simTurretHitbox);
 
             EditorGUILayout.Space(2);
-            m_simAction = EditorGUILayout.TextField("Action (log only)", m_simAction);
+            m_simAction = EditorGUILayout.EnumPopup("Action", m_simAction) as DDADirection? ?? m_simAction;
 
             EditorGUILayout.Space(8);
             if (GUILayout.Button("Simulate + Force Spawn"))
@@ -75,7 +75,7 @@ namespace Unity.FPS.EditorExt
                     m_simTotalMobiles, m_simTotalBosses,
                     m_simMobileHealth, m_simMobileHitbox,
                     m_simTurretHealth, m_simTurretHitbox,
-                    m_simAgent, m_simAction));
+                    m_simAgent.ToString(), m_simAction.ToString()));
 
                 if (EncounterZoneManager.Instance != null)
                     EncounterZoneManager.Instance.ForceSpawnEncounter(DDAModifierState.TotalMobilesModifier.Value, DDAModifierState.TotalTurretsModifier.Value);

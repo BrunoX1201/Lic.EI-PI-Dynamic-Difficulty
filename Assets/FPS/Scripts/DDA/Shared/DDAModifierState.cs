@@ -7,7 +7,7 @@ namespace Unity.FPS.DDA
         public static TotalMobilesDDA TotalMobilesModifier { get; } = new(1);
         public static TotalTurretsDDA TotalTurretsModifier { get; } = new(0);
 
-        public static MobileHealth MobileHealthModifier { get; } = new(1f);
+        public static MobileHealthDDA MobileHealthModifier { get; } = new(1f);
         public static MobileHitboxDDA MobileHitboxModifier { get; } = new(1f);
 
         public static TurretHealthDDA TurretHealthModifier { get; } = new(1f);

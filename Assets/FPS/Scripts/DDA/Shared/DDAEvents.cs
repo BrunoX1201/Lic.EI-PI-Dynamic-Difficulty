@@ -49,39 +49,6 @@
         }
     }
 
-    /// <summary>Published when only TotalEnemies muda individualmente (ex: custom editor).</summary>
-    public class TotalEnemiesModifierChanged : DDAEvent
-    {
-        public int TotalEnemies { get; }
-
-        public TotalEnemiesModifierChanged(int totalEnemies)
-        {
-            TotalEnemies = totalEnemies;
-        }
-    }
-
-    /// <summary>Published when only EnemyHealth muda individualmente (ex: custom editor).</summary>
-    public class EnemyHealthModifierChanged : DDAEvent
-    {
-        public float EnemyHealth { get; }
-
-        public EnemyHealthModifierChanged(float enemyHealth)
-        {
-            EnemyHealth = enemyHealth;
-        }
-    }
-
-    /// <summary>Published when only EnemyHitbox muda individualmente (ex: custom editor).</summary>
-    public class EnemyHitboxModifierChanged : DDAEvent
-    {
-        public float EnemyHitbox { get; }
-
-        public EnemyHitboxModifierChanged(float enemyHitbox)
-        {
-            EnemyHitbox = enemyHitbox;
-        }
-    }
-
     public class EncounterEnemiesSpawnedEvent : DDAEvent
     {
         public string EncounterId { get; }

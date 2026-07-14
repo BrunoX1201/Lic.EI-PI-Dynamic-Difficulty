@@ -1,11 +1,11 @@
 ﻿namespace Unity.FPS.DDA
 {
-    public class MobileHealth : DDAModifier<float>
+    public class MobileHealthDDA : DDAModifier<float>
     {
         private const float k_thresholdMin = 0.2f;
         private const float k_thresholdMax = 0.4f;
 
-        public MobileHealth(float value)
+        public MobileHealthDDA(float value)
             : base(value, (a, b) => a + b)
         {
         }
