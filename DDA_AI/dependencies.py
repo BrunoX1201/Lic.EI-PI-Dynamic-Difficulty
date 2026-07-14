@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Request
 
 import aggregation_attributes as ag
-from models import KMeansModel
+from models import KMeansModel, QLearningAgent
 from services import Session, DDAPipeline
 from steps import DataPreparationStep, DecisionStep
 
@@ -45,8 +45,10 @@ __K_MEANS_MODEL_PATH = Path("./data/shared/k-means_1783292308.pkl")
 __k_model = KMeansModel()
 __k_model.load(__K_MEANS_MODEL_PATH)
 
-__AVAILABLE_MODELS = [__k_model]
-__decision_step = DecisionStep(__AVAILABLE_MODELS, __k_model)
+__q_agent = QLearningAgent()
+
+__AVAILABLE_MODELS = [__k_model, __q_agent]
+__decision_step = DecisionStep(__AVAILABLE_MODELS, __q_agent)
 
 __dda_pipeline = DDAPipeline(__data_preparation_step, __decision_step)
 
