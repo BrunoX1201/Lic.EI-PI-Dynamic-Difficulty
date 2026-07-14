@@ -47,17 +47,23 @@ def process_encounter(request: ProcessEncounterRequest, session_service: session
         full_observation.update({"restrictions": converted_restrictions})
 
         decision_maker_output = dda_pipeline_service.decision_maker.decide(full_observation)
+        # decision-maker and action name
+        extra_info = [decision_maker_output.pop(0), decision_maker_output.pop(0)]
+        instigator = extra_info[0][1]
+        action_name = extra_info[1][1]
+
         executed_time = datetime.datetime.now(datetime.timezone.utc)
         dda_pipeline_service.decision_maker.save_output(session_service.output_path, __DECISIONS_OUTPUT_FILE,
                                                         {
                                                             "processed_at": math.floor(executed_time.timestamp()),
+                                                            "decision_maker": instigator,
+                                                            "action_name": action_name,
                                                             "session_id": encounter_start["session_id"],
                                                             "encounter_id": encounter_id,
                                                             "encounter_start_timestamp": encounter_start["timestamp"],
                                                             "encounter_end_timestamp": encounter_end["timestamp"],
                                                         })
 
-        action_name = decision_maker_output.pop(0)[1]
         params = {"turret": {"count": 0.0, "health": 0.0, "hitbox": 0.0},
                   "mobile": {"count": 0.0, "health": 0.0, "hitbox": 0.0}}
 

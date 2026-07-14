@@ -37,8 +37,9 @@ class DecisionStep:
                               "mobile_count_add_step", "mobile_count_subtract_step", "mobile_hp_add_step",
                               "mobile_hp_subtract_step", "mobile_hitbox_add_step", "mobile_hitbox_subtract_step", ],
                              output)]
-        self.__output.insert(0, ("action_name", action_name))
-        
+        self.__output.insert(0, ("decision_maker", self.__selected_model.name))
+        self.__output.insert(1, ("action_name", action_name))
+
         return self.__output
 
     def save_output(self, path: Path, file_name: str, custom_columns: dict[str, str | int | float] = {}) -> Path:
