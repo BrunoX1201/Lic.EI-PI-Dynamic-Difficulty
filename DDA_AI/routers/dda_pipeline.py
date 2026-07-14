@@ -23,5 +23,6 @@ def update_dda_pipeline(request: UpdateDDAPipelineRequest, dda_service: dda_pipe
 @router.get("/dda_pipeline/models")
 def get_dda_pipeline_models(dda_service: dda_pipeline_dependency):
     return {
-        "available_models": dda_service.decision_maker.available_models
+        "available_models": dda_service.decision_maker.available_models,
+        "selected_model": dda_service.decision_maker.selected_model.name,
     }
