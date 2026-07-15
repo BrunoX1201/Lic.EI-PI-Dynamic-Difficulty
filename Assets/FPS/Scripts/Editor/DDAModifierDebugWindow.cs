@@ -75,10 +75,11 @@ namespace Unity.FPS.EditorExt
                     m_simTotalMobiles, m_simTotalBosses,
                     m_simMobileHealth, m_simMobileHitbox,
                     m_simTurretHealth, m_simTurretHitbox,
-                    m_simAgent.ToString(), m_simAction.ToString()));
+                    m_simAgent.ToString(), m_simAction));
 
                 if (EncounterZoneManager.Instance != null)
-                    EncounterZoneManager.Instance.ForceSpawnEncounter(DDAModifierState.TotalMobilesModifier.Value, DDAModifierState.TotalTurretsModifier.Value);
+                    EncounterZoneManager.Instance.ForceSpawnEncounter(DDAModifierState.TotalMobilesModifier.Value,
+                        DDAModifierState.TotalTurretsModifier.Value);
                 else
                     Debug.LogWarning(
                         "[DDAModifierDebugWindow] EncounterZoneManager.Instance é null — está em Play Mode?");

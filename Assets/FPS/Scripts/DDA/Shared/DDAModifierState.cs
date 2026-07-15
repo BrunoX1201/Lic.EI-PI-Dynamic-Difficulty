@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Unity.FPS.DDA
 {
@@ -15,6 +16,7 @@ namespace Unity.FPS.DDA
 
         public static bool HasReceivedOutput { get; private set; }
         public static DDAEncounterRestrictionsSO LastUsedRestrictions { get; private set; }
+        public static DDADirection LastAction { get; private set; }
 
         public static void SetLastUsedRestrictions(DDAEncounterRestrictionsSO restrictions)
         {
@@ -35,6 +37,8 @@ namespace Unity.FPS.DDA
             MobileHitboxModifier.Update(output.MobileHitbox);
             TurretHealthModifier.Update(output.TurretHealth);
             TurretHitboxModifier.Update(output.TurretHitbox);
+            LastAction = output.Action;
+
             HasReceivedOutput = true;
 
             Debug.Log($"[DDAModifierState] Modifiers updated (agent={output.Agent}) → " +

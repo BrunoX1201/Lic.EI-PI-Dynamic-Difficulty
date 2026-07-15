@@ -5,19 +5,20 @@ namespace Unity.FPS.Game
 {
     public class ObjectiveManager : MonoBehaviour
     {
-        List<Objective> m_Objectives = new List<Objective>();
-        bool m_ObjectivesCompleted = false;
+        private List<Objective> m_Objectives = new();
+        private bool m_ObjectivesCompleted = false;
 
-        void Awake()
+        private void Awake()
         {
             Objective.OnObjectiveCreated += RegisterObjective;
-            Objective.OnObjectiveDestroyed += UnregisterObjective;
         }
 
-        void RegisterObjective(Objective objective) => m_Objectives.Add(objective);
-        void UnregisterObjective(Objective objective) => m_Objectives.Remove(objective);
+        private void RegisterObjective(Objective objective)
+        {
+            m_Objectives.Add(objective);
+        }
 
-        void Update()
+        private void Update()
         {
             if (m_Objectives.Count == 0 || m_ObjectivesCompleted)
                 return;
@@ -26,20 +27,17 @@ namespace Unity.FPS.Game
             {
                 // pass every objectives to check if they have been completed
                 if (m_Objectives[i].IsBlocking())
-                {
                     // break the loop as soon as we find one uncompleted objective
                     return;
-                }
             }
 
             m_ObjectivesCompleted = true;
             EventManager.Broadcast(Events.AllObjectivesCompletedEvent);
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             Objective.OnObjectiveCreated -= RegisterObjective;
-            Objective.OnObjectiveDestroyed -= UnregisterObjective;
         }
     }
 }

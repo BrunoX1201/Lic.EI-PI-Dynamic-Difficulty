@@ -21,10 +21,11 @@
         public float TurretHealth { get; }
         public float TurretHitbox { get; }
         public string Agent { get; }
-        public string Action { get; }
+        public DDADirection Action { get; }
 
         public DDAModelOutputReceived(int totalMobiles, int totalTurrets,
-            float mobileHealth, float mobileHitbox, float turretHealth, float turretHitbox, string agent, string action)
+            float mobileHealth, float mobileHitbox, float turretHealth, float turretHitbox, string agent,
+            DDADirection action)
         {
             TotalMobiles = totalMobiles;
             TotalTurrets = totalTurrets;
@@ -62,11 +63,8 @@
     /// <summary>Published by DDAController quando o pedido à API falha (erro de rede ou resposta inválida).</summary>
     public class DDAPredictionFailed : DDAEvent
     {
-        public string EncounterId { get; }
-
-        public DDAPredictionFailed(string encounterId)
+        public DDAPredictionFailed()
         {
-            EncounterId = encounterId;
         }
     }
 }

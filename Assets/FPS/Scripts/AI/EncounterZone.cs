@@ -39,7 +39,7 @@ namespace Unity.FPS.Gameplay
         public DDAEncounterRestrictionsSO Restrictions => m_restrictions;
 
         private const int k_layerMask = 1 << EncounterZoneCollider.Layer;
-        
+
         private ObjectiveKillEnemies m_currentObjective;
         private EnemyManager m_enemyManager;
 
@@ -106,8 +106,6 @@ namespace Unity.FPS.Gameplay
             EventManager.AddListener<EnemyKillEvent>(OnEnemyKilled);
             EventManager.AddListener<PlayerDeathEvent>(OnPlayerDeath);
             EventManager.AddListener<EnemyDetectPlayerEvent>(OnPlayerDetected);
-
-            DDAEventManager.Broadcast(new EncounterEnemiesSpawnedEvent(Id));
         }
 
         private void OnDestroy()
@@ -218,10 +216,8 @@ namespace Unity.FPS.Gameplay
 
                 EnemyController enemyController = enemy.GetComponent<EnemyController>();
                 if (enemyController != null && m_enemyManager != null)
-                {
                     m_enemyManager.UnregisterEnemySilently(enemyController);
-                }
-                
+
                 Destroy(enemy);
             }
 
@@ -266,7 +262,7 @@ namespace Unity.FPS.Gameplay
 
             TotalEnemies = m_enemies.Count;
 
-            if (m_currentObjective != null) Destroy(m_currentObjective);
+            if (m_currentObjective != null) m_currentObjective.ForceCompletion();
             m_currentObjective = gameObject.AddComponent<ObjectiveKillEnemies>();
             m_currentObjective.Title = "Eliminate all enemies";
             m_currentObjective.Description = "Defeat all the enemies in this encounter";

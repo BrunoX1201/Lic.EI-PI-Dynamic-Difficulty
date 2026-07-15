@@ -15,7 +15,7 @@ namespace Unity.FPS.Gameplay
             EventManager.AddListener<PickupEvent>(OnPickupEvent);
         }
 
-        void OnPickupEvent(PickupEvent evt)
+        private void OnPickupEvent(PickupEvent evt)
         {
             if (IsCompleted || ItemToPickup != evt.Pickup)
                 return;
@@ -24,16 +24,17 @@ namespace Unity.FPS.Gameplay
             // it works even if the player can't pickup the item (i.e. objective pickup healthpack while at full heath)
             CompleteObjective(string.Empty, string.Empty, "Objective complete : " + Title);
 
-            if (gameObject)
-            {
-                Destroy(gameObject);
-            }
+            if (gameObject) Destroy(gameObject);
         }
 
-        void OnDestroy()
+        public override void ForceCompletion()
+        {
+            CompleteObjective(string.Empty, string.Empty, "Objective complete : " + Title);
+        }
+
+        private void OnDestroy()
         {
             EventManager.RemoveListener<PickupEvent>(OnPickupEvent);
-            base.OnDestroy();
         }
     }
 }

@@ -26,7 +26,6 @@ namespace Unity.FPS.Game
 
         public static event Action<Objective> OnObjectiveCreated;
         public static event Action<Objective> OnObjectiveCompleted;
-        public static event Action<Objective> OnObjectiveDestroyed;
 
         protected virtual void Start()
         {
@@ -64,13 +63,6 @@ namespace Unity.FPS.Game
             OnObjectiveCompleted?.Invoke(this);
         }
 
-        protected virtual void OnDestroy()
-        {
-            ObjectiveRemovedEvent evt = Events.ObjectiveRemovedEvent;
-            evt.Objective = this;
-            EventManager.Broadcast(evt);
-
-            OnObjectiveDestroyed?.Invoke(this);
-        }
+        public abstract void ForceCompletion();
     }
 }

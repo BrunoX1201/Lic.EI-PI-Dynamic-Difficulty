@@ -17,6 +17,8 @@ namespace Unity.FPS.Gameplay
         [Header("Zonas de Encontro")] [SerializeField]
         private List<EncounterZone> m_encounterZones = new();
 
+        private EncounterZone m_nextZone;
+
         [Header("Porta de Entrada (Encounter 1)")]
         [Tooltip(
             "ID do obstáculo/porta a abrir assim que o primeiro encontro desta cena ficar pronto (spawnado). Deixa vazio se esta cena não tiver porta de entrada.")]
@@ -33,11 +35,7 @@ namespace Unity.FPS.Gameplay
 
         private bool m_awaitingSpawn;
 
-        private bool m_startupRequestIssued;
-
         private bool m_hasCachedPrediction;
-        private int m_cachedTotalMobiles;
-        private int m_cachedTotalBosses;
 
         private EncounterZone m_lastDdaZone;
 
@@ -52,12 +50,24 @@ namespace Unity.FPS.Gameplay
                 Destroy(gameObject);
                 return;
             }
+            
+            DDAEventManager.AddListener<EncounterCompleted>(OnEncounterCompleted);
+            DDAEventManager.AddListener<ModifiersUpdated>(OnModifiersUpdated);
+            DDAEventManager.AddListener<DDAPredictionFailed>(OnPredictionFailed);
+            DDAEventManager.AddListener<EncounterEnemiesSpawnedEvent>(OnZoneEnemiesSpawned);
 
             Instance = this;
 
             if (m_encounterZones.Count == 0)
                 m_encounterZones = FindObjectsByType<EncounterZone>(FindObjectsSortMode.None)
                     .OrderBy(zone => zone.Id).ToList();
+            
+        }
+
+        private void Start()
+        {
+            m_nextZone = GetNextEncounterZone();
+            if (m_nextZone == null) return;
 
             string pendingRetryId = PlayerPrefs.GetString(DDAConfig.K_PENDING_RETRY_ENCOUNTER_ID, string.Empty);
             if (!string.IsNullOrEmpty(pendingRetryId))
@@ -67,12 +77,11 @@ namespace Unity.FPS.Gameplay
 
                 Debug.Log($"[EncounterZoneManager] Retry detectado para '{pendingRetryId}'.");
 
-                EncounterZone nextZone = GetNextEncounterZone();
+                m_nextZone = GetNextEncounterZone();
                 DDAEncounterRestrictionsSO nextRestrictions =
-                    nextZone != null ? nextZone.Restrictions : GetFallbackRestrictions();
+                    m_nextZone != null ? m_nextZone.Restrictions : GetFallbackRestrictions();
 
                 m_awaitingSpawn = true;
-                m_startupRequestIssued = true;
                 DDAController.RequestPrediction(pendingRetryId, nextRestrictions);
                 return;
             }
@@ -85,33 +94,28 @@ namespace Unity.FPS.Gameplay
                 PlayerPrefs.Save();
 
 
-                EncounterZone nextZone = GetNextEncounterZone();
+                m_nextZone = GetNextEncounterZone();
+
                 DDAEncounterRestrictionsSO nextRestrictionsSo =
-                    nextZone != null ? nextZone.Restrictions : GetFallbackRestrictions();
+                    m_nextZone != null ? m_nextZone.Restrictions : GetFallbackRestrictions();
 
                 Debug.Log(
                     $"[EncounterZoneManager] Transição de nível detectada. A pedir previsão à DDA com base em '{pendingLevelEncounterId}'.");
 
                 m_awaitingSpawn = true;
-                m_startupRequestIssued = true;
                 DDAController.RequestPrediction(pendingLevelEncounterId, nextRestrictionsSo);
+                return;
             }
+            
+            Debug.Log(
+                $"[EncounterZoneManager] Nenhum pedido pendente — spawnando encontro por defeito em: {m_nextZone.Id}");
+            m_nextZone.SpawnDDAEnemies(DDAModifierState.TotalMobilesModifier.Value,
+                DDAModifierState.TotalTurretsModifier.Value);
+
+            m_lastDdaZone = m_nextZone;
         }
 
-        private void Start()
-        {
-            StartCoroutine(ApplyInitialEncounterState());
-        }
-
-        private void OnEnable()
-        {
-            DDAEventManager.AddListener<EncounterCompleted>(OnEncounterCompleted);
-            DDAEventManager.AddListener<ModifiersUpdated>(OnModifiersUpdated);
-            DDAEventManager.AddListener<DDAPredictionFailed>(OnPredictionFailed);
-            DDAEventManager.AddListener<EncounterEnemiesSpawnedEvent>(OnZoneEnemiesSpawned);
-        }
-
-        private void OnDisable()
+        private void OnDestroy()
         {
             DDAEventManager.RemoveListener<EncounterCompleted>(OnEncounterCompleted);
             DDAEventManager.RemoveListener<ModifiersUpdated>(OnModifiersUpdated);
@@ -147,9 +151,9 @@ namespace Unity.FPS.Gameplay
 
             m_awaitingSpawn = true;
 
-            EncounterZone nextZone = GetNextEncounterZone();
+            m_nextZone = GetNextEncounterZone();
             DDAEncounterRestrictionsSO nextRestrictions =
-                nextZone != null ? nextZone.Restrictions : GetFallbackRestrictions();
+                m_nextZone != null ? m_nextZone.Restrictions : GetFallbackRestrictions();
 
             DDAController.RequestPrediction(evt.EncounterId, nextRestrictions);
         }
@@ -162,25 +166,23 @@ namespace Unity.FPS.Gameplay
 
         private void TrySpawnNextZone(int totalMobiles, int totalBosses)
         {
-            EncounterZone nextZone = GetNextEncounterZone();
-            if (nextZone != null)
+            if (m_nextZone != null)
             {
-                nextZone.SpawnDDAEnemies(totalMobiles, totalBosses);
-                m_lastDdaZone = nextZone;
+                m_nextZone.SpawnDDAEnemies(totalMobiles, totalBosses);
+                m_lastDdaZone = m_nextZone;
                 m_awaitingSpawn = false;
                 m_hasCachedPrediction = false;
             }
             else
             {
                 m_hasCachedPrediction = true;
-                m_cachedTotalMobiles = totalMobiles;
-                m_cachedTotalBosses = totalBosses;
             }
         }
 
         public void ForceSpawnEncounter(int totalMobiles, int totalBosses)
         {
             EncounterZone targetZone = m_lastDdaZone != null ? m_lastDdaZone : GetNextEncounterZone();
+
             if (targetZone == null) return;
 
             targetZone.SpawnDDAEnemies(totalMobiles, totalBosses);
@@ -202,8 +204,7 @@ namespace Unity.FPS.Gameplay
                 return;
             }
 
-            EncounterZone nextZone = GetNextEncounterZone();
-            if (nextZone == null)
+            if (m_nextZone == null)
             {
                 Debug.LogWarning(
                     $"[EncounterZoneManager] Nenhuma próxima zona encontrada. Abrindo porta '{trimmedId}' de imediato.");
@@ -211,9 +212,9 @@ namespace Unity.FPS.Gameplay
                 return;
             }
 
-            Debug.Log($"[EncounterZoneManager] Porta '{trimmedId}' à espera do spawn de '{nextZone.Id}'.");
+            Debug.Log($"[EncounterZoneManager] Porta '{trimmedId}' à espera do spawn de '{m_nextZone.Id}'.");
             m_pendingDoorObstacleId = trimmedId;
-            m_pendingDoorNextZoneId = nextZone.Id;
+            m_pendingDoorNextZoneId = m_nextZone.Id;
         }
 
         private void OnZoneEnemiesSpawned(EncounterEnemiesSpawnedEvent evt)
@@ -255,12 +256,12 @@ namespace Unity.FPS.Gameplay
         {
             if (!m_awaitingSpawn && m_pendingDoorObstacleId == null) return;
 
-            EncounterZone targetZone = m_lastDdaZone != null ? m_lastDdaZone : GetNextEncounterZone();
+            EncounterZone targetZone = m_lastDdaZone != null ? m_lastDdaZone : m_nextZone;
             int fallbackTotalMobile = DDAModifierState.TotalMobilesModifier.Value;
             int fallbackTotalBoss = DDAModifierState.TotalTurretsModifier.Value;
 
             Debug.LogWarning(
-                $"[EncounterZoneManager] Previsão falhou para '{evt.EncounterId}'. Usando {fallbackTotalMobile} inimigos.");
+                $"[EncounterZoneManager] Previsão falhou para '{m_nextZone.Id}'. Usando {fallbackTotalMobile} inimigos.");
 
             if (targetZone != null)
             {
@@ -279,43 +280,10 @@ namespace Unity.FPS.Gameplay
             }
         }
 
-        private IEnumerator ApplyInitialEncounterState()
-        {
-            yield return null;
-
-            if (m_startupRequestIssued) yield break;
-
-            EncounterZone firstZone = GetNextEncounterZone();
-            if (firstZone == null) yield break;
-
-            Debug.Log(
-                $"[EncounterZoneManager] Nenhum pedido pendente — spawnando encontro por defeito em: {firstZone.Id}");
-            firstZone.SpawnDDAEnemies(DDAModifierState.TotalMobilesModifier.Value,
-                DDAModifierState.TotalTurretsModifier.Value);
-
-            m_lastDdaZone = firstZone;
-        }
-
         public bool IsLastEncounter(string encounterId)
         {
             if (m_encounterZones.Count == 0) return false;
             return m_encounterZones[^1].Id.Equals(encounterId);
-        }
-
-        /// <summary>
-        /// Chamado se precisares de notificar o Manager que uma nova zona foi carregada dinamicamente.
-        /// </summary>
-        public void RegisterZone(EncounterZone newZone)
-        {
-            if (m_encounterZones.Contains(newZone)) return;
-
-            m_encounterZones.Add(newZone);
-
-            if (m_hasCachedPrediction)
-            {
-                newZone.SpawnDDAEnemies(m_cachedTotalMobiles, m_cachedTotalBosses);
-                m_hasCachedPrediction = false;
-            }
         }
     }
 }

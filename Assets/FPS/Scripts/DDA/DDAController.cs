@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Unity.FPS.API;
 using UnityEngine;
 
@@ -25,7 +26,7 @@ namespace Unity.FPS.DDA
             if (!result.Success)
             {
                 Debug.LogError($"[DDA] API error: {result.Error}. Default modifiers will be kept.");
-                DDAEventManager.Broadcast(new DDAPredictionFailed(encounterId));
+                DDAEventManager.Broadcast(new DDAPredictionFailed());
                 return;
             }
 
@@ -33,16 +34,25 @@ namespace Unity.FPS.DDA
             Debug.Log(
                 $"[DDA] Model output received successfully (agent={response.Agent}, action={response.Action}).");
 
-            DDAEventManager.Broadcast(new DDAModelOutputReceived(
-                response.ActionParams.Mobile.Count,
-                response.ActionParams.Turret.Count,
-                response.ActionParams.Mobile.Health,
-                response.ActionParams.Mobile.Hitbox,
-                response.ActionParams.Turret.Health,
-                response.ActionParams.Turret.Hitbox,
-                response.Agent,
-                response.Action
-            ));
+            try
+            {
+                Enum.TryParse(response.Action, out DDADirection action);
+
+                DDAEventManager.Broadcast(new DDAModelOutputReceived(
+                    response.ActionParams.Mobile.Count,
+                    response.ActionParams.Turret.Count,
+                    response.ActionParams.Mobile.Health,
+                    response.ActionParams.Mobile.Hitbox,
+                    response.ActionParams.Turret.Health,
+                    response.ActionParams.Turret.Hitbox,
+                    response.Agent,
+                    action));
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[DDA] API error: {e.Message}. Default modifiers will be kept.");
+                DDAEventManager.Broadcast(new DDAPredictionFailed());
+            }
         }
 
         private static ProcessEncounterRequest BuildRequest(string encounterId, DDAEncounterRestrictionsSO next,
