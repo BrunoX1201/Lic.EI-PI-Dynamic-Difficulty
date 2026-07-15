@@ -7,7 +7,8 @@ namespace Unity.FPS.Game
     {
         private void Start()
         {
-            APIService.Instance.Initialize(SessionManager.Instance.SessionID.ToString());
+            APIService.Instance.Initialize(SessionManager.Instance.SessionID.ToString(),
+                TelemetryManager.Instance.TelemetryServiceSettings.UploaderBaseFilePath);
         }
     }
 }

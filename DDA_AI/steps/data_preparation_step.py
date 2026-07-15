@@ -66,10 +66,7 @@ class DataPreparationStep:
             aggregation_attributes: list[AggregationAttribute],
             batch_size: int = 10,
     ) -> None:
-        self.__event_base_path = event_base_path
-        self.__event_full_paths = {}
-        for eventKey, eventFile in self.__event_files.items():
-            self.__event_full_paths[eventKey] = Path(f"{self.__event_base_path}/{eventFile}")
+        self.update_events_path(event_base_path)
 
         self.__batch_size = batch_size
         self.__aggregation_attributes = aggregation_attributes
@@ -85,6 +82,13 @@ class DataPreparationStep:
                 "call_total_valid": 0,
                 "total_lines_to_rollback": 0
             }
+
+    def update_events_path(self, new_base_path: Path) -> None:
+        print(f"[DPS] Looking at path {new_base_path}")
+        self.__event_base_path = new_base_path
+        self.__event_full_paths = {}
+        for eventKey, eventFile in self.__event_files.items():
+            self.__event_full_paths[eventKey] = Path(f"{self.__event_base_path}/{eventFile}")
 
     def execute(self, encounter_id: str, rollback_on_success: bool = False) -> list[tuple[str, str | int | float]]:
         self.__reset()

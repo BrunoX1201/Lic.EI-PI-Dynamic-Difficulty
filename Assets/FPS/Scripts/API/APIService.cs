@@ -13,7 +13,7 @@ namespace Unity.FPS.API
 
         private bool m_isInitialized;
 
-        public async Task Initialize(string sessionId)
+        public async Task Initialize(string sessionId, string telemetryBasePath)
         {
             if (m_isInitialized)
             {
@@ -24,7 +24,8 @@ namespace Unity.FPS.API
             Debug.Log("[API] Service initializing...");
             SetupSessionRequest request = new()
             {
-                SessionId = sessionId
+                SessionId = sessionId,
+                TelemetryBasePath = telemetryBasePath
             };
 
             APIResult<SetupSessionResponse> res = await SetupSession(request);

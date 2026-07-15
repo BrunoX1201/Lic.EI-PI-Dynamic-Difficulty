@@ -31,8 +31,7 @@ session_dependency = Annotated[Session, Depends(get_session)]
 # DDA PIPELINE
 
 ## DATA PREPARATION STEP
-__EVENT_BASE_PATH = Path(
-    config["TELEMETRY_EVENTS_TESTING_PATH"] if __ENVIRONMENT == "dev" else config["TELEMETRY_EVENTS_PATH"])
+__EVENT_BASE_PATH = Path(config["TELEMETRY_EVENTS_TESTING_PATH"])
 __ATTRIBUTES = [
     ag.AverageTimeBetweenKillsAttribute(),
     ag.EncounterTotalTimeAttribute(),
