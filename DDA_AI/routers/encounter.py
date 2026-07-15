@@ -88,9 +88,12 @@ def process_encounter(request: ProcessEncounterRequest, session_service: session
         for key in params.keys():
             for sub_key, value in params[key].items():
                 native_val = numpy_to_native(value)
-                params[key][sub_key] = native_val if not isinstance(native_val, float) else round(native_val,
-                                                                                                  __RESPONSE_ACTION_PARAMS_ROUNDINGS[
-                                                                                                      sub_key])
+                if isinstance(native_val, float):
+                    n_decimals = __RESPONSE_ACTION_PARAMS_ROUNDINGS[sub_key]
+                    rounded_val = round(native_val, n_decimals)
+                    params[key][sub_key] = rounded_val if n_decimals > 0 else int(rounded_val)
+                else:
+                    params[key][sub_key] = native_val
 
         return {
             "status": "success",
