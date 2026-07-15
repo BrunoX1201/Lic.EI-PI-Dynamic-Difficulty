@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Unity.FPS.Telemetry
 {
@@ -50,6 +51,23 @@ namespace Unity.FPS.Telemetry
             }
 
             return types;
+        }
+
+        public string ConvertEventDataToString(object val)
+        {
+            if (val == null) return null;
+            
+            if (val.GetType() == typeof(float))
+            {
+                return ((float)val).ToString(CultureInfo.InvariantCulture);
+            }
+
+            if (val.GetType() == typeof(DateTime))
+            {
+                return ((DateTime)val).ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+            }
+
+            return val.ToString();
         }
     }
 }

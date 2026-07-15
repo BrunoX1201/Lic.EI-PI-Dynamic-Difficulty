@@ -47,10 +47,10 @@ namespace Unity.FPS.Telemetry
                     int i = 0;
                     for (; i < evt.Data.Count - 1; i++)
                     {
-                        lineBuilder.Append(evt.Data.ElementAt(i).Value + ";");
+                        lineBuilder.Append(m_settings.ConvertEventDataToString(evt.Data.ElementAt(i).Value) + ";");
                     }
 
-                    lineBuilder.Append(evt.Data.ElementAt(i).Value);
+                    lineBuilder.Append(m_settings.ConvertEventDataToString(evt.Data.ElementAt(i).Value));
 
                     sw.WriteLine(lineBuilder.ToString());
                 }
