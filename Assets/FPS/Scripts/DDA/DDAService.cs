@@ -4,20 +4,24 @@ namespace Unity.FPS.DDA
 {
     public class DDAService
     {
-        private static DDAService s_instance = new();
-        public static DDAService Instance => s_instance;
+        public static DDAService Instance { get; } = new();
+
         private bool m_isInitialized;
-        
+
         public void Initialize()
         {
             if (m_isInitialized)
             {
                 return;
             }
-            
+
+
             DDAModifierState.Initialize();
+
+
             m_isInitialized = true;
         }
+
 
         public void NotifyEncounterCompleted(string encounterId)
         {

@@ -1,14 +1,43 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
-using Unity.Plastic.Newtonsoft.Json;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Unity.FPS.API
 {
-    public static class APIService
+    public class APIService
     {
+        public static APIService Instance { get; } = new();
+
+        private bool m_isInitialized;
+
+        public async Task Initialize(string sessionId)
+        {
+            if (m_isInitialized)
+            {
+                Debug.Log("[API] Service already initialized");
+                return;
+            }
+
+            Debug.Log("[API] Service initializing...");
+            SetupSessionRequest request = new()
+            {
+                SessionId = sessionId
+            };
+
+            APIResult<SetupSessionResponse> res = await SetupSession(request);
+
+            if (!res.Success)
+            {
+                Debug.LogError("[API] Could not initialize API service");
+            }
+
+            Debug.Log("[API] Service initialized");
+            m_isInitialized = true;
+        }
+
         public static async Task<APIResult<ProcessEncounterResponse>> ProcessEncounter(ProcessEncounterRequest request)
         {
             try
@@ -34,6 +63,30 @@ namespace Unity.FPS.API
             {
                 Debug.LogError($"[API] Error: {e.Message}");
                 return APIResult<ProcessEncounterResponse>.Fail(e.Message);
+            }
+        }
+
+        private static async Task<APIResult<SetupSessionResponse>> SetupSession(SetupSessionRequest request)
+        {
+            try
+            {
+                string jsonPayload = JsonConvert.SerializeObject(request);
+                using UnityWebRequest webRequest = new(APIConfig.SESSION_ENDPOINT, "POST");
+                byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonPayload);
+                webRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                webRequest.downloadHandler = new DownloadHandlerBuffer();
+                webRequest.SetRequestHeader("Content-Type", "application/json");
+
+                string res = await SendRequest(webRequest);
+
+                SetupSessionResponse convert_res = ConvertResponse<SetupSessionResponse>(res);
+
+                return APIResult<SetupSessionResponse>.Ok(convert_res);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[API] Error: {e.Message}");
+                return APIResult<SetupSessionResponse>.Fail(e.Message);
             }
         }
 

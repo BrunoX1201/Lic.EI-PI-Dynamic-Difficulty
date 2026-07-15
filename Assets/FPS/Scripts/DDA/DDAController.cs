@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using Unity.FPS.API;
 using UnityEngine;
@@ -34,7 +35,11 @@ namespace Unity.FPS.DDA
 
             try
             {
-                Enum.TryParse(response.Action, out DDADirection action);
+                TextInfo ti = CultureInfo.InvariantCulture.TextInfo;
+                string actionTitleCase = ti.ToTitleCase(response.Action.ToLower());
+                actionTitleCase = actionTitleCase.Replace("_", string.Empty);
+
+                Enum.TryParse(actionTitleCase, out DDADirection action);
 
                 DDAEventManager.Broadcast(new DDAModelOutputReceived(
                     response.ActionParams.Mobile.Count,
