@@ -18,7 +18,11 @@ namespace Unity.FPS.Game
         public float DelayVisible;
 
         public bool IsCompleted { get; private set; }
-        public bool IsBlocking() => !(IsOptional || IsCompleted);
+
+        public bool IsBlocking()
+        {
+            return !(IsOptional || IsCompleted);
+        }
 
         public static event Action<Objective> OnObjectiveCreated;
         public static event Action<Objective> OnObjectiveCompleted;
@@ -58,5 +62,7 @@ namespace Unity.FPS.Game
 
             OnObjectiveCompleted?.Invoke(this);
         }
+
+        public abstract void ForceCompletion();
     }
 }

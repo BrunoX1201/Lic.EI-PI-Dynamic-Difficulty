@@ -9,18 +9,18 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Visible transform that will be destroyed once the objective is completed")]
         public Transform DestroyRoot;
 
-        void Awake()
+        private void Awake()
         {
             if (DestroyRoot == null)
                 DestroyRoot = transform;
         }
 
-        void OnTriggerEnter(Collider other)
+        private void OnTriggerEnter(Collider other)
         {
             if (IsCompleted)
                 return;
 
-            var player = other.GetComponent<PlayerCharacterController>();
+            PlayerCharacterController player = other.GetComponent<PlayerCharacterController>();
             // test if the other collider contains a PlayerCharacterController, then complete
             if (player != null)
             {
@@ -29,6 +29,11 @@ namespace Unity.FPS.Gameplay
                 // destroy the transform, will remove the compass marker if it has one
                 Destroy(DestroyRoot.gameObject);
             }
+        }
+
+        public override void ForceCompletion()
+        {
+            CompleteObjective(string.Empty, string.Empty, "Objective complete : " + Title);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.FPS.DDA;
 using Unity.FPS.Game;
 using Unity.FPS.Gameplay;
 using Unity.FPS.Telemetry;
@@ -145,6 +146,36 @@ namespace Unity.FPS.AI
             NavMeshAgent = GetComponent<NavMeshAgent>();
             m_SelfColliders = GetComponentsInChildren<Collider>();
 
+            // DDA: scale enemy health and hitbox using the current global modifiers
+            if (DDAModifierState.HasReceivedOutput)
+            {
+                bool isTurret = GetComponent<EnemyTurret>() != null;
+
+                float healthValue = isTurret
+                    ? DDAModifierState.TurretHealthModifier.Value
+                    : DDAModifierState.MobileHealthModifier.Value;
+                float hitboxScale = isTurret
+                    ? DDAModifierState.TurretHitboxModifier.Value
+                    : DDAModifierState.MobileHitboxModifier.Value;
+
+                m_Health.SetMaxHealth(healthValue); // valor absoluto, não multiplicador
+                m_Health.CurrentHealth = m_Health.MaxHealth;
+
+                float safeHitboxScale = Mathf.Max(0.1f, hitboxScale); // salvaguarda física, não limite de dificuldade
+                foreach (Collider col in m_SelfColliders)
+                {
+                    switch (col)
+                    {
+                        case BoxCollider box: box.size *= safeHitboxScale; break;
+                        case SphereCollider sphere: sphere.radius *= safeHitboxScale; break;
+                        case CapsuleCollider cap:
+                            cap.radius *= safeHitboxScale;
+                            cap.height *= safeHitboxScale;
+                            break;
+                    }
+                }
+            }
+
             m_GameFlowManager = FindAnyObjectByType<GameFlowManager>();
             DebugUtility.HandleErrorIfNullFindObject<GameFlowManager, EnemyController>(m_GameFlowManager, this);
 
@@ -185,14 +216,10 @@ namespace Unity.FPS.AI
                 for (int i = 0; i < renderer.sharedMaterials.Length; i++)
                 {
                     if (renderer.sharedMaterials[i] == EyeColorMaterial)
-                    {
                         m_EyeRendererData = new RendererIndexData(renderer, i);
-                    }
 
                     if (renderer.sharedMaterials[i] == BodyMaterial)
-                    {
                         m_BodyRenderers.Add(new RendererIndexData(renderer, i));
-                    }
                 }
             }
 
@@ -267,9 +294,7 @@ namespace Unity.FPS.AI
                 {
                     float distanceToPathNode = PatrolPath.GetDistanceToNode(transform.position, i);
                     if (distanceToPathNode < PatrolPath.GetDistanceToNode(transform.position, closestPathNodeIndex))
-                    {
                         closestPathNodeIndex = i;
-                    }
                 }
 
                 m_PathDestinationNodeIndex = closestPathNodeIndex;
@@ -282,43 +307,30 @@ namespace Unity.FPS.AI
 
         public Vector3 GetDestinationOnPath()
         {
-            if (IsPathValid())
-            {
-                return PatrolPath.GetPositionOfPathNode(m_PathDestinationNodeIndex);
-            }
+            if (IsPathValid()) return PatrolPath.GetPositionOfPathNode(m_PathDestinationNodeIndex);
 
             return transform.position;
         }
 
         public void SetNavDestination(Vector3 destination)
         {
-            if (NavMeshAgent)
-            {
-                NavMeshAgent.SetDestination(destination);
-            }
+            if (NavMeshAgent) NavMeshAgent.SetDestination(destination);
         }
 
         public void UpdatePathDestination(bool inverseOrder = false)
         {
             if (IsPathValid())
-            {
                 // Check if reached the path destination
                 if ((transform.position - GetDestinationOnPath()).magnitude <= PathReachingRadius)
                 {
                     // increment path destination index
                     m_PathDestinationNodeIndex =
                         inverseOrder ? m_PathDestinationNodeIndex - 1 : m_PathDestinationNodeIndex + 1;
-                    if (m_PathDestinationNodeIndex < 0)
-                    {
-                        m_PathDestinationNodeIndex += PatrolPath.PathNodes.Count;
-                    }
+                    if (m_PathDestinationNodeIndex < 0) m_PathDestinationNodeIndex += PatrolPath.PathNodes.Count;
 
                     if (m_PathDestinationNodeIndex >= PatrolPath.PathNodes.Count)
-                    {
                         m_PathDestinationNodeIndex -= PatrolPath.PathNodes.Count;
-                    }
                 }
-            }
         }
 
         public void OrientWeaponsTowards(Vector3 lookPosition)
@@ -333,17 +345,11 @@ namespace Unity.FPS.AI
 
         public bool TryAtack(Vector3 enemyPosition)
         {
-            if (m_GameFlowManager.GameIsEnding)
-            {
-                return false;
-            }
+            if (m_GameFlowManager.GameIsEnding) return false;
 
             OrientWeaponsTowards(enemyPosition);
 
-            if (m_LastTimeWeaponSwapped + DelayAfterWeaponSwap >= Time.time)
-            {
-                return false;
-            }
+            if (m_LastTimeWeaponSwapped + DelayAfterWeaponSwap >= Time.time) return false;
 
             // Shoot the weapon
             bool didFire = GetCurrentWeapon().HandleShootInputs(false, true, false);
@@ -364,15 +370,9 @@ namespace Unity.FPS.AI
 
         public bool TryDropItem()
         {
-            if (DropRate == 0 || LootPrefab == null)
-            {
-                return false;
-            }
+            if (DropRate == 0 || LootPrefab == null) return false;
 
-            if (DropRate == 1)
-            {
-                return true;
-            }
+            if (DropRate == 1) return true;
 
             return Random.value <= DropRate;
         }
@@ -382,10 +382,8 @@ namespace Unity.FPS.AI
             FindAndInitializeAllWeapons();
             // Check if no weapon is currently selected
             if (m_CurrentWeapon == null)
-            {
                 // Set the first weapon of the weapons list as the current weapon
                 SetCurrentWeapon(0);
-            }
 
             DebugUtility.HandleErrorIfNullGetComponent<WeaponController, EnemyController>(m_CurrentWeapon, this,
                 gameObject);
@@ -396,10 +394,7 @@ namespace Unity.FPS.AI
         private void EnsureIsWithinLevelBounds()
         {
             // at every frame, this tests for conditions to kill the enemy
-            if (transform.position.y < SelfDestructYHeight)
-            {
-                Destroy(gameObject);
-            }
+            if (transform.position.y < SelfDestructYHeight) Destroy(gameObject);
         }
 
         private void OnLostTarget()
@@ -451,9 +446,7 @@ namespace Unity.FPS.AI
 
                 // play the damage tick sound
                 if (DamageTick && !m_WasDamagedThisFrame)
-                {
                     AudioUtility.CreateSFX(DamageTick, transform.position, AudioUtility.AudioGroups.DamageTick, 0f);
-                }
 
                 m_WasDamagedThisFrame = true;
             }
@@ -469,10 +462,7 @@ namespace Unity.FPS.AI
             m_EnemyManager.UnregisterEnemy(this);
 
             // loot an object
-            if (TryDropItem())
-            {
-                Instantiate(LootPrefab, transform.position, Quaternion.identity);
-            }
+            if (TryDropItem()) Instantiate(LootPrefab, transform.position, Quaternion.identity);
 
             // this will call the OnDestroy function
             Destroy(gameObject, DeathDuration);
@@ -522,13 +512,9 @@ namespace Unity.FPS.AI
             m_CurrentWeaponIndex = index;
             m_CurrentWeapon = m_Weapons[m_CurrentWeaponIndex];
             if (SwapToNextWeapon)
-            {
                 m_LastTimeWeaponSwapped = Time.time;
-            }
             else
-            {
                 m_LastTimeWeaponSwapped = Mathf.NegativeInfinity;
-            }
         }
     }
 }

@@ -15,9 +15,9 @@ namespace Unity.FPS.UI
         [Tooltip("Prefab for the primary objectives")]
         public GameObject SecondaryObjectivePrefab;
 
-        Dictionary<Objective, ObjectiveToast> m_ObjectivesDictionnary;
+        private Dictionary<Objective, ObjectiveToast> m_ObjectivesDictionnary;
 
-        void Awake()
+        private void Awake()
         {
             m_ObjectivesDictionnary = new Dictionary<Objective, ObjectiveToast>();
 
@@ -52,14 +52,12 @@ namespace Unity.FPS.UI
         {
             // if the objective if in the list, make it fade out, and remove it from the list
             if (m_ObjectivesDictionnary.TryGetValue(objective, out ObjectiveToast toast) && toast != null)
-            {
                 toast.Complete();
-            }
 
             m_ObjectivesDictionnary.Remove(objective);
         }
 
-        void OnUpdateObjective(ObjectiveUpdateEvent evt)
+        private void OnUpdateObjective(ObjectiveUpdateEvent evt)
         {
             if (m_ObjectivesDictionnary.TryGetValue(evt.Objective, out ObjectiveToast toast) && toast != null)
             {
@@ -72,15 +70,13 @@ namespace Unity.FPS.UI
                     toast.CounterTextContent.text = evt.CounterText;
 
                 if (toast.GetComponent<RectTransform>())
-                {
                     UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(toast.GetComponent<RectTransform>());
-                }
             }
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
-            EventManager.AddListener<ObjectiveUpdateEvent>(OnUpdateObjective);
+            EventManager.RemoveListener<ObjectiveUpdateEvent>(OnUpdateObjective);
 
             Objective.OnObjectiveCreated -= RegisterObjective;
             Objective.OnObjectiveCompleted -= UnregisterObjective;
