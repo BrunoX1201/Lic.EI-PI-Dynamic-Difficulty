@@ -1,35 +1,29 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace Unity.FPS.API
 {
-    public interface IProcessEncounterRequest
-    {
-        string EncounterId { get; }
-        EncounterRestrictionsPayload NextEncounterRestrictions { get; }
-        RequestOptions Options { get; }
-    }
-
-    [System.Serializable]
-    public class ProcessEncounterRequest : IProcessEncounterRequest
+    [Serializable]
+    public class ProcessEncounterRequest : IRequest
     {
         [JsonProperty("encounter_id")] public string EncounterId { get; set; }
 
         [JsonProperty("next_encounter_restrictions")]
-        public EncounterRestrictionsPayload NextEncounterRestrictions { get; set; }
+        public EncounterRestrictions NextEncounterRestrictions { get; set; }
 
         [JsonProperty("options", NullValueHandling = NullValueHandling.Ignore)]
         public RequestOptions Options { get; set; }
     }
 
-    [System.Serializable]
-    public class EncounterRestrictionsPayload
+    [Serializable]
+    public class EncounterRestrictions
     {
         [JsonProperty("turret")] public EnemyTypeRestrictions Turret { get; set; }
 
         [JsonProperty("mobile")] public EnemyTypeRestrictions Mobile { get; set; }
     }
 
-    [System.Serializable]
+    [Serializable]
     public class EnemyTypeRestrictions
     {
         [JsonProperty("count")] public LimitValue<int> Count { get; set; }
@@ -40,7 +34,7 @@ namespace Unity.FPS.API
     }
 
 
-    [System.Serializable]
+    [Serializable]
     public class LimitValue<T>
     {
         [JsonProperty("min_limit")] public T MinLimit;
@@ -64,7 +58,7 @@ namespace Unity.FPS.API
         }
     }
 
-    [System.Serializable]
+    [Serializable]
     public class RequestOptions
     {
         [JsonProperty("rollback_on_success")] public bool RollbackOnSuccess { get; set; }

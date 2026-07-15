@@ -1,8 +1,10 @@
 ﻿namespace Unity.FPS.API
 {
-    public static class ApiConfig
+    public static class APIConfig
     {
-        public const string
-            K_SERVER_URL = "http://localhost:8000/api/process_encounter/test"; //TODO: Remover antes de commit
+        public static readonly string API_BASE_URL = "http://127.0.0.1:8000";
+        public static readonly string SESSION_ENDPOINT = $"{API_BASE_URL}/session";
+        public static readonly string PROCESS_ENCOUNTER_ENDPOINT = $"{API_BASE_URL}/process_encounter";
+        public static readonly string DDA_PIPELINE_ENDPOINT = $"{API_BASE_URL}/dda_pipeline";
     }
 }

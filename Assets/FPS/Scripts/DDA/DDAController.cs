@@ -7,21 +7,19 @@ namespace Unity.FPS.DDA
 {
     public static class DDAController
     {
-        private static readonly IApiClient s_ApiClient = new ApiClient();
-
-        public static void RequestPrediction(string encounterId, DDAEncounterRestrictionsSO next,
+        public static void RequestPrediction(string encounterId, DDAEncounterRestrictionsSO nextEncounterRestrictions,
             bool? rollbackOnSuccess = null)
         {
-            _ = SendRequest(encounterId, next, rollbackOnSuccess);
+            _ = SendRequest(encounterId, nextEncounterRestrictions, rollbackOnSuccess);
         }
 
-        private static async Task SendRequest(string encounterId, DDAEncounterRestrictionsSO next,
+        private static async Task SendRequest(string encounterId, DDAEncounterRestrictionsSO nextEncounterRestrictions,
             bool? rollbackOnSuccess)
         {
-            IProcessEncounterRequest request = BuildRequest(encounterId, next, rollbackOnSuccess);
+            ProcessEncounterRequest request = BuildRequest(encounterId, nextEncounterRestrictions, rollbackOnSuccess);
 
             Debug.Log($"[DDA] Requesting adjustment from encounter: {encounterId}");
-            ApiResult<IProcessEncounterResponse> result = await s_ApiClient.ProcessEncounter(request);
+            APIResult<ProcessEncounterResponse> result = await APIService.ProcessEncounter(request);
 
             if (!result.Success)
             {
@@ -30,7 +28,7 @@ namespace Unity.FPS.DDA
                 return;
             }
 
-            IProcessEncounterResponse response = result.Value;
+            ProcessEncounterResponse response = result.Value;
             Debug.Log(
                 $"[DDA] Model output received successfully (agent={response.Agent}, action={response.Action}).");
 
@@ -62,7 +60,7 @@ namespace Unity.FPS.DDA
             ProcessEncounterRequest request = new()
             {
                 EncounterId = encounterId,
-                NextEncounterRestrictions = new EncounterRestrictionsPayload
+                NextEncounterRestrictions = new EncounterRestrictions
                 {
                     Turret = new EnemyTypeRestrictions
                     {
@@ -86,7 +84,9 @@ namespace Unity.FPS.DDA
             };
 
             if (rollbackOnSuccess.HasValue)
+            {
                 request.Options = new RequestOptions { RollbackOnSuccess = rollbackOnSuccess.Value };
+            }
 
             return request;
         }
