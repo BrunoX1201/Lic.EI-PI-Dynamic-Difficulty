@@ -1,11 +1,16 @@
+import datetime
+import math
 from pathlib import Path
 
 import aggregation_attributes as ag
-from steps import PreProcessingStep
+from steps import DataPreparationStep
 
 DATA_TO_TRANSFORM_PATH = Path("../data/transform")
 OUTPUT_PATH = Path("../output")
-OUTPUT_FILE = "pre_process_bulk"
+
+utc_date = datetime.datetime.now(datetime.timezone.utc)
+timestamp = math.floor(utc_date.timestamp())
+OUTPUT_FILE = f"data_preparation_bulk_{timestamp}"
 
 attributes = [
     ag.AverageTimeBetweenKillsAttribute(),
@@ -23,13 +28,10 @@ try:
                  directory.is_dir()]
     print(f"Directories detected: {data_dirs}")
 
-    path_to_save_next_outputs = ""
     for data_dir in data_dirs:
-        pre_process = PreProcessingStep(str(data_dir), str(OUTPUT_PATH), OUTPUT_FILE, attributes)
+        data_preparation = DataPreparationStep(data_dir, attributes)
         print(f"Processing: {data_dir}")
-
-        path_to_save_next_outputs = pre_process.execute_all(output_custom_cols={"source_dir": data_dir},
-                                                            custom_output_path=path_to_save_next_outputs)
+        data_preparation.execute_all(OUTPUT_PATH, OUTPUT_FILE, {"source_dir": str(data_dir)})
 
 except OSError as e:
     print("Error: ", e)

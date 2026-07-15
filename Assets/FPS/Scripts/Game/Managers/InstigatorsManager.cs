@@ -1,19 +1,18 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Unity.FPS.Telemetry;
 
 namespace Unity.FPS.Game
 {
     public class InstigatorsManager : Singleton<InstigatorsManager>
     {
-        [SerializeField] private int m_idCounterStartValue = 1;
-
         private readonly List<Instigator> m_instigators = new();
+        private readonly int m_idCounterStartValue = Enum.GetValues(typeof(SpecialId)).Cast<int>().Max() + 1;
         private int m_idCounterNextValue;
 
-        public override void Awake()
+        public InstigatorsManager()
         {
-            base.Awake();
-
             m_idCounterNextValue = m_idCounterStartValue;
         }
 

@@ -1,10 +1,12 @@
+import datetime
+import math
 from pathlib import Path
 
 import pandas as pd
 
 from models import KMeansModel
 
-TRAIN_DATASET_PATH = Path("../data/train/pre_process_bulk_1782854360.csv")
+TRAIN_DATASET_PATH = Path("../data/shared/data_preparation_bulk_1783292221.csv")
 MODELS_OUTPUT_PATH = Path("../output/models")
 
 if not Path.exists(TRAIN_DATASET_PATH):
@@ -28,16 +30,20 @@ except Exception as e:
     print(e)
     exit(1)
 
-k_means_model = KMeansModel(MODELS_OUTPUT_PATH)
+k_means_model = KMeansModel()
 
 models_to_train = [k_means_model]
 for model in models_to_train:
+    utc_date = datetime.datetime.now(datetime.timezone.utc)
+    timestamp = math.floor(utc_date.timestamp())
+
+    file_name = f"{model.name}_{timestamp}"
     try:
         print(f"[TRAINING] {model.name} model...", end="")
         model.fit(filtered_data)
         print("OK")
         model.print_model()
-        model.save()
+        model.save(MODELS_OUTPUT_PATH, file_name)
 
     except Exception as e:
         print("FAILED")

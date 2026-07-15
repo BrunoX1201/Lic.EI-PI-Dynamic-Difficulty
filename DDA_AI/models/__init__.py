@@ -1,5 +1,7 @@
-from .k_means.k_means_model import KMeansModel
+from .k_means import KMeansModel
+from .q_learning import QLearningAgent
 
 __all__ = [
-    "KMeansModel"
+    "KMeansModel",
+    "QLearningAgent"
 ]
