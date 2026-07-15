@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Unity.FPS.DDA
 {
@@ -14,8 +13,8 @@ namespace Unity.FPS.DDA
 
     public enum Agent
     {
-        K_means,
-        Q_learning
+        K_Means,
+        Q_Learning
     }
 
     public abstract class DDAModifier<T> : IDDAModifier
@@ -25,6 +24,8 @@ namespace Unity.FPS.DDA
         public DDADirection Direction { get; private set; }
 
         private readonly Func<T, T, T> m_sum;
+
+        protected abstract DDADirection GetDifficultyDirection(T currentValue, T previousValue);
 
         protected DDAModifier(T value, Func<T, T, T> sum)
         {
@@ -44,7 +45,5 @@ namespace Unity.FPS.DDA
         {
             Direction = GetDifficultyDirection(Value, OldValue);
         }
-
-        protected abstract DDADirection GetDifficultyDirection(T currentValue, T previousValue);
     }
 }

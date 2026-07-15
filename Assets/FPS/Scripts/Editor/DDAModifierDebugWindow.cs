@@ -8,12 +8,12 @@ namespace Unity.FPS.EditorExt
     public class DDAModifierDebugWindow : EditorWindow
     {
         private int m_simTotalMobiles = 1;
-        private int m_simTotalBosses = 0;
+        private int m_simTotalBosses;
         private float m_simMobileHealth = 10f;
         private float m_simMobileHitbox = 0.05f;
-        private float m_simTurretHealth = 0f;
-        private float m_simTurretHitbox = 0f;
-        private Agent m_simAgent = Agent.K_means;
+        private float m_simTurretHealth;
+        private float m_simTurretHitbox;
+        private Agent m_simAgent = Agent.K_Means;
         private DDADirection m_simAction = DDADirection.Same;
 
         [MenuItem("Tools/DDA/Modifier Debug Window")]
@@ -25,8 +25,10 @@ namespace Unity.FPS.EditorExt
         private void OnGUI()
         {
             if (!Application.isPlaying)
+            {
                 EditorGUILayout.HelpBox("Entra em Play Mode para alterar os modificadores em runtime.",
                     MessageType.Info);
+            }
 
             EditorGUI.BeginDisabledGroup(!Application.isPlaying);
 
@@ -78,11 +80,15 @@ namespace Unity.FPS.EditorExt
                     m_simAgent.ToString(), m_simAction));
 
                 if (EncounterZoneManager.Instance != null)
+                {
                     EncounterZoneManager.Instance.ForceSpawnEncounter(DDAModifierState.TotalMobilesModifier.Value,
                         DDAModifierState.TotalTurretsModifier.Value);
+                }
                 else
+                {
                     Debug.LogWarning(
                         "[DDAModifierDebugWindow] EncounterZoneManager.Instance é null — está em Play Mode?");
+                }
             }
 
             EditorGUI.EndDisabledGroup();
