@@ -191,9 +191,7 @@ class DataPreparationStep:
     def __transform(self, aggregation: dict[str, str | int | float | None]) -> dict[str, str | int | float]:
         copy = aggregation.copy()
         copy.pop("has_completed_encounter")
-        if copy["average_time_between_kills_seconds"] is None:
-            copy["average_time_between_kills_seconds"] = -1
-        else:
+        if copy["average_time_between_kills_seconds"] is not None:
             copy["average_time_between_kills_seconds"] = round(copy["average_time_between_kills_seconds"],
                                                                2)
 

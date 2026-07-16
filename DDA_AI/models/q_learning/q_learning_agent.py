@@ -202,15 +202,15 @@ class QLearningAgent(DDAModel):
         pass
 
     def __calculate_score(self, components: dict[str, str | int | float]) -> float:
-        components_weighted = {key: val * self.__score_weights[key] for key, val in components.items()}
+        components_weighted = {key: (val * self.__score_weights[key]) if val is not None else None for key, val in
+                               components.items()}
 
-        score = components_weighted["has_completed_encounter"] - components_weighted[
-            "average_time_between_kills_seconds"] - components_weighted["encounter_total_time_seconds"] + \
+        score = components_weighted["has_completed_encounter"] - components_weighted["encounter_total_time_seconds"] + \
                 components_weighted["player_average_accuracy"] - components_weighted["remaining_enemies"] + \
                 components_weighted["remaining_player_health"] - components_weighted["total_hits_taken"]
 
-        if components_weighted["average_time_between_kills_seconds"] < 0:
-            score += components_weighted["average_time_between_kills_seconds"]
+        if components_weighted["average_time_between_kills_seconds"] is None:
+            score -= 1 * self.__score_weights["average_time_between_kills_seconds"]
         else:
             score -= components_weighted["average_time_between_kills_seconds"]
 
