@@ -98,8 +98,9 @@ class QLearningAgent(DDAModel):
         # If its first observation
         chosen_action = None
         if self.__previous_state is None or self.__previous_action is None:
-            chosen_action = Action(randint(0, len(Action) - 1))
             print(f"- no reward since its first observation (previous_state or previous_action is None)")
+            print(f"[ACTION] {self.name} deciding randomly since there are no previous states")
+            chosen_action = Action(randint(0, len(Action) - 1))
         else:
             print(f"- previous state: {self.__previous_state.name}, previous_action: {self.__previous_action.name}")
             reward = self.__calculate_reward(curr_state)
@@ -113,8 +114,10 @@ class QLearningAgent(DDAModel):
             print(f"- updated q value [{self.__previous_state.name}, {self.__previous_action.name}]: {new_q_value}")
 
             if random() < self.__eps_curr:
+                print(f"[ACTION] {self.name} deciding randomly...")
                 chosen_action = Action(randint(0, len(Action) - 1))
             else:
+                print(f"[ACTION] {self.name} deciding using q-table...")
                 chosen_action = Action(self.__q_table[curr_state.value].argmax())
 
         self.__previous_state = curr_state
