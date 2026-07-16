@@ -55,8 +55,11 @@ namespace Unity.FPS.Telemetry
 
         public string ConvertEventDataToString(object val)
         {
-            if (val == null) return null;
-            
+            if (val == null)
+            {
+                return null;
+            }
+
             if (val.GetType() == typeof(float))
             {
                 return ((float)val).ToString(CultureInfo.InvariantCulture);
