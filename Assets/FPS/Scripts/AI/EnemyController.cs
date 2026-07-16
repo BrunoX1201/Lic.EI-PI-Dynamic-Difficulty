@@ -161,7 +161,7 @@ namespace Unity.FPS.AI
                 m_Health.SetMaxHealth(healthValue); // valor absoluto, não multiplicador
                 m_Health.CurrentHealth = m_Health.MaxHealth;
 
-                float safeHitboxScale = Mathf.Max(0.1f, hitboxScale); // salvaguarda física, não limite de dificuldade
+                float safeHitboxScale = Mathf.Max(1f, hitboxScale); // salvaguarda física, não limite de dificuldade
                 foreach (Collider col in m_SelfColliders)
                 {
                     switch (col)
