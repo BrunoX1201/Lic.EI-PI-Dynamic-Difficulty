@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20b46372541c4e3caba3a8e2c0e9ef7a, type: 3}
-  m_Name: DDAEncounterRestrictionsSONoBoss
+  m_Name: DDAEncounterRestrictionsTwoBosses
   m_EditorClassIdentifier: fps.DDA::Unity.FPS.DDA.DDAEncounterRestrictionsSO
   DefaultMobiles: 2
   MinMobiles: 1
   MaxMobiles: 10
-  DefaultBosses: 0
+  DefaultBosses: 1
   MinBosses: 0
-  MaxBosses: 0
+  MaxBosses: 2
   DefaultMobileHealth: 100
   MinMobileHealth: 50
   MaxMobileHealth: 300
