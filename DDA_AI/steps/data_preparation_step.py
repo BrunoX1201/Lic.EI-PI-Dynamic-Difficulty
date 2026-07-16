@@ -2,10 +2,8 @@ import datetime
 from pathlib import Path
 from typing import Any
 
-import numpy
 from pandas import DataFrame, read_csv, Series
 from pandas.errors import EmptyDataError
-from sklearn.preprocessing import normalize
 
 from aggregation_attributes import AggregationAttribute
 from exceptions import EncounterStartLimitNotFound, EncounterEndLimitNotFound
@@ -194,23 +192,22 @@ class DataPreparationStep:
         copy = aggregation.copy()
         copy.pop("has_completed_encounter")
         if copy["average_time_between_kills_seconds"] is None:
-            copy["average_time_between_kills_seconds"] = 0.0
+            copy["average_time_between_kills_seconds"] = -1
         else:
             copy["average_time_between_kills_seconds"] = round(copy["average_time_between_kills_seconds"],
                                                                2)
 
         copy["encounter_total_time_seconds"] = round(copy["encounter_total_time_seconds"], 0)
-        copy["player_average_accuracy"] = round(copy["player_average_accuracy"], 2)
+        copy["player_average_accuracy"] = round(copy["player_average_accuracy"], 2) if copy[
+                                                                                           "player_average_accuracy"] is not None else 0
         copy["remaining_player_health"] = round(copy["remaining_player_health"], 1)
 
-        vector = numpy.array([val for val in copy.values()])
-        normalized = normalize(vector.reshape(1, -1))
         output = {
             "has_completed_encounter": int(aggregation["has_completed_encounter"]),
         }
 
-        for index, key in enumerate(copy.keys()):
-            output[key] = normalized[0][index]
+        for key, val in copy.items():
+            output[key] = val
 
         return output
 
