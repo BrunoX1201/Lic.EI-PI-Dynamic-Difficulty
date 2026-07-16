@@ -2,8 +2,10 @@ import datetime
 from pathlib import Path
 from typing import Any
 
+import numpy
 from pandas import DataFrame, read_csv, Series
 from pandas.errors import EmptyDataError
+from sklearn.preprocessing import normalize
 
 from aggregation_attributes import AggregationAttribute
 from exceptions import EncounterStartLimitNotFound, EncounterEndLimitNotFound
@@ -191,7 +193,10 @@ class DataPreparationStep:
     def __transform(self, aggregation: dict[str, str | int | float | None]) -> dict[str, str | int | float]:
         copy = aggregation.copy()
         copy.pop("has_completed_encounter")
-        if copy["average_time_between_kills_seconds"] is not None:
+
+        if copy["average_time_between_kills_seconds"] is None:
+            copy["average_time_between_kills_seconds"] = 0.0
+        else:
             copy["average_time_between_kills_seconds"] = round(copy["average_time_between_kills_seconds"],
                                                                2)
 
@@ -204,8 +209,11 @@ class DataPreparationStep:
             "has_completed_encounter": int(aggregation["has_completed_encounter"]),
         }
 
-        for key, val in copy.items():
-            output[key] = val
+        vector = numpy.array([val for val in copy.values()])
+        normalized = normalize(vector.reshape(1, -1))
+
+        for index, key in enumerate(copy.keys()):
+            output[key] = normalized[0][index]
 
         return output
 

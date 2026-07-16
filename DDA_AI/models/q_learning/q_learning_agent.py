@@ -205,15 +205,11 @@ class QLearningAgent(DDAModel):
         components_weighted = {key: (val * self.__score_weights[key]) if val is not None else None for key, val in
                                components.items()}
 
-        score = components_weighted["has_completed_encounter"] - components_weighted["encounter_total_time_seconds"] + \
-                components_weighted["player_average_accuracy"] - components_weighted["remaining_enemies"] + \
-                components_weighted["remaining_player_health"] - components_weighted["total_hits_taken"]
-
-        if components_weighted["average_time_between_kills_seconds"] is None:
-            score -= 1 * self.__score_weights["average_time_between_kills_seconds"]
-        else:
-            score -= components_weighted["average_time_between_kills_seconds"]
-
+        score = (components_weighted["has_completed_encounter"] - components_weighted["encounter_total_time_seconds"] -
+                 - components_weighted["average_time_between_kills_seconds"] + \
+                 components_weighted["player_average_accuracy"] - components_weighted["remaining_enemies"] + \
+                 components_weighted["remaining_player_health"] - components_weighted["total_hits_taken"])
+        
         return score
 
     def __calculate_state(self, score: float) -> State | None:
