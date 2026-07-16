@@ -1,0 +1,7 @@
+﻿{
+  "name": "fps.Test",
+  "references": [
+    "GUID:df213e9652924e21b1742b86a86ad863",
+    "GUID:defccc6f737e40619061cec1e18e1670"
+  ]
+}

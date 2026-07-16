@@ -90,7 +90,7 @@ namespace Unity.FPS.DDA
 
             if (rollbackOnSuccess.HasValue)
             {
-                request.Options = new RequestOptions { RollbackOnSuccess = rollbackOnSuccess.Value };
+                request.Options = new ProcessEncounterOptions { RollbackOnSuccess = rollbackOnSuccess.Value };
             }
 
             return request;

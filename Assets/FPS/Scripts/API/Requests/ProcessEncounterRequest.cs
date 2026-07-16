@@ -12,7 +12,7 @@ namespace Unity.FPS.API
         public EncounterRestrictions NextEncounterRestrictions { get; set; }
 
         [JsonProperty("options", NullValueHandling = NullValueHandling.Ignore)]
-        public RequestOptions Options { get; set; }
+        public ProcessEncounterOptions Options { get; set; }
     }
 
     [Serializable]
@@ -59,7 +59,7 @@ namespace Unity.FPS.API
     }
 
     [Serializable]
-    public class RequestOptions
+    public class ProcessEncounterOptions
     {
         [JsonProperty("rollback_on_success")] public bool RollbackOnSuccess { get; set; }
     }

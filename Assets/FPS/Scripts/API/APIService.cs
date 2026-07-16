@@ -33,6 +33,7 @@ namespace Unity.FPS.API
             if (!res.Success)
             {
                 Debug.LogError("[API] Could not initialize API service");
+                return;
             }
 
             Debug.Log("[API] Service initialized");
