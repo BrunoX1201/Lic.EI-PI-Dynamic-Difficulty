@@ -209,6 +209,11 @@ class QLearningAgent(DDAModel):
                 components_weighted["player_average_accuracy"] - components_weighted["remaining_enemies"] + \
                 components_weighted["remaining_player_health"] - components_weighted["total_hits_taken"]
 
+        if components_weighted["average_time_between_kills_seconds"] < 0:
+            score += components_weighted["average_time_between_kills_seconds"]
+        else:
+            score -= components_weighted["average_time_between_kills_seconds"]
+
         return score
 
     def __calculate_state(self, score: float) -> State | None:
