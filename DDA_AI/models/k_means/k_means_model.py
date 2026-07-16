@@ -48,6 +48,7 @@ class KMeansModel(FittableModel):
         self.__encounter_classification = None
 
     def fit(self, X: DataFrame) -> None:
+        # TODO FIT NOT ABLE SINCE NORMALIZATIONS WERE REMOVED
         self.__algorithm.fit(X=X)
         self.__map_clusters_to_player_experience()
 

@@ -6,7 +6,7 @@ import pandas as pd
 
 from models import KMeansModel
 
-TRAIN_DATASET_PATH = Path("../data/shared/data_preparation_bulk_1783292221.csv")
+TRAIN_DATASET_PATH = Path("../data/shared/data_preparation_bulk_1784238893.csv")
 MODELS_OUTPUT_PATH = Path("../output/models")
 
 if not Path.exists(TRAIN_DATASET_PATH):
