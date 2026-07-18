@@ -90,10 +90,11 @@ class DataPreparationStep:
         for eventKey, eventFile in self.__event_files.items():
             self.__event_full_paths[eventKey] = Path(f"{self.__event_base_path}/{eventFile}")
 
-    def execute(self, encounter_id: str, rollback_on_success: bool = False) -> list[tuple[str, str | int | float]]:
+    def execute(self, session_id: str, encounter_id: str, rollback_on_success: bool = False) -> list[
+        tuple[str, str | int | float]]:
         self.__reset()
 
-        output = self.__aggregate(encounter_id, rollback_on_success)
+        output = self.__aggregate(session_id, encounter_id, rollback_on_success)
         if len(output) < 1:
             return output
         output = self.__transform(output)
@@ -102,7 +103,8 @@ class DataPreparationStep:
         self.__print_statistics()
         return self.__output
 
-    def __aggregate(self, encounter_id: str, rollback_on_success: bool) -> dict[str, str | int | float | None]:
+    def __aggregate(self, session_id: str, encounter_id: str, rollback_on_success: bool) -> dict[
+        str, str | int | float | None]:
         start_total_lines_tracker = {
             Event.ENCOUNTER_STARTED: self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"],
             Event.ENCOUNTER_ENDED: self.__event_num_rows_read[Event.ENCOUNTER_ENDED]["total"]
@@ -112,7 +114,7 @@ class DataPreparationStep:
 
         output = {}
         try:
-            self.__encounter_start = self.__find_encounter_start(encounter_id)
+            self.__encounter_start = self.__find_encounter_start(session_id, encounter_id)
             self.__encounter_end = self.__find_encounter_end(
                 encounter_id, self.__encounter_start.iloc[0]["timestamp"], self.__encounter_start.iloc[0]["session_id"]
             )
@@ -238,7 +240,7 @@ class DataPreparationStep:
         for attr in self.__aggregation_attributes:
             attr.reset()
 
-    def __find_encounter_start(self, encounter_id: str) -> DataFrame | None:
+    def __find_encounter_start(self, session_id: str, encounter_id: str) -> DataFrame | None:
         has_found = False
         target = None
         while not has_found:
@@ -274,7 +276,8 @@ class DataPreparationStep:
             if num_rows < 1:
                 raise EncounterStartLimitNotFound(f"Could not find start of encounter ({encounter_id})")
 
-            encounters = encounter_starts.loc[encounter_starts["encounter_id"] == encounter_id]
+            encounters = encounter_starts[
+                (encounter_starts["encounter_id"] == encounter_id) & (encounter_starts["session_id"] == session_id)]
 
             if encounters.size < 1:
                 self.__event_num_rows_read[Event.ENCOUNTER_STARTED]["total"] += num_rows
@@ -492,12 +495,12 @@ class DataPreparationStep:
                     if encounter_starts.size < 1:
                         break
 
-                    for encounter_id in encounter_starts["encounter_id"]:
-                        result = self.execute(encounter_id)
+                    for encounter in encounter_starts.itertuples():
+                        result = self.execute(encounter.session_id, encounter.encounter_id)
                         if len(result) > 0:
                             saved_path = self.save_output(output_path, output_file_name, output_custom_cols)
                         else:
-                            print(f"Could not save output on encounter {encounter_id}")
+                            print(f"Could not save output on encounter {encounter.encounter_id}")
                         num_encounters_processed += 1
 
                 except EmptyDataError:

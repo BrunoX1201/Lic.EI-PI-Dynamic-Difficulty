@@ -26,7 +26,7 @@ def process_encounter(request: ProcessEncounterRequest, session_service: session
 
     try:
         # 1. Executa a transformação com o ID enviado pelo Unity
-        data_prep_output = dda_pipeline_service.data_preparation.execute(encounter_id,
+        data_prep_output = dda_pipeline_service.data_preparation.execute(session_service.id, encounter_id,
                                                                          request.options.rollback_on_success)
         encounter_start = dda_pipeline_service.data_preparation.encounter_start
         encounter_end = dda_pipeline_service.data_preparation.encounter_end
