@@ -1,3 +1,8 @@
+import sys
+
+sys.stdout = open("logs.txt", "w")
+sys.stderr = open("logs.txt", "a")
+
 from fastapi import FastAPI, Depends
 
 from dependencies import verify_session
