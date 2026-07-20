@@ -11,6 +11,16 @@ namespace Unity.FPS.Telemetry
             s_batcher = new TelemetryBatcher(batchSize, uploader);
         }
 
+        public static async Task FlushAsync()
+        {
+            if (s_batcher == null)
+            {
+                return;
+            }
+
+            await s_batcher.FlushAsync();
+        }
+
         public static async ValueTask ShutdownAsync()
         {
             await s_batcher.DisposeAsync();

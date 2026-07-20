@@ -25,12 +25,9 @@ namespace Unity.FPS.Game
         {
             Health = GetComponent<Health>();
             DebugUtility.HandleErrorIfNoComponentFound<Health, Instigator>(1, this, gameObject);
-        }
 
-        private void Start()
-        {
-            InstigatorsManager.Instance.AddInstigator(this);
             Id = InstigatorsManager.Instance.GenerateId();
+            InstigatorsManager.Instance.AddInstigator(this);
         }
 
         public bool UpdateLocation(MapLocationSO newLocation)

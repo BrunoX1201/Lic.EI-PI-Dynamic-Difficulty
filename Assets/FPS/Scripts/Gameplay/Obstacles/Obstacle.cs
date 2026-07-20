@@ -13,7 +13,7 @@ namespace Unity.FPS.Gameplay
 
         public UnityAction OnUnblocked;
 
-        protected virtual void Start()
+        protected virtual void Awake()
         {
             EventManager.AddListener<ObstacleUnblockEvent>(OnObstacleUnblock);
         }

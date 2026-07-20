@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.FPS.DDA;
 using Unity.FPS.Game;
 using Unity.FPS.Gameplay;
 using Unity.FPS.Telemetry;
@@ -144,6 +145,36 @@ namespace Unity.FPS.AI
 
             NavMeshAgent = GetComponent<NavMeshAgent>();
             m_SelfColliders = GetComponentsInChildren<Collider>();
+
+            // DDA: scale enemy health and hitbox using the current global modifiers
+            if (DDAModifierState.HasReceivedOutput)
+            {
+                bool isTurret = GetComponent<EnemyTurret>() != null;
+
+                float healthValue = isTurret
+                    ? DDAModifierState.TurretHealthModifier.Value
+                    : DDAModifierState.MobileHealthModifier.Value;
+                float hitboxScale = isTurret
+                    ? DDAModifierState.TurretHitboxModifier.Value
+                    : DDAModifierState.MobileHitboxModifier.Value;
+
+                m_Health.SetMaxHealth(healthValue); // valor absoluto, não multiplicador
+                m_Health.CurrentHealth = m_Health.MaxHealth;
+
+                float safeHitboxScale = Mathf.Max(1f, hitboxScale); // salvaguarda física, não limite de dificuldade
+                foreach (Collider col in m_SelfColliders)
+                {
+                    switch (col)
+                    {
+                        case BoxCollider box: box.size *= safeHitboxScale; break;
+                        case SphereCollider sphere: sphere.radius *= safeHitboxScale; break;
+                        case CapsuleCollider cap:
+                            cap.radius *= safeHitboxScale;
+                            cap.height *= safeHitboxScale;
+                            break;
+                    }
+                }
+            }
 
             m_GameFlowManager = FindAnyObjectByType<GameFlowManager>();
             DebugUtility.HandleErrorIfNullFindObject<GameFlowManager, EnemyController>(m_GameFlowManager, this);
@@ -301,8 +332,8 @@ namespace Unity.FPS.AI
         public void UpdatePathDestination(bool inverseOrder = false)
         {
             if (IsPathValid())
-            {
                 // Check if reached the path destination
+            {
                 if ((transform.position - GetDestinationOnPath()).magnitude <= PathReachingRadius)
                 {
                     // increment path destination index
@@ -382,8 +413,8 @@ namespace Unity.FPS.AI
             FindAndInitializeAllWeapons();
             // Check if no weapon is currently selected
             if (m_CurrentWeapon == null)
-            {
                 // Set the first weapon of the weapons list as the current weapon
+            {
                 SetCurrentWeapon(0);
             }
 

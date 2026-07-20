@@ -14,7 +14,7 @@ namespace Unity.FPS.Gameplay
         [Tooltip("Start sending notification about remaining enemies when this amount of enemies is left")]
         public int NotificationEnemiesRemainingThreshold = 3;
 
-        int m_KillTotal;
+        private int m_KillTotal;
 
         protected override void Start()
         {
@@ -31,7 +31,7 @@ namespace Unity.FPS.Gameplay
                 Description = GetUpdatedCounterAmount();
         }
 
-        void OnEnemyKilled(EnemyKillEvent evt)
+        private void OnEnemyKilled(EnemyKillEvent evt)
         {
             if (IsCompleted)
                 return;
@@ -66,12 +66,17 @@ namespace Unity.FPS.Gameplay
             }
         }
 
-        string GetUpdatedCounterAmount()
+        private string GetUpdatedCounterAmount()
         {
             return m_KillTotal + " / " + KillsToCompleteObjective;
         }
 
-        void OnDestroy()
+        public override void ForceCompletion()
+        {
+            CompleteObjective(string.Empty, GetUpdatedCounterAmount(), "Objective complete : " + Title);
+        }
+
+        private void OnDestroy()
         {
             EventManager.RemoveListener<EnemyKillEvent>(OnEnemyKilled);
         }

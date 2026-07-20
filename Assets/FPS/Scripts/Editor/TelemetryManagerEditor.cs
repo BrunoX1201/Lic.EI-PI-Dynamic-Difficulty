@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using FPS.Scripts.Telemetry.Shared;
 using Telemetry.Shared;
 using Unity.FPS.Game;
 using Unity.FPS.Telemetry;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Windows;
+using Directory = UnityEngine.Windows.Directory;
 
 namespace Unity.FPS.EditorExt
 {
@@ -215,7 +216,8 @@ namespace Unity.FPS.EditorExt
         private void HandleTelemetrySettingsFolderPath()
         {
             TelemetryManager manager = (TelemetryManager)target;
-            bool uploaderPathExists = Directory.Exists(manager.TelemetryServiceSettings.UploaderBaseFilePath);
+            string telemetryPath = manager.TelemetryServiceSettings.UploaderBaseFilePath;
+            bool uploaderPathExists = Directory.Exists(telemetryPath);
 
             EditorGUILayout.Space(4);
 
@@ -224,6 +226,7 @@ namespace Unity.FPS.EditorExt
 
             EditorGUI.BeginDisabledGroup(!uploaderPathExists);
             bool openPressed = GUILayout.Button("Open", GUILayout.Width(60));
+            bool clearPressed = GUILayout.Button("Clear", GUILayout.Width(60));
             EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.EndHorizontal();
@@ -243,6 +246,20 @@ namespace Unity.FPS.EditorExt
             if (openPressed && uploaderPathExists)
             {
                 EditorUtility.RevealInFinder(manager.TelemetryServiceSettings.UploaderBaseFilePath);
+            }
+
+            if (clearPressed && uploaderPathExists)
+            {
+                DirectoryInfo dirInfo = new(telemetryPath);
+                foreach (FileInfo file in dirInfo.EnumerateFiles())
+                {
+                    file.Delete();
+                }
+
+                foreach (DirectoryInfo dir in dirInfo.EnumerateDirectories())
+                {
+                    dir.Delete();
+                }
             }
         }
 
