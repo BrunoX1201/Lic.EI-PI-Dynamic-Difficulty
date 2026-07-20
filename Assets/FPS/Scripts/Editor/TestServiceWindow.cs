@@ -8,9 +8,12 @@ namespace Unity.FPS.EditorExt
 {
     public class TestServiceWindow : EditorWindow
     {
-        private TestService m_service;
+        private static TestService s_service;
         private bool m_isLoading;
         private string m_testOutput;
+
+        private string
+            m_testingSessionID = "651b5f50-a9aa-42e0-974a-f299a8bc1a33"; // session id of shared data test in DDA system
 
         [MenuItem("Tools/TestService")]
         private static void ShowWindow()
@@ -20,7 +23,12 @@ namespace Unity.FPS.EditorExt
 
         private void OnEnable()
         {
-            m_service = new TestService();
+            if (s_service != null)
+            {
+                return;
+            }
+
+            s_service = new TestService();
         }
 
         private void OnGUI()
@@ -33,15 +41,28 @@ namespace Unity.FPS.EditorExt
                 return;
             }
 
-            EditorGUILayout.LabelField($"Initialized: {m_service.Initialized}", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField($"Initialized: {s_service.Initialized}", EditorStyles.boldLabel);
 
             EditorGUI.BeginDisabledGroup(m_isLoading);
 
+
+            m_testingSessionID = EditorGUILayout.TextField("Testing Session ID", m_testingSessionID);
+            EditorGUI.BeginDisabledGroup(s_service.Initialized);
             bool initializePressed = GUILayout.Button("Initialize Service");
+            EditorGUI.EndDisabledGroup();
+
+            EditorGUI.BeginDisabledGroup(!s_service.Initialized);
+            bool restartPressed = GUILayout.Button("Restart Service");
+            EditorGUI.EndDisabledGroup();
 
             if (initializePressed)
             {
                 _ = InitializeService();
+            }
+
+            if (restartPressed)
+            {
+                _ = RestartService();
             }
 
             EditorGUILayout.BeginVertical("box");
@@ -49,15 +70,18 @@ namespace Unity.FPS.EditorExt
             EditorGUILayout.LabelField("Available Tests", EditorStyles.boldLabel);
 
             EditorGUILayout.Space(2);
+
+            EditorGUI.BeginDisabledGroup(!s_service.Initialized);
             EditorGUILayout.BeginHorizontal();
 
             EditorGUILayout.LabelField("Test DDA Process Encounter");
             if (GUILayout.Button("Run", GUILayout.Width(80)))
             {
-                RunTest(m_service.TestDDAProcessEncounter());
+                RunTest(s_service.TestDDAProcessEncounter());
             }
 
             EditorGUILayout.EndHorizontal();
+            EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField("Output");
@@ -74,7 +98,14 @@ namespace Unity.FPS.EditorExt
         private async Task InitializeService()
         {
             m_isLoading = true;
-            await m_service.Initialize();
+            await s_service.Initialize(m_testingSessionID);
+            m_isLoading = false;
+        }
+
+        private async Task RestartService()
+        {
+            m_isLoading = true;
+            await s_service.Restart(m_testingSessionID);
             m_isLoading = false;
         }
 

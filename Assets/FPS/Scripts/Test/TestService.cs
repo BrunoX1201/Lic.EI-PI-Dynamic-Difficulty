@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Unity.FPS.API;
 using Unity.FPS.DDA;
+using Debug = UnityEngine.Debug;
 
 namespace Unity.FPS.Test
 {
@@ -10,16 +11,39 @@ namespace Unity.FPS.Test
         private const string m_testsDataPath = "data/shared/tests";
         public bool Initialized { get; private set; }
 
-        public async Task Initialize()
+        public async Task Initialize(string testingSessionID, bool isRestart = false)
         {
             if (Initialized)
             {
+                Debug.Log("[TEST] Service already initialized");
                 return;
             }
 
-            await APIService.Instance.Initialize("-1", m_testsDataPath);
+            Debug.Log("[TEST] Service initializing...");
+            if (isRestart)
+            {
+                await APIService.Instance.Restart(testingSessionID, m_testsDataPath);
+            }
+            else
+            {
+                await APIService.Instance.Initialize(testingSessionID, m_testsDataPath);
+            }
 
+            if (!APIService.Instance.Initialized)
+            {
+                Debug.LogError("[TEST] Service could not be initialized");
+                return;
+            }
+
+            Debug.Log("[TEST] Service initialized");
             Initialized = true;
+        }
+
+        public async Task Restart(string testingSessionID)
+        {
+            Initialized = false;
+            Debug.Log("[TEST] Service restarting...");
+            await Initialize(testingSessionID, true);
         }
 
         public async Task<TestResult<float>> TestDDAProcessEncounter()
