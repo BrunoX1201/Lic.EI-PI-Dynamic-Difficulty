@@ -11,11 +11,11 @@ namespace Unity.FPS.API
     {
         public static APIService Instance { get; } = new();
 
-        private bool m_isInitialized;
+        public bool Initialized { get; private set; }
 
         public async Task Initialize(string sessionId, string telemetryBasePath)
         {
-            if (m_isInitialized)
+            if (Initialized)
             {
                 Debug.Log("[API] Service already initialized");
                 return;
@@ -32,12 +32,12 @@ namespace Unity.FPS.API
 
             if (!res.Success)
             {
-                Debug.LogError("[API] Could not initialize API service");
+                Debug.LogError("[API] Service could not be initialized");
                 return;
             }
 
             Debug.Log("[API] Service initialized");
-            m_isInitialized = true;
+            Initialized = true;
         }
 
         public static async Task<APIResult<ProcessEncounterResponse>> ProcessEncounter(ProcessEncounterRequest request)
@@ -66,6 +66,13 @@ namespace Unity.FPS.API
                 Debug.LogError($"[API] Error: {e.Message}");
                 return APIResult<ProcessEncounterResponse>.Fail(e.Message);
             }
+        }
+
+        public async Task Restart(string sessionId, string telemetryBasePath)
+        {
+            Initialized = false;
+            Debug.Log("[API] Service restarting...");
+            await Initialize(sessionId, telemetryBasePath);
         }
 
         private static async Task<APIResult<SetupSessionResponse>> SetupSession(SetupSessionRequest request)
