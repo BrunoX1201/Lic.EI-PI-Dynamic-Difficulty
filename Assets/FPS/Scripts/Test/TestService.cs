@@ -102,6 +102,10 @@ namespace Unity.FPS.Test
                 APIResult<ProcessEncounterResponse> result = await APIService.ProcessEncounter(request);
                 stopwatch.Stop();
 
+                if (!result.Success)
+                {
+                    return new TestResult<float>(resultName, -1, false);
+                }
 
                 long nowMS = stopwatch.ElapsedMilliseconds;
                 totalTimeMS += nowMS;
